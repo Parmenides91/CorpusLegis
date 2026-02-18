@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CorpusLegis.ServiceDefaults\CorpusLegis.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\CorpusLegis.Shared\CorpusLegis.Shared.csproj" />
   </ItemGroup>
 
 </Project>

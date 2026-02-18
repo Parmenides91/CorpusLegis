@@ -9,6 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.SqlServer" Version="13.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\CorpusLegis.API\CorpusLegis.API.csproj" />
     <ProjectReference Include="..\CorpusLegis.Web\CorpusLegis.Web.csproj" />
   </ItemGroup>

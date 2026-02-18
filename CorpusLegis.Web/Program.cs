@@ -4,6 +4,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
+
+// Se agrega una referencia al proyecto de CorpusLegis.Shared para poder usar sus servicios
+//var api_corpuslegis = builder.AddProject<Projects.CorpusLegis_API>("corpuslegis-api");
+// TODO: no me dice Gemini cómo hacerlo. --> se hace desde el SolutionExplorer.
+
+
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
