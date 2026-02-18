@@ -1,4 +1,6 @@
 <Solution>
+  <Project Path="CorpusLegis.API/CorpusLegis.API.csproj" />
   <Project Path="CorpusLegis.AppHost/CorpusLegis.AppHost.csproj" />
   <Project Path="CorpusLegis.ServiceDefaults/CorpusLegis.ServiceDefaults.csproj" />
+  <Project Path="CorpusLegis.Web/CorpusLegis.Web.csproj" />
 </Solution>

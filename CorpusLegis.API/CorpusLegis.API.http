@@ -1,0 +1,6 @@
+@CorpusLegis.API_HostAddress = http://localhost:5208
+
+GET {{CorpusLegis.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

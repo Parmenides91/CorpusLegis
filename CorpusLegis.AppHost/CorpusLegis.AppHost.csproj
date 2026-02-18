@@ -8,4 +8,9 @@
     <UserSecretsId>9ecb4a87-3d8b-4e25-a09e-f445b9908efb</UserSecretsId>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\CorpusLegis.API\CorpusLegis.API.csproj" />
+    <ProjectReference Include="..\CorpusLegis.Web\CorpusLegis.Web.csproj" />
+  </ItemGroup>
+
 </Project>
