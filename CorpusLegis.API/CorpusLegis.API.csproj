@@ -14,4 +14,8 @@
     <ProjectReference Include="..\CorpusLegis.ServiceDefaults\CorpusLegis.ServiceDefaults.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Controllers\" />
+  </ItemGroup>
+
 </Project>
