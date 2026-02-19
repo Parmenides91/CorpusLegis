@@ -1,6 +1,18 @@
 @CorpusLegis.API_HostAddress = http://localhost:5208
 
-GET {{CorpusLegis.API_HostAddress}}/weatherforecast/
+
+GET {{CorpusLegis.API_HostAddress}}/rogatio
 Accept: application/json
+
+###
+
+POST {{CorpusLegis.API_HostAddress}}/rogatio
+Content-type: application/json
+
+{
+  "title": "Amarse",
+  "content": "Juntos somos",
+  "status": "draft"
+}
 
 ###

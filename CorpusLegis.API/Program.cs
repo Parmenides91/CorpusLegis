@@ -67,11 +67,25 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Se crea automáticamente la base de datos al iniciar la aplicación (si no existe), sólo para DEV. Evita lanzar update-database.
+
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<CorpusLegisContext>();
-    db.Database.EnsureCreated();
+    db.Database.EnsureCreated(); // Se crea automáticamente la base de datos al iniciar la aplicación (si no existe), sólo para DEV. Evita lanzar update-database.
+
+    if (!db.Rogatios.Any()) // Se crea un Rogatio de ejemplo si la tabla está vacía.
+    {
+        db.Rogatios.Add(new Rogatio
+        {
+            Id = Guid.NewGuid(),
+            Title = "Rogatio de ejemplo",
+            Content = "Contenido del rogatio de ejemplo",
+            Status = "Draft",
+            CreatedAt = DateTime.UtcNow
+        });
+
+        db.SaveChanges();
+    }
 }
 
 app.Run();
