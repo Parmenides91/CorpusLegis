@@ -1,7 +1,13 @@
 @CorpusLegis.API_HostAddress = http://localhost:5208
 
+###
 
 GET {{CorpusLegis.API_HostAddress}}/rogatio
+Accept: application/json
+
+###
+
+GET {{CorpusLegis.API_HostAddress}}/rogatio/744f0423-05fb-4ad5-a2c8-212973c960c0
 Accept: application/json
 
 ###
@@ -14,5 +20,20 @@ Content-type: application/json
   "content": "Juntos somos",
   "status": "draft"
 }
+
+###
+
+PUT {{CorpusLegis.API_HostAddress}}/rogatio/744f0423-05fb-4ad5-a2c8-212973c960c0
+Content-type: application/json
+
+{
+  "title": "Se amen",
+  "content": "Son juntos",
+  "status": "Draft"
+}
+
+###
+
+DELETE {{CorpusLegis.API_HostAddress}}/rogatio/744f0423-05fb-4ad5-a2c8-212973c960c0
 
 ###

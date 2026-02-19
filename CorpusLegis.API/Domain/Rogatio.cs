@@ -10,6 +10,8 @@ public class Rogatio
 
     public string Content { get; set; } = string.Empty;
 
+    public Guid AuthorId { get; set; } // el Civis
+
     public DateTime CreatedAt { get; set; }
 
     public string Status { get; set; } = "Draft"; // Draft, Voting, Approved (Lex), Rejected
