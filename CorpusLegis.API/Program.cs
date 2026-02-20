@@ -1,6 +1,8 @@
 
 using CorpusLegis.API.Data;
 using CorpusLegis.API.Domain;
+using CorpusLegis.API.Endpoints;
+using CorpusLegis.API.Services;
 using CorpusLegis.Shared.Dtos;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,119 +24,125 @@ builder.Services.AddOpenApi();
 // Se agrega el contexto de la base de datos (a la manera Aspire)
 builder.AddSqlServerDbContext<CorpusLegisContext>("corpuslegis-db");
 
+// Se registra el servicio de Rogatio.
+builder.Services.AddScoped<IRogatioService, RogatioService>();
+
 var app = builder.Build();
 
 app.MapDefaultEndpoints();
 
+// Se mapean los endpoints de Rogatio.
+app.MapRogatioEndpoints();
 
-// ---------------------------------------------------------
-// ENDPOINTS (MINIMAL API) para Rogatio.
-// ---------------------------------------------------------
-// GET /rogatio --> devuelve la lista de Rogatios
-app.MapGet("/rogatio", async (CorpusLegisContext db)
-    => await db.Rogatios
-        .Select(r => new RogatioSummaryDto (
-            r.Id,
-            r.Title,
-            r.Content,
-            r.AuthorId,
-            r.CreatedAt,
-            r.Status
-            ))
-        .AsNoTracking()
-        .ToListAsync()
-    );
 
-// GET /rogatio/{id} --> devuelve un Rogatio por su id
-app.MapGet("rogatio/{id:guid}", async (CorpusLegisContext db, Guid id) =>
-{
-    var rogatio = await db.Rogatios.FindAsync(id);
+//// ---------------------------------------------------------
+//// ENDPOINTS (MINIMAL API) para Rogatio.
+//// ---------------------------------------------------------
+//// GET /rogatio --> devuelve la lista de Rogatios
+//app.MapGet("/rogatio", async (CorpusLegisContext db)
+//    => await db.Rogatios
+//        .Select(r => new RogatioSummaryDto (
+//            r.Id,
+//            r.Title,
+//            r.Content,
+//            r.AuthorId,
+//            r.CreatedAt,
+//            r.Status
+//            ))
+//        .AsNoTracking()
+//        .ToListAsync()
+//    );
 
-    if (rogatio == null)
-    {
-        return Results.NotFound();
-    }
+//// GET /rogatio/{id} --> devuelve un Rogatio por su id
+//app.MapGet("rogatio/{id:guid}", async (CorpusLegisContext db, Guid id) =>
+//{
+//    var rogatio = await db.Rogatios.FindAsync(id);
 
-    RogatioDetailsDto dto = new(
-        rogatio.Id,
-        rogatio.Title,
-        rogatio.Content,
-        Guid.Empty,
-        rogatio.CreatedAt,
-        rogatio.Status
-    );
+//    if (rogatio == null)
+//    {
+//        return Results.NotFound();
+//    }
 
-    return Results.Ok(dto);
-});
+//    RogatioDetailsDto dto = new(
+//        rogatio.Id,
+//        rogatio.Title,
+//        rogatio.Content,
+//        Guid.Empty,
+//        rogatio.CreatedAt,
+//        rogatio.Status
+//    );
 
-// POST /rogatio --> crea un nuevo Rogatio
-app.MapPost("/rogatio", async (CorpusLegisContext db, CreateRogatioDto newRogatio) => 
-{
-    Rogatio rogatio = new Rogatio
-    {
-        Id = Guid.NewGuid(),
-        Title = newRogatio.Title,
-        Content = newRogatio.Content,
-        //AuthorId = newRogatio.AuthorId,
-        CreatedAt = DateTime.UtcNow,
-        Status = newRogatio.Status
-    };
+//    return Results.Ok(dto);
+//});
 
-    db.Rogatios.Add(rogatio);
-    await db.SaveChangesAsync();
+//// POST /rogatio --> crea un nuevo Rogatio
+//app.MapPost("/rogatio", async (CorpusLegisContext db, CreateRogatioDto newRogatio) => 
+//{
+//    Rogatio rogatio = new Rogatio
+//    {
+//        Id = Guid.NewGuid(),
+//        Title = newRogatio.Title,
+//        Content = newRogatio.Content,
+//        //AuthorId = newRogatio.AuthorId,
+//        CreatedAt = DateTime.UtcNow,
+//        Status = newRogatio.Status
+//    };
 
-    RogatioDetailsDto dto = new(
-        rogatio.Id,
-        rogatio.Title,
-        rogatio.Content,
-        Guid.Empty,
-        rogatio.CreatedAt,
-        rogatio.Status
-    );
+//    db.Rogatios.Add(rogatio);
+//    await db.SaveChangesAsync();
 
-    return Results.Created($"/rogatio/{rogatio.Id}", dto); // se devuelve un 201 con el DTO de detalles
-});
+//    RogatioDetailsDto dto = new(
+//        rogatio.Id,
+//        rogatio.Title,
+//        rogatio.Content,
+//        Guid.Empty,
+//        rogatio.CreatedAt,
+//        rogatio.Status
+//    );
 
-// PUT /rogatio/{id} --> actualiza un Rogatio existente por su id
-app.MapPut("/rogatio/{id:guid}", async (CorpusLegisContext db, Guid id, UpdateRogatioDto updatedRogatio) =>
-{
-    //var existingRogatio = await db.Rogatios.FindAsync(updatedRogatio.Id);
-    var existingRogatio = await db.Rogatios.FindAsync(id);
+//    return Results.Created($"/rogatio/{rogatio.Id}", dto); // se devuelve un 201 con el DTO de detalles
+//});
 
-    if (existingRogatio == null)
-    {
-        return Results.NotFound();
-    }
+//// PUT /rogatio/{id} --> actualiza un Rogatio existente por su id
+//app.MapPut("/rogatio/{id:guid}", async (CorpusLegisContext db, Guid id, UpdateRogatioDto updatedRogatio) =>
+//{
+//    //var existingRogatio = await db.Rogatios.FindAsync(updatedRogatio.Id);
+//    var existingRogatio = await db.Rogatios.FindAsync(id);
 
-    existingRogatio.Title = updatedRogatio.Title;
-    existingRogatio.Content = updatedRogatio.Content;
-    //existingRogatio.AuthorId = updatedRogatio.AuthorId;
-    existingRogatio.Status = updatedRogatio.Status;
+//    if (existingRogatio == null)
+//    {
+//        return Results.NotFound();
+//    }
 
-    await db.SaveChangesAsync();
+//    existingRogatio.Title = updatedRogatio.Title;
+//    existingRogatio.Content = updatedRogatio.Content;
+//    //existingRogatio.AuthorId = updatedRogatio.AuthorId;
+//    existingRogatio.Status = updatedRogatio.Status;
 
-    RogatioDetailsDto dto = new(
-        existingRogatio.Id,
-        existingRogatio.Title,
-        existingRogatio.Content,
-        Guid.Empty,
-        existingRogatio.CreatedAt,
-        existingRogatio.Status
-    );
+//    await db.SaveChangesAsync();
 
-    return Results.Ok(dto); // se devuelve un 200 con el DTO de detalles actualizado
-}
-);
+//    RogatioDetailsDto dto = new(
+//        existingRogatio.Id,
+//        existingRogatio.Title,
+//        existingRogatio.Content,
+//        Guid.Empty,
+//        existingRogatio.CreatedAt,
+//        existingRogatio.Status
+//    );
 
-// DELETE /rogatio/{id} --> elimina un Rogatio por su id
-app.MapDelete("/rogatio/{id:guid}", async (CorpusLegisContext db, Guid id) =>
-{
-    await db.Rogatios.Where(r => r.Id == id).ExecuteDeleteAsync();
+//    return Results.Ok(dto); // se devuelve un 200 con el DTO de detalles actualizado
+//}
+//);
 
-    return Results.NoContent(); // se devuelve un 204
-}
-);
-// ---------------------------------------------------------
+//// DELETE /rogatio/{id} --> elimina un Rogatio por su id
+//app.MapDelete("/rogatio/{id:guid}", async (CorpusLegisContext db, Guid id) =>
+//{
+//    await db.Rogatios.Where(r => r.Id == id).ExecuteDeleteAsync();
+
+//    return Results.NoContent(); // se devuelve un 204
+//}
+//);
+//// ---------------------------------------------------------
 
 
 // Configure the HTTP request pipeline.

@@ -1,0 +1,59 @@
+﻿using CorpusLegis.API.Domain;
+using CorpusLegis.API.Services;
+using CorpusLegis.Shared.Dtos;
+
+namespace CorpusLegis.API.Endpoints;
+
+public static class RogatioEndpoints
+{
+
+    public static void MapRogatioEndpoints(this IEndpointRouteBuilder app)
+    {
+        var group = app.MapGroup("/rogatio").WithTags("Rogatio");
+
+        // Se enlazan las rutas a métodos locales
+        group.MapGet("/", GetAllRogatios);
+        group.MapGet("/{id:guid}", GetRogatioById);
+        group.MapPost("/", CreateRogatio);
+        group.MapPut("/{id:guid}", UpdateRogatio);
+        group.MapDelete("/{id:guid}", DeleteRogatio);
+
+    }
+
+
+    private static async Task<IResult> GetAllRogatios(IRogatioService service)
+    {
+        var rogatios = await service.GetAllAsync();
+
+        return Results.Ok(rogatios);
+    }
+
+    private static async Task<IResult> GetRogatioById(Guid id, IRogatioService service)
+    {
+        var rogatio = await service.GetByIdAsync(id);
+
+        return rogatio is not null ? Results.Ok(rogatio) : Results.NotFound();
+    }
+
+    private static async Task<IResult> CreateRogatio(CreateRogatioDto dto, IRogatioService service)
+    {
+        var result = await service.CreateAsync(dto);
+
+        return Results.Created($"/rogatio/{result.Id}", result); // si ha ido bien, será un código 201 + el objeto (DTO) creado.
+    }
+
+    private static async Task<IResult> UpdateRogatio(Guid id, UpdateRogatioDto dto, IRogatioService service)
+    {
+        var updated = await service.UpdateAsync(id, dto);
+
+        return updated is not null ? Results.Ok(updated) : Results.NotFound(); // si va bien, será un código 200 + el objeto (DTO) actualizado.
+    }
+
+    private static async Task<IResult> DeleteRogatio(Guid id, IRogatioService service)
+    {
+        var deleted = await service.DeleteAsync(id);
+
+        return deleted ? Results.NoContent() : Results.NotFound();
+    }
+
+}

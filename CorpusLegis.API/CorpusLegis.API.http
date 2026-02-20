@@ -7,7 +7,7 @@ Accept: application/json
 
 ###
 
-GET {{CorpusLegis.API_HostAddress}}/rogatio/744f0423-05fb-4ad5-a2c8-212973c960c0
+GET {{CorpusLegis.API_HostAddress}}/rogatio/7a3650b9-2fa1-43fe-a01c-df16647a8ade
 Accept: application/json
 
 ###
@@ -23,7 +23,7 @@ Content-type: application/json
 
 ###
 
-PUT {{CorpusLegis.API_HostAddress}}/rogatio/744f0423-05fb-4ad5-a2c8-212973c960c0
+PUT {{CorpusLegis.API_HostAddress}}/rogatio/7a3650b9-2fa1-43fe-a01c-df16647a8ade
 Content-type: application/json
 
 {
@@ -34,6 +34,6 @@ Content-type: application/json
 
 ###
 
-DELETE {{CorpusLegis.API_HostAddress}}/rogatio/744f0423-05fb-4ad5-a2c8-212973c960c0
+DELETE {{CorpusLegis.API_HostAddress}}/rogatio/7a3650b9-2fa1-43fe-a01c-df16647a8ade
 
 ###
