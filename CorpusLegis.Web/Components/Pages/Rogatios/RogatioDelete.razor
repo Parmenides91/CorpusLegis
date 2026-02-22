@@ -1,0 +1,65 @@
+﻿@page "/rogatio/delete/{Id:guid}"
+@rendermode InteractiveServer
+
+@using CorpusLegis.Shared.Dtos
+
+@inject Clients.CorpusLegisApiClient ApiClient
+@inject NavigationManager NavigationManager
+
+
+<h3>Eliminar Rogatio</h3>
+
+@if (loading)
+{
+    <p>Cargando</p>
+}
+else if (rogatio == null)
+{
+    <div class="alert alert-danger">Rogatio no encontrada.</div>
+}
+else
+{
+    <div class="alert alert-warning">
+        <p>Pretendes eliminar el Rogatio:</p>
+        
+        <div class="alert alert-danger">
+            <strong>@rogatio.Title</strong>
+        </div>
+
+        <small>Esta acción es irreversible.</small>
+        <p>¿Estás seguro de que quieres eliminar este Rogatio?</p>
+        <button class="btn btn-danger mt-3" @onclick="DeleteRogatio">Sí, eliminar</button>
+        <button class="btn btn-secondary mt-3 ms-2" @onclick="CancelDelete">No, cancelar</button>
+
+    </div>
+}
+
+
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+    private RogatioDetailsDto? rogatio;
+    private bool loading = true;
+    private string? errorMessage;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        rogatio = await ApiClient.GetRogatioByIdAsync(Id);
+        loading = false;
+    }
+
+    async Task DeleteRogatio()
+    {
+        var ok = await ApiClient.DeleteRogatioAsync(Id);
+        NavigationManager.NavigateTo("/rogatio");
+    }
+
+    void CancelDelete()
+    {
+        NavigationManager.NavigateTo($"/rogatio/{Id}");
+    }
+
+
+}

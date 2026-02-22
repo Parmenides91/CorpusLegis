@@ -1,0 +1,75 @@
+﻿@page "/rogatio"
+@rendermode InteractiveServer
+
+@using CorpusLegis.Shared.Dtos
+@* @using Microsoft.AspNetCore.Components.Authorization *@
+
+@inject Clients.CorpusLegisApiClient ApiClient
+
+
+
+<h3>Rogatios actuales (todas? usuario?)</h3>
+
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+
+@if (rogatios == null)
+{
+    <p><em>Cargando del Senado...</em></p>
+}
+else if (!rogatios.Any())
+{
+    <p>No hay Rogatios registradas en el Codex actualmente.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Título</th>
+                <th>Estado</th>
+                <th>Fecha de creación</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var rogatio in rogatios)
+            {
+                <tr>
+                    <td>@rogatio.Title</td>
+                    <td>@rogatio.Status</td>
+                    <td>@rogatio.CreatedAt</td>
+                    <td>
+                        <a class="btn btn-sm btn-outline-primary" href="rogatio/@rogatio.Id">Ver detalles</a>
+                        <a class="btn btn-sm btn-outline-secondary" href="rogatio/edit/@rogatio.Id">Editar</a>
+                        <a class="btn btn-sm btn-outline-warning" href="rogatio/delete/@rogatio.Id">¿Eliminar?</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<RogatioSummaryDto>? rogatios;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            errorMessage = null; // Limpiar cualquier mensaje de error previo
+
+            rogatios = await ApiClient.GetRogatiosAsync();
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"Error al cargar los Rogatios: {ex.Message}");
+            errorMessage = $"Error al cargar los Rogatios: {ex.Message}";
+        }
+    }
+}

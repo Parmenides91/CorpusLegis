@@ -1,0 +1,69 @@
+﻿@page "/rogatio/{Id:guid}"
+@rendermode InteractiveServer
+
+@using CorpusLegis.Shared.Dtos
+
+@inject Clients.CorpusLegisApiClient ApiClient
+
+
+<h3>Detalles del Rogatio [ID: xxx ]</h3>
+
+@if (rogatio != null)
+{
+    <div class="card mt-4">
+
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">@rogatio.Title</h4>
+        </div>
+
+        <div class="card-body">
+            <p class="lead">@rogatio.Content</p>
+            <hr />
+            <div class="row text-muted">
+                <div class="col-sm-2"><strong>Estado: </strong> <span class="badge bg-secondary">@rogatio.Status</span></div>
+                <div class="col-sm-6"><strong>ID: </strong> @rogatio.Id</div>
+            </div>
+        </div>
+
+        <div class="card-footer">
+            <div class="col-sm-4"><small><strong>Fecha de creación: </strong> @rogatio.CreatedAt.ToString("g")</small></div>
+        </div>
+
+    </div>
+}
+
+<a href="/rogatio" class="btn btn-lg btn-dark">Volver al listado de Rogatios</a>
+
+
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private RogatioDetailsDto? rogatio;
+    private string? errorMessage;
+    private bool loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            rogatio = await ApiClient.GetRogatioByIdAsync(Id);
+
+            if (rogatio == null)
+            {
+                Console.WriteLine($"Rogatio no encontrada para editar.");
+                errorMessage = "Rogatio no encontrada para editar.";
+            }
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"Error de comunicación con la API: {ex.Message}");
+            errorMessage = $"No se ha podido cargar el Rogatio: {ex.Message}";
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+}
