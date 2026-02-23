@@ -1,18 +1,9 @@
-﻿using System;
+﻿using CorpusLegis.Shared.Enums;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace CorpusLegis.Shared.Dtos;
-
-public enum RogatioStatus
-{
-    Draft,
-    Voting,
-    Approved, // Lex
-    Rejected
-}
-
-// DTO para listados (pocos campos).
 
 public record RogatioSummaryDto(
     Guid Id,
@@ -20,6 +11,6 @@ public record RogatioSummaryDto(
     string Content,
     Guid AuthorId,
     DateTime CreatedAt,
-    string Status
+    RogatioStatus Status
     );
 

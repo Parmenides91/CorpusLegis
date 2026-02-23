@@ -17,8 +17,7 @@ Content-type: application/json
 
 {
   "title": "Amarse",
-  "content": "Juntos somos",
-  "status": "draft"
+  "content": "Juntos somos"
 }
 
 ###
@@ -29,7 +28,6 @@ Content-type: application/json
 {
   "title": "Se amen",
   "content": "Son juntos",
-  "status": "Draft"
 }
 
 ###

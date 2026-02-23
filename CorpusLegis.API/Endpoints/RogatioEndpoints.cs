@@ -1,6 +1,7 @@
 ﻿using CorpusLegis.API.Domain;
 using CorpusLegis.API.Services;
 using CorpusLegis.Shared.Dtos;
+using MiniValidation;
 
 namespace CorpusLegis.API.Endpoints;
 
@@ -37,6 +38,11 @@ public static class RogatioEndpoints
 
     private static async Task<IResult> CreateRogatio(CreateRogatioDto dto, IRogatioService service)
     {
+        if (MiniValidator.TryValidate(dto, out var errors))
+        {
+            return Results.ValidationProblem(errors);
+        }
+
         var result = await service.CreateAsync(dto);
 
         return Results.Created($"/rogatio/{result.Id}", result); // si ha ido bien, será un código 201 + el objeto (DTO) creado.
@@ -44,6 +50,11 @@ public static class RogatioEndpoints
 
     private static async Task<IResult> UpdateRogatio(Guid id, UpdateRogatioDto dto, IRogatioService service)
     {
+        if (MiniValidator.TryValidate(dto, out var errors))
+        {
+            return Results.ValidationProblem(errors);
+        }
+
         var updated = await service.UpdateAsync(id, dto);
 
         return updated is not null ? Results.Ok(updated) : Results.NotFound(); // si va bien, será un código 200 + el objeto (DTO) actualizado.

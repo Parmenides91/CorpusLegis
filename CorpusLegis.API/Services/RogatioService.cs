@@ -23,7 +23,7 @@ public class RogatioService : IRogatioService
                     r.Id,
                     r.Title,
                     r.Content,
-                    r.AuthorId,
+                    r.CivisId,
                     r.CreatedAt,
                     r.Status
                     ))

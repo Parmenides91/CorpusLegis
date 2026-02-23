@@ -60,7 +60,6 @@ using (var scope = app.Services.CreateScope())
             Id = Guid.NewGuid(),
             Title = "Rogatio de ejemplo",
             Content = "Contenido del rogatio de ejemplo",
-            Status = "Draft",
             CreatedAt = DateTime.UtcNow
         });
 
