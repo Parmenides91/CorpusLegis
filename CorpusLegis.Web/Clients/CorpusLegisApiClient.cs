@@ -25,8 +25,8 @@ public class CorpusLegisApiClient
         return response;
     }
 
-    // Método para obtener la lista de rogatios.
-    public async Task<List<RogatioSummaryDto>> GetRogatiosAsync()
+    // Método para obtener la lista de rogationes.
+    public async Task<List<RogatioSummaryDto>> GetRogationesAsync()
     {
         var response = await _httpClient.GetFromJsonAsync<List<RogatioSummaryDto>>("/rogatio");
 

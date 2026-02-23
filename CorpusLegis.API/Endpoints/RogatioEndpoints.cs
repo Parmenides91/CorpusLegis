@@ -13,7 +13,7 @@ public static class RogatioEndpoints
         var group = app.MapGroup("/rogatio").WithTags("Rogatio");
 
         // Se enlazan las rutas a métodos locales
-        group.MapGet("/", GetAllRogatios);
+        group.MapGet("/", GetAllRogationes);
         group.MapGet("/{id:guid}", GetRogatioById);
         group.MapPost("/", CreateRogatio);
         group.MapPut("/{id:guid}", UpdateRogatio);
@@ -22,11 +22,11 @@ public static class RogatioEndpoints
     }
 
 
-    private static async Task<IResult> GetAllRogatios(IRogatioService service)
+    private static async Task<IResult> GetAllRogationes(IRogatioService service)
     {
-        var rogatios = await service.GetAllAsync();
+        var rogationes = await service.GetAllAsync();
 
-        return Results.Ok(rogatios);
+        return Results.Ok(rogationes);
     }
 
     private static async Task<IResult> GetRogatioById(Guid id, IRogatioService service)

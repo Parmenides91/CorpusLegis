@@ -18,7 +18,7 @@ public class RogatioService : IRogatioService
 
     public async Task<List<RogatioSummaryDto>> GetAllAsync()
     {
-        return await _db.Rogatios
+        return await _db.Rogationes
                 .Select(r => new RogatioSummaryDto (
                     r.Id,
                     r.Title,
@@ -35,7 +35,7 @@ public class RogatioService : IRogatioService
     {
         //return await _db.Rogatios.FindAsync(id);
 
-        var rogatio = await _db.Rogatios.FindAsync(id);
+        var rogatio = await _db.Rogationes.FindAsync(id);
 
         if (rogatio == null)
         {
@@ -66,7 +66,7 @@ public class RogatioService : IRogatioService
             Status = newRogatio.Status
         };
 
-        _db.Rogatios.Add(rogatio);
+        _db.Rogationes.Add(rogatio);
         await _db.SaveChangesAsync();
 
         RogatioDetailsDto dto = new(
@@ -83,7 +83,7 @@ public class RogatioService : IRogatioService
 
     public async Task<RogatioDetailsDto?> UpdateAsync(Guid id, UpdateRogatioDto updatedRogatio)
     {
-        var existingRogatio = await _db.Rogatios.FindAsync(id);
+        var existingRogatio = await _db.Rogationes.FindAsync(id);
 
         if (existingRogatio == null)
         {
@@ -111,7 +111,7 @@ public class RogatioService : IRogatioService
 
     public async Task<bool> DeleteAsync(Guid id)
     {
-        var filasBorradas =  await _db.Rogatios.Where(r => r.Id == id)
+        var filasBorradas =  await _db.Rogationes.Where(r => r.Id == id)
                                                 .ExecuteDeleteAsync();
 
         return filasBorradas > 0;

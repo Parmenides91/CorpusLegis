@@ -17,7 +17,7 @@ public class CreateRogatioDto
     [StringLength(100, ErrorMessage = "El título no debe exceder los 100 caracteres.")]
     public string Title { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Las Rogatios deben tener un contenido en el momento de la creación.")]
+    [Required(ErrorMessage = "Las Rogationes deben tener un contenido en el momento de la creación.")]
     public string Content { get; set; } = string.Empty;
 
     // El AuthorId lo inyectará el backend basándose en el usuario autentificado más adelante.

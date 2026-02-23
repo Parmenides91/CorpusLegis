@@ -8,7 +8,7 @@
 
 
 
-<h3>Rogatios actuales (todas? usuario?)</h3>
+<h3>Rogationes actuales (todas? usuario?)</h3>
 
 
 @if (!string.IsNullOrEmpty(errorMessage))
@@ -17,13 +17,13 @@
 }
 
 
-@if (rogatios == null)
+@if (rogationes == null)
 {
     <p><em>Cargando del Senado...</em></p>
 }
-else if (!rogatios.Any())
+else if (!rogationes.Any())
 {
-    <p>No hay Rogatios registradas en el Codex actualmente.</p>
+    <p>No hay Rogationes registradas en el Codex actualmente.</p>
 }
 else
 {
@@ -37,7 +37,7 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var rogatio in rogatios)
+            @foreach (var rogatio in rogationes)
             {
                 <tr>
                     <td>@rogatio.Title</td>
@@ -55,7 +55,7 @@ else
 }
 
 @code {
-    private List<RogatioSummaryDto>? rogatios;
+    private List<RogatioSummaryDto>? rogationes;
     private string? errorMessage;
 
     protected override async Task OnInitializedAsync()
@@ -64,12 +64,12 @@ else
         {
             errorMessage = null; // Limpiar cualquier mensaje de error previo
 
-            rogatios = await ApiClient.GetRogatiosAsync();
+            rogationes = await ApiClient.GetRogationesAsync();
         }
         catch (HttpRequestException ex)
         {
-            Console.WriteLine($"Error al cargar los Rogatios: {ex.Message}");
-            errorMessage = $"Error al cargar los Rogatios: {ex.Message}";
+            Console.WriteLine($"Error al cargar los Rogationes: {ex.Message}");
+            errorMessage = $"Error al cargar los Rogationes: {ex.Message}";
         }
     }
 }

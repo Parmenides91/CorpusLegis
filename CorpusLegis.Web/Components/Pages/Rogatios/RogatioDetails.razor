@@ -22,17 +22,44 @@
             <div class="row text-muted">
                 <div class="col-sm-2"><strong>Estado: </strong> <span class="badge bg-secondary">@rogatio.Status</span></div>
                 <div class="col-sm-6"><strong>ID: </strong> @rogatio.Id</div>
+                <div class="col-sm-4"><small><strong>Fecha de creación: </strong> @rogatio.CreatedAt.ToString("g")</small></div>
             </div>
         </div>
 
         <div class="card-footer">
-            <div class="col-sm-4"><small><strong>Fecha de creación: </strong> @rogatio.CreatedAt.ToString("g")</small></div>
+            @* <div class="col-sm-4"><small><strong>Fecha de creación: </strong> @rogatio.CreatedAt.ToString("g")</small></div> *@
+            @if (rogatio.Status == Shared.Enums.RogatioStatus.Inchoatus)
+            {
+                <i>Aún no se puede votar</i>
+            }
+            else if (rogatio.Status == Shared.Enums.RogatioStatus.Proposita)
+            {
+                <i>Abiertos los comentarios para el debate.</i>
+            }
+            else if (rogatio.Status == Shared.Enums.RogatioStatus.InSuffragium)
+            {
+                <a class="btn btn-sm btn-outline-info" href="rogatio/@rogatio.Id/vote">Pro</a>
+                <a class="btn btn-sm btn-outline-info" href="rogatio/@rogatio.Id/vote">Contra</a>
+                <a class="btn btn-sm btn-outline-info" href="rogatio/@rogatio.Id/vote">Absentio</a>                
+            }
+            else if (rogatio.Status == Shared.Enums.RogatioStatus.Approbata)
+            {
+                <p>Aprobada</p>
+                <p>Resultado de la votación: XXXXXX</p>
+                <a class="btn btn-sm btn-outline-secondary" href="rogatio/clonar">Clonar Rogatio (pendiente de crear)</a>
+            }
+            else if (rogatio.Status == Shared.Enums.RogatioStatus.Reprobata)
+            {
+                <p>Rechazada</p>
+                <p>Resultado de la votación: XXXXXX</p>
+                <a class="btn btn-sm btn-outline-secondary" href="rogatio/clonar">Clonar Rogatio (pendiente de crear)</a>
+            }
         </div>
 
     </div>
 }
 
-<a href="/rogatio" class="btn btn-lg btn-dark">Volver al listado de Rogatios</a>
+<a href="/rogatio" class="btn btn-lg btn-dark">Volver al listado de Rogationes</a>
 
 
 
