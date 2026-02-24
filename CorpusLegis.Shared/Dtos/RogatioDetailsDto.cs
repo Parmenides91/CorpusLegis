@@ -10,7 +10,7 @@ public record RogatioDetailsDto(
     Guid Id,
     string Title,
     string Content,
-    Guid AuthorId,
+    Guid CivisId,
     DateTime CreatedAt,
     RogatioStatus Status
     );

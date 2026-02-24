@@ -65,6 +65,21 @@ public class CorpusLegisContext(DbContextOptions<CorpusLegisContext> options)
             .WithMany()
             .HasForeignKey(s => s.CivisId)
             .OnDelete(DeleteBehavior.Restrict);
+
+
+
+        // Evitar bucles de borrado en cascada para Lex.
+        modelBuilder.Entity<Lex>()
+            .HasOne(l => l.OriginRogatio)
+            .WithMany() // Una Rogatio podría teóricamente originar múltiples versiones de Lex, o ninguna.
+            .HasForeignKey(l => l.OriginRogatioId)
+            .OnDelete(DeleteBehavior.Restrict); // obligatorio o llevamos un bucle de borrado en cascada entre Rogatio y Lex.
+
+        modelBuilder.Entity<Lex>()
+            .HasOne(l => l.Civitas)
+            .WithMany(c => c.Leges)
+            .HasForeignKey(l => l.CivitasId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 
 }

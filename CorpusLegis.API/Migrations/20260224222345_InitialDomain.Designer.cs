@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CorpusLegis.API.Migrations
 {
     [DbContext(typeof(CorpusLegisContext))]
-    [Migration("20260223190220_InitialDomain")]
+    [Migration("20260224222345_InitialDomain")]
     partial class InitialDomain
     {
         /// <inheritdoc />
@@ -227,7 +227,7 @@ namespace CorpusLegis.API.Migrations
                     b.HasOne("CorpusLegis.API.Domain.Civitas", "Civitas")
                         .WithMany("Leges")
                         .HasForeignKey("CivitasId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("CorpusLegis.API.Domain.Lex", "DerogatedByLex")
@@ -237,7 +237,7 @@ namespace CorpusLegis.API.Migrations
                     b.HasOne("CorpusLegis.API.Domain.Rogatio", "OriginRogatio")
                         .WithMany()
                         .HasForeignKey("OriginRogatioId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Civitas");

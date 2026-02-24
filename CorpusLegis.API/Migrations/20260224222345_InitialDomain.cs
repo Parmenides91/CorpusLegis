@@ -110,7 +110,7 @@ namespace CorpusLegis.API.Migrations
                         column: x => x.CivitasId,
                         principalTable: "Civitates",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Leges_Leges_DerogatedByLexId",
                         column: x => x.DerogatedByLexId,
@@ -121,7 +121,7 @@ namespace CorpusLegis.API.Migrations
                         column: x => x.OriginRogatioId,
                         principalTable: "Rogationes",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(

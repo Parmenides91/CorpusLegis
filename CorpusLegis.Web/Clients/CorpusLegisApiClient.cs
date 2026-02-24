@@ -1,4 +1,5 @@
 ﻿using CorpusLegis.Shared.Dtos;
+using CorpusLegis.Shared.Dtos.Suffragium;
 using CorpusLegis.Shared.Validators;
 
 namespace CorpusLegis.Web.Clients;
@@ -77,6 +78,36 @@ public class CorpusLegisApiClient
         response.EnsureSuccessStatusCode();
 
         return true;
+    }
+
+
+    // Método para emitir un voto (suffragium) a un rogatio.
+    public async Task<SuffragiumDetailsDto?> CreateSuffragiumAsync(Guid idRogatio, CreateSuffragiumDto dto)
+    {
+        var response = await _httpClient.PostAsJsonAsync($"/rogatio/{idRogatio}/vote", dto);
+
+        response.EnsureSuccessStatusCode();
+
+        return await response.Content.ReadFromJsonAsync<SuffragiumDetailsDto>();
+    }
+
+
+    // Método para cambiar el estado de un rogatio (workflow).
+    public async Task<RogatioDetailsDto?> ChangeRogatioStatusAsync(Guid id, WorkflowRogatioDto dto)
+    {
+        var response = await _httpClient.PutAsJsonAsync($"/rogatio/{id}/status", dto);
+        //if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+        //{
+        //    var problemDetails = await response.Content.ReadFromJsonAsync<HttpValidationProblemDetails>();
+        //    if (problemDetails?.Errors != null)
+        //    {
+        //        throw new ApiValidationException(problemDetails.Errors);
+        //    }
+        //}
+
+        response.EnsureSuccessStatusCode();
+
+        return await response.Content.ReadFromJsonAsync<RogatioDetailsDto>();
     }
 
 }

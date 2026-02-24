@@ -1,11 +1,7 @@
-﻿namespace CorpusLegis.API.Domain;
+﻿using CorpusLegis.Shared.Enums;
 
+namespace CorpusLegis.API.Domain;
 
-public enum SuffragiumValue {
-    Pro,
-    Contra,
-    Abstentio
-}
 
 public class Suffragium
 {

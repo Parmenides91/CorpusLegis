@@ -2,8 +2,11 @@
 @rendermode InteractiveServer
 
 @using CorpusLegis.Shared.Dtos
+@using CorpusLegis.Shared.Dtos.Suffragium
+@using CorpusLegis.Shared.Enums
 
 @inject Clients.CorpusLegisApiClient ApiClient
+@inject NavigationManager NavigationManager
 
 
 <h3>Detalles del Rogatio [ID: xxx ]</h3>
@@ -38,9 +41,9 @@
             }
             else if (rogatio.Status == Shared.Enums.RogatioStatus.InSuffragium)
             {
-                <a class="btn btn-sm btn-outline-info" href="rogatio/@rogatio.Id/vote">Pro</a>
-                <a class="btn btn-sm btn-outline-info" href="rogatio/@rogatio.Id/vote">Contra</a>
-                <a class="btn btn-sm btn-outline-info" href="rogatio/@rogatio.Id/vote">Absentio</a>                
+                <button type="button" class="btn btn-sm btn-outline-info" @onclick="() => Vote(SuffragiumValue.Pro)" disabled="@voting">Pro</button>
+                <button type="button" class="btn btn-sm btn-outline-info" @onclick="() => Vote(SuffragiumValue.Contra)" disabled="@voting">Contra</button>
+                <button type="button" class="btn btn-sm btn-outline-info" @onclick="() => Vote(SuffragiumValue.Abstentio)" disabled="@voting">Absentio</button>
             }
             else if (rogatio.Status == Shared.Enums.RogatioStatus.Approbata)
             {
@@ -56,6 +59,12 @@
             }
         </div>
 
+        <button type="button" class="btn btn-sm btn-outline-info" @onclick="() => CambiarEstado(RogatioStatus.Inchoatus)">A borrador</button>
+        <button type="button" class="btn btn-sm btn-outline-info" @onclick="() => CambiarEstado(RogatioStatus.Proposita)">Presentar</button>
+        <button type="button" class="btn btn-sm btn-outline-info" @onclick="() => CambiarEstado(RogatioStatus.InSuffragium)">A votar</button>
+        <button type="button" class="btn btn-sm btn-outline-info" @onclick="() => CambiarEstado(RogatioStatus.Approbata)">Aprobar</button>
+        <button type="button" class="btn btn-sm btn-outline-info" @onclick="() => CambiarEstado(RogatioStatus.Reprobata)">Rechazar</button>
+
     </div>
 }
 
@@ -69,6 +78,8 @@
     private RogatioDetailsDto? rogatio;
     private string? errorMessage;
     private bool loading = true;
+
+    private bool voting;
 
     protected override async Task OnInitializedAsync()
     {
@@ -92,5 +103,61 @@
             loading = false;
         }
     }
+
+
+    async Task Vote(SuffragiumValue votum)
+    {
+        if (voting)
+        {
+            return;
+        }
+
+        voting = true;
+
+        try
+        {
+            var dto = new CreateSuffragiumDto
+            {
+                RogatioId = Id,
+                Votum = votum
+            };
+
+            var result = await ApiClient.CreateSuffragiumAsync(Id, dto);
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"No se ha podido registrar el voto: {ex.Message}");
+            errorMessage = $"No se ha podido registrar el voto: {ex.Message}";
+        }
+        finally
+        {
+            voting = false;
+        }
+    }
+
+
+    async Task CambiarEstado(RogatioStatus nuevoEstado)
+    {
+        try
+        {
+            var dto = new WorkflowRogatioDto
+            {
+                Id = Id,
+                Status = nuevoEstado
+            };
+
+            await ApiClient.ChangeRogatioStatusAsync(Id, dto);
+
+            rogatio = await ApiClient.GetRogatioByIdAsync(Id);
+
+            NavigationManager.NavigateTo($"/rogatio/{Id}");
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"Error al cambiar el estado: {ex.Message}");
+            errorMessage = $"No se ha podido cambiar el estado: {ex.Message}";
+        }
+    }
+
 
 }

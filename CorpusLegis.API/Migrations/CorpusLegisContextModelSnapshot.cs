@@ -224,7 +224,7 @@ namespace CorpusLegis.API.Migrations
                     b.HasOne("CorpusLegis.API.Domain.Civitas", "Civitas")
                         .WithMany("Leges")
                         .HasForeignKey("CivitasId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("CorpusLegis.API.Domain.Lex", "DerogatedByLex")
@@ -234,7 +234,7 @@ namespace CorpusLegis.API.Migrations
                     b.HasOne("CorpusLegis.API.Domain.Rogatio", "OriginRogatio")
                         .WithMany()
                         .HasForeignKey("OriginRogatioId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Civitas");

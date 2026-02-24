@@ -19,6 +19,8 @@ public static class RogatioEndpoints
         group.MapPut("/{id:guid}", UpdateRogatio);
         group.MapDelete("/{id:guid}", DeleteRogatio);
 
+        group.MapPut("/{id:guid}/status", TransicionarRogatio);
+
     }
 
 
@@ -38,7 +40,7 @@ public static class RogatioEndpoints
 
     private static async Task<IResult> CreateRogatio(CreateRogatioDto dto, IRogatioService service)
     {
-        if (MiniValidator.TryValidate(dto, out var errors))
+        if (!MiniValidator.TryValidate(dto, out var errors))
         {
             return Results.ValidationProblem(errors);
         }
@@ -50,7 +52,7 @@ public static class RogatioEndpoints
 
     private static async Task<IResult> UpdateRogatio(Guid id, UpdateRogatioDto dto, IRogatioService service)
     {
-        if (MiniValidator.TryValidate(dto, out var errors))
+        if (!MiniValidator.TryValidate(dto, out var errors))
         {
             return Results.ValidationProblem(errors);
         }
@@ -65,6 +67,25 @@ public static class RogatioEndpoints
         var deleted = await service.DeleteAsync(id);
 
         return deleted ? Results.NoContent() : Results.NotFound();
+    }
+
+    
+    private static async Task<IResult> TransicionarRogatio(Guid id, WorkflowRogatioDto dto, IRogatioService service)
+    {
+        if (!MiniValidator.TryValidate(dto, out var errors))
+        {
+            return Results.ValidationProblem(errors);
+        }
+
+        try
+        {
+            var result = await service.ChangeStatusAsync(id, dto);
+            return result != null ? Results.Ok(result) : Results.NotFound();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.BadRequest(new { error = ex.Message });
+        }
     }
 
 }
