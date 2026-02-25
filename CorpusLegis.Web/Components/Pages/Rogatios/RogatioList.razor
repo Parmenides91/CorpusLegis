@@ -1,0 +1,78 @@
+﻿@page "/rogatio"
+@rendermode InteractiveServer
+
+@using CorpusLegis.Shared.Dtos
+@* @using Microsoft.AspNetCore.Components.Authorization *@
+
+@inject Clients.CorpusLegisApiClient ApiClient
+
+
+
+<h3>Rogationes actuales (todas? usuario?)</h3>
+
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+
+@if (rogationes == null)
+{
+    <p><em>Cargando del Senado...</em></p>
+}
+else if (!rogationes.Any())
+{
+    <p>No hay Rogationes registradas en el Codex actualmente.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Título</th>
+                <th>Estado</th>
+                <th>Fecha de creación</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var rogatio in rogationes)
+            {
+                <tr>
+                    <td>@rogatio.Title</td>
+                    <td>@rogatio.Status</td>
+                    <td>@rogatio.CreatedAt</td>
+                    <td>
+                        <a class="btn btn-sm btn-outline-primary" href="rogatio/@rogatio.Id">Ver detalles</a>
+                        @if (rogatio.Status == Shared.Enums.RogatioStatus.Inchoatus)
+                        {
+                            <a class="btn btn-sm btn-outline-secondary" href="rogatio/edit/@rogatio.Id">Editar</a>
+                        }
+                        <a class="btn btn-sm btn-outline-warning" href="rogatio/delete/@rogatio.Id">¿Eliminar?</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<RogatioSummaryDto>? rogationes;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            errorMessage = null; // Limpiar cualquier mensaje de error previo
+
+            rogationes = await ApiClient.GetRogationesAsync();
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"Error al cargar los Rogationes: {ex.Message}");
+            errorMessage = $"Error al cargar los Rogationes: {ex.Message}";
+        }
+    }
+}

@@ -1,0 +1,93 @@
+﻿@page "/rogatio/edit/{Id:guid}"
+@rendermode InteractiveServer
+
+@using CorpusLegis.Shared.Dtos
+
+@inject Clients.CorpusLegisApiClient ApiClient
+@inject NavigationManager NavigationManager
+
+
+<h3>Edición del Rogatio [ID: xxx ]</h3>
+
+@if (loading)
+{
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">. . . Cargando . . .</span>
+    </div>
+}
+else if (editModel != null)
+{
+    <EditForm Model="editModel" OnValidSubmit="HandleSubmit">
+        <DataAnnotationsValidator />
+        @* <ValidationSummary/> *@
+
+        <div class="mb-3">
+            <label for="title" class="form-label">Título</label>
+            <InputText id="title" class="form-control" @bind-Value="editModel.Title" />
+            <ValidationMessage For="@(() => editModel.Title)" />
+        </div>
+
+        <div class="mb-3">
+            <label for="content" class="form-label">Contenido</label>
+            <InputTextArea id="content" class="form-control" @bind-Value="editModel.Content" />
+            <ValidationMessage For="@(() => editModel.Content)" />
+        </div>
+
+        <button class="btn btn-primary" type="submit" disabled="@saving">
+            @(saving ? "Guardando..." : "Guardar")
+        </button>
+        <button class="btn btn-secondary ms-2" type="button" @onclick="CancelEdit">Cancelar</button>
+
+    </EditForm>
+}
+
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private UpdateRogatioDto? editModel;
+    private bool loading = true;
+    private bool saving = false;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var dto = await ApiClient.GetRogatioByIdAsync(Id);
+
+        if (dto != null)
+        {
+            editModel = new UpdateRogatioDto
+                {
+                    Title = dto.Title,
+                    Content = dto.Content,
+                    Status = dto.Status
+                };
+        }
+
+        loading = false;
+
+    }
+
+
+    private async Task HandleSubmit()
+    {
+        if (editModel == null)
+        {
+            Console.WriteLine($"No se ha podido cargar el Rogatio para editar.");
+            errorMessage = "No se ha podido cargar el Rogatio para editar.";
+            return;
+        }
+
+        saving = true;
+
+        await ApiClient.UpdateRogatioAsync(Id, editModel);
+
+        NavigationManager.NavigateTo($"/rogatio/{Id}");
+    }
+
+    private void CancelEdit()
+    {
+        NavigationManager.NavigateTo($"/rogatio");
+    }
+
+}

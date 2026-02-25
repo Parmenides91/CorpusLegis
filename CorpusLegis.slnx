@@ -1,4 +1,8 @@
 <Solution>
+  <Project Path="CorpusLegis.API/CorpusLegis.API.csproj" />
   <Project Path="CorpusLegis.AppHost/CorpusLegis.AppHost.csproj" />
+  <Project Path="CorpusLegis.PdfWorker/CorpusLegis.PdfWorker.csproj" />
   <Project Path="CorpusLegis.ServiceDefaults/CorpusLegis.ServiceDefaults.csproj" />
+  <Project Path="CorpusLegis.Shared/CorpusLegis.Shared.csproj" Id="20695d17-d639-4786-85c4-00d633864563" />
+  <Project Path="CorpusLegis.Web/CorpusLegis.Web.csproj" />
 </Solution>
