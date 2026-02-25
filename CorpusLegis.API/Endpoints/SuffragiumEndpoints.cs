@@ -23,10 +23,17 @@ public static class SuffragiumEndpoints
             return Results.ValidationProblem(errors);
         }
 
-        var result = await service.CreateAsync(dto);
+        try
+        {
+            var result = await service.CreateAsync(dto);
 
-        /* TODO: ¿Quiero devolver la DTO del voto, quiero ir a un listado de votos, quiero ir a la Rogatio y simplemente que se visualice que se ha votado? De ello depende qué devuelvo aquí*/
-        return Results.Created($"/rogatio/{result.Id}", result); // si ha ido bien, será un código 201 + el objeto (DTO) creado.
+            /* TODO: ¿Quiero devolver la DTO del voto, quiero ir a un listado de votos, quiero ir a la Rogatio y simplemente que se visualice que se ha votado? De ello depende qué devuelvo aquí*/
+            return Results.Created($"/rogatio/{result.Id}", result); // si ha ido bien, será un código 201 + el objeto (DTO) creado.
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.Conflict(new { errors = ex.Message });
+        }
     }
 
 }

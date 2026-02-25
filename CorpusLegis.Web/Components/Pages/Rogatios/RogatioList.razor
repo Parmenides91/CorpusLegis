@@ -45,7 +45,10 @@ else
                     <td>@rogatio.CreatedAt</td>
                     <td>
                         <a class="btn btn-sm btn-outline-primary" href="rogatio/@rogatio.Id">Ver detalles</a>
-                        <a class="btn btn-sm btn-outline-secondary" href="rogatio/edit/@rogatio.Id">Editar</a>
+                        @if (rogatio.Status == Shared.Enums.RogatioStatus.Inchoatus)
+                        {
+                            <a class="btn btn-sm btn-outline-secondary" href="rogatio/edit/@rogatio.Id">Editar</a>
+                        }
                         <a class="btn btn-sm btn-outline-warning" href="rogatio/delete/@rogatio.Id">¿Eliminar?</a>
                     </td>
                 </tr>

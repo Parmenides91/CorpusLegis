@@ -16,7 +16,14 @@
     <div class="card mt-4">
 
         <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">@rogatio.Title</h4>
+            @* <h4 class="mb-0">@rogatio.Title</h4> *@
+            <div class="row">
+                <div class="col-sm-8">
+                    <h4 class="mb-0">@rogatio.Title</h4>
+                </div>
+                <div class="col-sm-2">Civis: @rogatio.CivisName</div>
+                <div class="col-sm-2">Civitas: @rogatio.CivitasName</div>
+            </div>
         </div>
 
         <div class="card-body">
@@ -44,9 +51,18 @@
             }
             else if (rogatio.Status == Shared.Enums.RogatioStatus.InSuffragium)
             {
-                <button type="button" class="btn btn-sm btn-outline-info" @onclick="() => Vote(SuffragiumValue.Pro)" disabled="@voting">Pro</button>
-                <button type="button" class="btn btn-sm btn-outline-info" @onclick="() => Vote(SuffragiumValue.Contra)" disabled="@voting">Contra</button>
-                <button type="button" class="btn btn-sm btn-outline-info" @onclick="() => Vote(SuffragiumValue.Abstentio)" disabled="@voting">Absentio</button>
+                if (!rogatio.HasVoted)
+                {
+                    <button type="button" class="btn btn-sm btn-outline-info" @onclick="() => Vote(SuffragiumValue.Pro)" disabled="@voting">Pro</button>
+                    <button type="button" class="btn btn-sm btn-outline-info" @onclick="() => Vote(SuffragiumValue.Contra)" disabled="@voting">Contra</button>
+                    <button type="button" class="btn btn-sm btn-outline-info" @onclick="() => Vote(SuffragiumValue.Abstentio)" disabled="@voting">Absentio</button>
+                }
+                else
+                {
+                    <div class="alert alert-info">Ya has emitido tu voto en esta Rogatio.</div>
+                }
+
+
             }
             else if (rogatio.Status == Shared.Enums.RogatioStatus.Approbata)
             {
@@ -69,7 +85,17 @@
         <button type="button" class="btn btn-sm btn-outline-info" @onclick="() => CambiarEstado(RogatioStatus.Reprobata)">Rechazar</button>
 
     </div>
+
+
+    @* Visualización de voto *@
+    <div class="d-flex justify-content-start gap-3 mb-3">
+        <span class="badge bg-success">A favor: @rogatio.ProVotes</span>
+        <span class="badge bg-danger">En contra: @rogatio.ContraVotes</span>
+        <span class="badge bg-warning">Abstenciones: @rogatio.AbstentioVotes</span>
+    </div>
+
 }
+
 
 <a href="/rogatio" class="btn btn-lg btn-dark">Volver al listado de Rogationes</a>
 
@@ -126,6 +152,10 @@
             };
 
             var result = await ApiClient.CreateSuffragiumAsync(Id, dto);
+
+            rogatio = await ApiClient.GetRogatioByIdAsync(Id);
+
+            StateHasChanged(); // se fuerza el renderizado.
         }
         catch (HttpRequestException ex)
         {
@@ -136,6 +166,7 @@
         {
             voting = false;
         }
+
     }
 
 

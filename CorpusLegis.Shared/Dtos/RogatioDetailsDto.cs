@@ -11,9 +11,15 @@ public record RogatioDetailsDto(
     string Title,
     string Content,
     Guid CivisId,
+    string CivisName,
     Guid CivitasId,
+    string CivitasName,
     DateTime CreatedAt,
-    RogatioStatus Status
+    RogatioStatus Status,
+    int ProVotes,
+    int ContraVotes,
+    int AbstentioVotes,
+    bool HasVoted
     );
 
 
