@@ -3,9 +3,9 @@ using CorpusLegis.Shared.Dtos;
 
 namespace CorpusLegis.API.Services;
 
-public interface IRogatioService
+public interface IRogatioService // Sólo se definen las firmas.
 {
-    // Sólo se definen las firmas.
+
     Task<List<RogatioSummaryDto>> GetAllAsync();
 
     Task<RogatioDetailsDto?> GetByIdAsync(Guid id);
@@ -15,4 +15,8 @@ public interface IRogatioService
     Task<RogatioDetailsDto?> UpdateAsync(Guid id, UpdateRogatioDto dto);
 
     Task<bool> DeleteAsync(Guid id);
+
+
+    Task<RogatioDetailsDto?> ChangeStatusAsync(Guid id, WorkflowRogatioDto dto);
+
 }

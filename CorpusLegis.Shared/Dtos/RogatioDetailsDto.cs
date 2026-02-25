@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CorpusLegis.Shared.Enums;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -9,22 +10,16 @@ public record RogatioDetailsDto(
     Guid Id,
     string Title,
     string Content,
-    Guid AuthorId,
+    Guid CivisId,
+    string CivisName,
+    Guid CivitasId,
+    string CivitasName,
     DateTime CreatedAt,
-    string Status
+    RogatioStatus Status,
+    int ProVotes,
+    int ContraVotes,
+    int AbstentioVotes,
+    bool HasVoted
     );
 
-//public record RogatioDetailsDto
-//{
-//    public Guid Id { get; set; }
 
-//    public string Title { get; set; } = string.Empty;
-
-//    public string Content { get; set; } = string.Empty;
-
-//    public Guid AuthorId { get; set; } // el Civis
-
-//    public DateTime CreatedAt { get; set; }
-
-//    public string Status { get; set; } = "Draft"; // Draft, Voting, Approved (Lex), Rejected
-//}

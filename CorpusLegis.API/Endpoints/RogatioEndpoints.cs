@@ -1,6 +1,7 @@
 ﻿using CorpusLegis.API.Domain;
 using CorpusLegis.API.Services;
 using CorpusLegis.Shared.Dtos;
+using MiniValidation;
 
 namespace CorpusLegis.API.Endpoints;
 
@@ -12,20 +13,22 @@ public static class RogatioEndpoints
         var group = app.MapGroup("/rogatio").WithTags("Rogatio");
 
         // Se enlazan las rutas a métodos locales
-        group.MapGet("/", GetAllRogatios);
+        group.MapGet("/", GetAllRogationes);
         group.MapGet("/{id:guid}", GetRogatioById);
         group.MapPost("/", CreateRogatio);
         group.MapPut("/{id:guid}", UpdateRogatio);
         group.MapDelete("/{id:guid}", DeleteRogatio);
 
+        group.MapPut("/{id:guid}/status", TransicionarRogatio);
+
     }
 
 
-    private static async Task<IResult> GetAllRogatios(IRogatioService service)
+    private static async Task<IResult> GetAllRogationes(IRogatioService service)
     {
-        var rogatios = await service.GetAllAsync();
+        var rogationes = await service.GetAllAsync();
 
-        return Results.Ok(rogatios);
+        return Results.Ok(rogationes);
     }
 
     private static async Task<IResult> GetRogatioById(Guid id, IRogatioService service)
@@ -37,6 +40,11 @@ public static class RogatioEndpoints
 
     private static async Task<IResult> CreateRogatio(CreateRogatioDto dto, IRogatioService service)
     {
+        if (!MiniValidator.TryValidate(dto, out var errors))
+        {
+            return Results.ValidationProblem(errors);
+        }
+
         var result = await service.CreateAsync(dto);
 
         return Results.Created($"/rogatio/{result.Id}", result); // si ha ido bien, será un código 201 + el objeto (DTO) creado.
@@ -44,6 +52,11 @@ public static class RogatioEndpoints
 
     private static async Task<IResult> UpdateRogatio(Guid id, UpdateRogatioDto dto, IRogatioService service)
     {
+        if (!MiniValidator.TryValidate(dto, out var errors))
+        {
+            return Results.ValidationProblem(errors);
+        }
+
         var updated = await service.UpdateAsync(id, dto);
 
         return updated is not null ? Results.Ok(updated) : Results.NotFound(); // si va bien, será un código 200 + el objeto (DTO) actualizado.
@@ -54,6 +67,25 @@ public static class RogatioEndpoints
         var deleted = await service.DeleteAsync(id);
 
         return deleted ? Results.NoContent() : Results.NotFound();
+    }
+
+    
+    private static async Task<IResult> TransicionarRogatio(Guid id, WorkflowRogatioDto dto, IRogatioService service)
+    {
+        if (!MiniValidator.TryValidate(dto, out var errors))
+        {
+            return Results.ValidationProblem(errors);
+        }
+
+        try
+        {
+            var result = await service.ChangeStatusAsync(id, dto);
+            return result != null ? Results.Ok(result) : Results.NotFound();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.BadRequest(new { error = ex.Message });
+        }
     }
 
 }

@@ -1,34 +1,32 @@
-﻿using System;
+﻿using CorpusLegis.Shared.Enums;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 
 namespace CorpusLegis.Shared.Dtos;
 
+
 // Las DTO de creación y actualización no pueden ser record, porque el model binder de ASP.NET Core no puede asignar valores a las propiedades de un record (que son init-only). Por eso, se usan clases normales con propiedades con getters y setters.
-//public record CreateRogatioDto(
-//    Guid Id,
-//    string Title,
-//    string Content,
-//    Guid AuthorId,
-//    DateTime CreatedAt,
-//    string Status
-//    );
+public class CreateRogatioDto
+{
 
-//public record CreateRogatioDto
-//{
-//    public Guid Id { get; set; }
+    // El Id no debería ir en el Create DTO, la bbdd o el backend es quien lo debe generar, no el formulario UI.
 
-//    public string Title { get; set; } = string.Empty;
+    [Required(ErrorMessage = "Debes definir un título para crear una Rogatio.")]
+    [StringLength(100, ErrorMessage = "El título no debe exceder los 100 caracteres.")]
+    public string Title { get; set; } = string.Empty;
 
-//    public string Content { get; set; } = string.Empty;
+    [Required(ErrorMessage = "Las Rogationes deben tener un contenido en el momento de la creación.")]
+    public string Content { get; set; } = string.Empty;
 
-//    public Guid AuthorId { get; set; } // el Civis
+    // El AuthorId lo inyectará el backend basándose en el usuario autentificado más adelante.
 
-//    public DateTime CreatedAt { get; set; }
+    // public string Status { get; set; } = "Draft"; // Draft, Voting, Approved (Lex), Rejected
 
-//    public string Status { get; set; } = "Draft"; // Draft, Voting, Approved (Lex), Rejected
-//}
+    public RogatioStatus Status { get; set; } = RogatioStatus.Inchoatus;
+}
+
 
 
 /* No sé qué es todo esto, pero a ver si lo puedo poner en algún momento */
@@ -52,21 +50,3 @@ namespace CorpusLegis.Shared.Dtos;
 //            .WithMessage("El estado debe ser 'Draft', 'Voting', 'Approved' o 'Rejected'.");
 //    }
 //}
-
-
-public class CreateRogatioDto
-{
-
-    // El Id no debería ir en el Create DTO, la bbdd o el backend es quien lo debe generar, no el formulario UI.
-
-    [Required(ErrorMessage = "El título es obligatorio.")]
-    [StringLength(100, ErrorMessage = "El título no debe exceder los 100 caracteres.")]
-    public string Title { get; set; } = string.Empty;
-
-    [Required(ErrorMessage = "Toda Rogatio debe tener un contenido.")]
-    public string Content { get; set; } = string.Empty;
-
-    // El AuthorId lo inyectará el backend basándose en el usuario autentificado más adelante.
-
-    public string Status { get; set; } = "Draft"; // Draft, Voting, Approved (Lex), Rejected
-}

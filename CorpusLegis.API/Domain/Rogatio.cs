@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
+﻿using CorpusLegis.Shared.Enums;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace CorpusLegis.API.Domain;
 
@@ -10,12 +11,18 @@ public class Rogatio
 
     public string Content { get; set; } = string.Empty;
 
-    public Guid AuthorId { get; set; } // el Civis
-
     public DateTime CreatedAt { get; set; }
 
-    public string Status { get; set; } = "Draft"; // Draft, Voting, Approved (Lex), Rejected
+    public RogatioStatus Status { get; set; } = RogatioStatus.Inchoatus;
 
 
-    // Relaciones de navegación de EF Core aquí abajo (cuando toque)
+    public Guid CivisId { get; set; }
+    public Civis Civis { get; set; } = null!;
+
+    public Guid CivitasId { get; set; }
+    public Civitas Civitas { get; set; } = null!;
+
+
+    public ICollection<Sententia> Sententiae { get; set; } = new List<Sententia>();
+    public ICollection<Suffragium> Suffragia { get; set; } = new List<Suffragium>();
 }

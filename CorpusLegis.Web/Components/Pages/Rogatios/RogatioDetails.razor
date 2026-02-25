@@ -2,8 +2,11 @@
 @rendermode InteractiveServer
 
 @using CorpusLegis.Shared.Dtos
+@using CorpusLegis.Shared.Dtos.Suffragium
+@using CorpusLegis.Shared.Enums
 
 @inject Clients.CorpusLegisApiClient ApiClient
+@inject NavigationManager NavigationManager
 
 
 <h3>Detalles del Rogatio [ID: xxx ]</h3>
@@ -13,7 +16,14 @@
     <div class="card mt-4">
 
         <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">@rogatio.Title</h4>
+            @* <h4 class="mb-0">@rogatio.Title</h4> *@
+            <div class="row">
+                <div class="col-sm-8">
+                    <h4 class="mb-0">@rogatio.Title</h4>
+                </div>
+                <div class="col-sm-2">Civis: @rogatio.CivisName</div>
+                <div class="col-sm-2">Civitas: @rogatio.CivitasName</div>
+            </div>
         </div>
 
         <div class="card-body">
@@ -21,18 +31,73 @@
             <hr />
             <div class="row text-muted">
                 <div class="col-sm-2"><strong>Estado: </strong> <span class="badge bg-secondary">@rogatio.Status</span></div>
-                <div class="col-sm-6"><strong>ID: </strong> @rogatio.Id</div>
+                <div class="col-sm-2"><strong>ID: </strong> @rogatio.Id</div>
+                <div class="col-sm-2"><strong>CivisId: </strong> @rogatio.CivisId</div>
+                @* <div class="col-sm-2"><strong>CivisId: </strong> @rogatio.Civis</div> *@
+                <div class="col-sm-2"><strong>CivitasId: </strong> @rogatio.CivitasId</div>
+                @* <div class="col-sm-2"><strong>CivisId: </strong> @rogatio.Civitas</div> *@
+                <div class="col-sm-2"><small><strong>Fecha de creación: </strong> @rogatio.CreatedAt.ToString("g")</small></div>
             </div>
         </div>
 
         <div class="card-footer">
-            <div class="col-sm-4"><small><strong>Fecha de creación: </strong> @rogatio.CreatedAt.ToString("g")</small></div>
+            @if (rogatio.Status == Shared.Enums.RogatioStatus.Inchoatus)
+            {
+                <i>Aún no se puede votar</i>
+            }
+            else if (rogatio.Status == Shared.Enums.RogatioStatus.Proposita)
+            {
+                <i>Abiertos los comentarios para el debate.</i>
+            }
+            else if (rogatio.Status == Shared.Enums.RogatioStatus.InSuffragium)
+            {
+                if (!rogatio.HasVoted)
+                {
+                    <button type="button" class="btn btn-sm btn-outline-info" @onclick="() => Vote(SuffragiumValue.Pro)" disabled="@voting">Pro</button>
+                    <button type="button" class="btn btn-sm btn-outline-info" @onclick="() => Vote(SuffragiumValue.Contra)" disabled="@voting">Contra</button>
+                    <button type="button" class="btn btn-sm btn-outline-info" @onclick="() => Vote(SuffragiumValue.Abstentio)" disabled="@voting">Absentio</button>
+                }
+                else
+                {
+                    <div class="alert alert-info">Ya has emitido tu voto en esta Rogatio.</div>
+                }
+
+
+            }
+            else if (rogatio.Status == Shared.Enums.RogatioStatus.Approbata)
+            {
+                <p>Aprobada</p>
+                <p>Resultado de la votación: XXXXXX</p>
+                <a class="btn btn-sm btn-outline-secondary" href="rogatio/clonar">Clonar Rogatio (pendiente de crear)</a>
+            }
+            else if (rogatio.Status == Shared.Enums.RogatioStatus.Reprobata)
+            {
+                <p>Rechazada</p>
+                <p>Resultado de la votación: XXXXXX</p>
+                <a class="btn btn-sm btn-outline-secondary" href="rogatio/clonar">Clonar Rogatio (pendiente de crear)</a>
+            }
         </div>
 
+        <button type="button" class="btn btn-sm btn-outline-info" @onclick="() => CambiarEstado(RogatioStatus.Inchoatus)">A borrador</button>
+        <button type="button" class="btn btn-sm btn-outline-info" @onclick="() => CambiarEstado(RogatioStatus.Proposita)">Presentar</button>
+        <button type="button" class="btn btn-sm btn-outline-info" @onclick="() => CambiarEstado(RogatioStatus.InSuffragium)">A votar</button>
+        <button type="button" class="btn btn-sm btn-outline-info" @onclick="() => CambiarEstado(RogatioStatus.Approbata)">Aprobar</button>
+        <button type="button" class="btn btn-sm btn-outline-info" @onclick="() => CambiarEstado(RogatioStatus.Reprobata)">Rechazar</button>
+
     </div>
+
+
+    @* Visualización de voto *@
+    <div class="d-flex justify-content-start gap-3 mb-3">
+        <span class="badge bg-success">A favor: @rogatio.ProVotes</span>
+        <span class="badge bg-danger">En contra: @rogatio.ContraVotes</span>
+        <span class="badge bg-warning">Abstenciones: @rogatio.AbstentioVotes</span>
+    </div>
+
 }
 
-<a href="/rogatio" class="btn btn-lg btn-dark">Volver al listado de Rogatios</a>
+
+<a href="/rogatio" class="btn btn-lg btn-dark">Volver al listado de Rogationes</a>
 
 
 
@@ -42,6 +107,8 @@
     private RogatioDetailsDto? rogatio;
     private string? errorMessage;
     private bool loading = true;
+
+    private bool voting;
 
     protected override async Task OnInitializedAsync()
     {
@@ -65,5 +132,66 @@
             loading = false;
         }
     }
+
+
+    async Task Vote(SuffragiumValue votum)
+    {
+        if (voting)
+        {
+            return;
+        }
+
+        voting = true;
+
+        try
+        {
+            var dto = new CreateSuffragiumDto
+            {
+                RogatioId = Id,
+                Votum = votum
+            };
+
+            var result = await ApiClient.CreateSuffragiumAsync(Id, dto);
+
+            rogatio = await ApiClient.GetRogatioByIdAsync(Id);
+
+            StateHasChanged(); // se fuerza el renderizado.
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"No se ha podido registrar el voto: {ex.Message}");
+            errorMessage = $"No se ha podido registrar el voto: {ex.Message}";
+        }
+        finally
+        {
+            voting = false;
+        }
+
+    }
+
+
+    async Task CambiarEstado(RogatioStatus nuevoEstado)
+    {
+        try
+        {
+            var dto = new WorkflowRogatioDto
+            {
+                Id = Id,
+                Status = nuevoEstado
+            };
+
+            await ApiClient.ChangeRogatioStatusAsync(Id, dto);
+
+            rogatio = await ApiClient.GetRogatioByIdAsync(Id);
+
+            NavigationManager.NavigateTo($"/rogatio/{Id}");
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"Error al cambiar el estado: {ex.Message}");
+            errorMessage = $"No se ha podido cambiar el estado: {ex.Message}";
+        }
+    }
+
 
 }

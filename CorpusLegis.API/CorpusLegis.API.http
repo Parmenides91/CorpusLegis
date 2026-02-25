@@ -7,7 +7,7 @@ Accept: application/json
 
 ###
 
-GET {{CorpusLegis.API_HostAddress}}/rogatio/c2675a4f-dabf-4b20-9d40-4b4ace56862f
+GET {{CorpusLegis.API_HostAddress}}/rogatio/00f05559-44d3-4f12-99a3-370ea5b06b67
 Accept: application/json
 
 ###
@@ -17,23 +17,42 @@ Content-type: application/json
 
 {
   "title": "Amarse",
-  "content": "Juntos somos",
-  "status": "draft"
+  "content": "Juntos somos"
 }
 
 ###
 
-PUT {{CorpusLegis.API_HostAddress}}/rogatio/76a11358-67b9-4828-8fa7-27eb77227d4b
+PUT {{CorpusLegis.API_HostAddress}}/rogatio/5c6cf1f4-bfdd-492f-97fa-a71bb9d7ad20
 Content-type: application/json
 
 {
   "title": "Se amen",
-  "content": "Son juntos",
-  "status": "Draft"
+  "content": "Son juntos"
 }
 
 ###
 
 DELETE {{CorpusLegis.API_HostAddress}}/rogatio/c2675a4f-dabf-4b20-9d40-4b4ace56862f
+
+###
+
+PUT {{CorpusLegis.API_HostAddress}}/rogatio/00f05559-44d3-4f12-99a3-370ea5b06b67/status
+Content-type: application/json
+
+{
+  "guid": "3be34b8e-31f0-4d04-a114-4acd1aa6387e",
+  "status": 2
+}
+
+###
+
+POST {{CorpusLegis.API_HostAddress}}/rogatio/00f05559-44d3-4f12-99a3-370ea5b06b67/vote
+Content-type: application/json
+
+{
+  "rogatioid": "00f05559-44d3-4f12-99a3-370ea5b06b67",
+  "civisid": "0f8fad5b-d9cb-469f-a165-70867728950e",
+  "votum": 0
+}
 
 ###
