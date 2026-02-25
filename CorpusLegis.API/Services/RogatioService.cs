@@ -50,7 +50,9 @@ public class RogatioService : IRogatioService
             rogatio.Id,
             rogatio.Title,
             rogatio.Content,
-            Guid.Empty,
+            //Guid.Empty,
+            rogatio.CivisId,
+            rogatio.CivitasId,
             rogatio.CreatedAt,
             rogatio.Status
         );
@@ -78,7 +80,9 @@ public class RogatioService : IRogatioService
             rogatio.Id,
             rogatio.Title,
             rogatio.Content,
-            Guid.Parse("0f8fad5b-d9cb-469f-a165-70867728950e"), // Sempronio // TODO: esto está hardcodeado
+            //Guid.Parse("0f8fad5b-d9cb-469f-a165-70867728950e"), // Sempronio // TODO: esto está hardcodeado
+            rogatio.CivisId,
+            rogatio.CivitasId,
             rogatio.CreatedAt,
             rogatio.Status
         );
@@ -98,6 +102,7 @@ public class RogatioService : IRogatioService
         existingRogatio.Title = updatedRogatio.Title;
         existingRogatio.Content = updatedRogatio.Content;
         existingRogatio.CivisId = CivisDefaultGuid; // TODO: esto está hardcodeado
+        existingRogatio.CivitasId = CivitasDefaultGuid; // TODO: esto está hardcodeado
         existingRogatio.Status = updatedRogatio.Status;
 
         await _db.SaveChangesAsync();
@@ -106,7 +111,8 @@ public class RogatioService : IRogatioService
             existingRogatio.Id,
             existingRogatio.Title,
             existingRogatio.Content,
-            Guid.Parse("0f8fad5b-d9cb-469f-a165-70867728950e"), // Sempronio // TODO: esto está hardcodeado
+            existingRogatio.CivisId,
+            existingRogatio.CivitasId,
             existingRogatio.CreatedAt,
             existingRogatio.Status
         );
@@ -271,7 +277,7 @@ public class RogatioService : IRogatioService
             var nuevaLex = new Lex
             {
                 Id = Guid.NewGuid(),
-                CivitasId = rogatio.CivisId,
+                CivitasId = rogatio.CivitasId,
                 OriginRogatioId = rogatio.Id,
                 Title = rogatio.Title,
                 Content = rogatio.Content,
@@ -287,6 +293,7 @@ public class RogatioService : IRogatioService
             rogatio.Title,
             rogatio.Content,
             rogatio.CivisId,
+            rogatio.CivitasId,
             rogatio.CreatedAt,
             rogatio.Status
         );

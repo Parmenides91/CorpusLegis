@@ -24,13 +24,16 @@
             <hr />
             <div class="row text-muted">
                 <div class="col-sm-2"><strong>Estado: </strong> <span class="badge bg-secondary">@rogatio.Status</span></div>
-                <div class="col-sm-6"><strong>ID: </strong> @rogatio.Id</div>
-                <div class="col-sm-4"><small><strong>Fecha de creación: </strong> @rogatio.CreatedAt.ToString("g")</small></div>
+                <div class="col-sm-2"><strong>ID: </strong> @rogatio.Id</div>
+                <div class="col-sm-2"><strong>CivisId: </strong> @rogatio.CivisId</div>
+                @* <div class="col-sm-2"><strong>CivisId: </strong> @rogatio.Civis</div> *@
+                <div class="col-sm-2"><strong>CivitasId: </strong> @rogatio.CivitasId</div>
+                @* <div class="col-sm-2"><strong>CivisId: </strong> @rogatio.Civitas</div> *@
+                <div class="col-sm-2"><small><strong>Fecha de creación: </strong> @rogatio.CreatedAt.ToString("g")</small></div>
             </div>
         </div>
 
         <div class="card-footer">
-            @* <div class="col-sm-4"><small><strong>Fecha de creación: </strong> @rogatio.CreatedAt.ToString("g")</small></div> *@
             @if (rogatio.Status == Shared.Enums.RogatioStatus.Inchoatus)
             {
                 <i>Aún no se puede votar</i>
