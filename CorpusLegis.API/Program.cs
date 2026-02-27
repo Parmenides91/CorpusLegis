@@ -30,6 +30,11 @@ builder.Services.AddScoped<IRogatioService, RogatioService>();
 // Se registra el servicio de Suffragium.
 builder.Services.AddScoped<ISuffragiumService, SuffragiumService>();
 
+// Se registra el servicio del mockeo de usuarios que estamos haciendo.
+builder.Services.AddHttpContextAccessor(); // Necesario para que CurrentUserService pueda acceder al contexto HTTP.
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+
+
 var app = builder.Build();
 
 app.MapDefaultEndpoints();
@@ -69,6 +74,8 @@ using (var scope = app.Services.CreateScope())
     // 3) mirar ^^ (al lanzar la app las migraciones se irán aplicando en orden).
 
     Guid CivisDefaultGuid = Guid.Parse("0f8fad5b-d9cb-469f-a165-70867728950e"); // Sempronio
+    Guid Civis002Guid = Guid.Parse("11111111-1111-1111-1111-111111111111"); // Tulio
+
     Guid CivitasDefaultGuid = Guid.Parse("7c9e6679-7425-40de-944b-e07fc1f90ae7"); // Solfamidas
 
     if (!db.Cives.Any()) // Se crea un Civis de ejemplo si la tabla está vacía.
@@ -77,6 +84,12 @@ using (var scope = app.Services.CreateScope())
         {
             Id = CivisDefaultGuid,
             Name = "Sempronio"
+        });
+
+        db.Cives.Add(new Civis
+        {
+            Id = Civis002Guid,
+            Name = "Tulio"
         });
     }
 

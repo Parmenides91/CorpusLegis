@@ -46,12 +46,12 @@ Content-type: application/json
 
 ###
 
-POST {{CorpusLegis.API_HostAddress}}/rogatio/00f05559-44d3-4f12-99a3-370ea5b06b67/vote
+POST {{CorpusLegis.API_HostAddress}}/rogatio/10bf5f52-a68d-459a-a9f5-0a6f84003548/vote
 Content-type: application/json
 
 {
-  "rogatioid": "00f05559-44d3-4f12-99a3-370ea5b06b67",
-  "civisid": "0f8fad5b-d9cb-469f-a165-70867728950e",
+  "rogatioid": "10bf5f52-a68d-459a-a9f5-0a6f84003548",
+  "civisid": "11111111-1111-1111-1111-111111111111",
   "votum": 0
 }
 

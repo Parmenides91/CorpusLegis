@@ -61,8 +61,6 @@
                 {
                     <div class="alert alert-info">Ya has emitido tu voto en esta Rogatio.</div>
                 }
-
-
             }
             else if (rogatio.Status == Shared.Enums.RogatioStatus.Approbata)
             {
@@ -94,6 +92,11 @@
         <span class="badge bg-warning">Abstenciones: @rogatio.AbstentioVotes</span>
     </div>
 
+    <div class="d-flex justify-content-start gap-3 mb-3">
+        <button type="button" class="btn btn-sm btn-outline-info" @onclick="() => Vote(SuffragiumValue.Pro)" disabled="@voting">Pro</button>
+        <button type="button" class="btn btn-sm btn-outline-info" @onclick="() => Vote(SuffragiumValue.Contra)" disabled="@voting">Contra</button>
+        <button type="button" class="btn btn-sm btn-outline-info" @onclick="() => Vote(SuffragiumValue.Abstentio)" disabled="@voting">Absentio</button>
+    </div>
 }
 
 
