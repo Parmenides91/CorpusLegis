@@ -3,6 +3,7 @@ using CorpusLegis.API.Domain;
 using CorpusLegis.Shared.Dtos;
 using CorpusLegis.Shared.Enums;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualBasic;
 
 namespace CorpusLegis.API.Services;
 
@@ -103,6 +104,11 @@ public class RogatioService : IRogatioService
             return null;
         }
 
+        if (existingRogatio.CivisId != civisId)
+        {
+            throw new UnauthorizedAccessException("Sólo el creador de la Rogatio puede editarla.");
+        }
+
         if (existingRogatio.Status != RogatioStatus.Inchoatus)
         {
             throw new InvalidOperationException($"No está permitido editar una Rogatio que no está en estado Inchoatus. Estado actual: {existingRogatio.Status}");
@@ -121,6 +127,28 @@ public class RogatioService : IRogatioService
 
     public async Task<bool> DeleteAsync(Guid id)
     {
+        var civisId = _currentUser.CivisId;
+
+        var rogatioMeta = await _db.Rogationes
+            .Where(r => r.Id == id)
+            .Select(r => new { r.CivisId, r.Status }) // me traigo sólo los campos que me interesa validar, para hacer más ligera la consulta.
+            .FirstOrDefaultAsync();
+
+        if (rogatioMeta == null)
+        {
+            return false;
+        }
+
+        if (rogatioMeta.CivisId != civisId)
+        {
+            throw new UnauthorizedAccessException("Sólo el creador de la Rogatio puede eliminarla.");
+        }
+
+        if (rogatioMeta.Status != RogatioStatus.Inchoatus)
+        {
+            throw new InvalidOperationException($"Sólo se pueden borrar Rogatios en estado de Inchoatus. Estado actual: {rogatioMeta.Status}");
+        }
+
         var filasBorradas =  await _db.Rogationes.Where(r => r.Id == id)
                                                 .ExecuteDeleteAsync();
 
@@ -244,6 +272,8 @@ public class RogatioService : IRogatioService
 
     public async Task<RogatioDetailsDto?> ChangeStatusAsync(Guid id, WorkflowRogatioDto workflowRogatio)
     {
+        var civisId = _currentUser.CivisId;
+
         var rogatio = await _db.Rogationes.FindAsync(id);
 
         if (rogatio == null)
@@ -253,6 +283,11 @@ public class RogatioService : IRogatioService
 
         var estadoActual = rogatio.Status;
         RogatioStatus nuevoEstado = workflowRogatio.Status;
+
+        if (rogatio.CivisId != civisId)
+        {
+            throw new UnauthorizedAccessException("Sólo el creador de la Rogatio puede progresarla.");
+        }
 
         bool transicionValida = (estadoActual, nuevoEstado) switch
         {

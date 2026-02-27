@@ -1,58 +1,70 @@
 @CorpusLegis.API_HostAddress = http://localhost:5208
+@RogatioId = 8596df00-b3c8-4d01-a245-0b3051ef32ac
+@CivisIdDefault = 0f8fad5b-d9cb-469f-a165-70867728950e
+
 
 ###
-
+# Listar Rogationes: 
 GET {{CorpusLegis.API_HostAddress}}/rogatio
 Accept: application/json
-
 ###
 
-GET {{CorpusLegis.API_HostAddress}}/rogatio/00f05559-44d3-4f12-99a3-370ea5b06b67
+###
+# Obtener un solo Rogatio
+GET {{CorpusLegis.API_HostAddress}}/rogatio/{{RogatioId}}
 Accept: application/json
-
+X-Civis-Id: {{CivisIdDefault}}
 ###
 
+###
+# Crea un Rogatio
 POST {{CorpusLegis.API_HostAddress}}/rogatio
 Content-type: application/json
+X-Civis-Id: {{CivisIdDefault}}
 
 {
   "title": "Amarse",
   "content": "Juntos somos"
 }
-
 ###
 
-PUT {{CorpusLegis.API_HostAddress}}/rogatio/5c6cf1f4-bfdd-492f-97fa-a71bb9d7ad20
+###
+# Actualizar un Rogatio
+PUT {{CorpusLegis.API_HostAddress}}/rogatio/{{RogatioId}}
 Content-type: application/json
+X-Civis-Id: {{CivisIdDefault}}
 
 {
   "title": "Se amen",
   "content": "Son juntos"
 }
-
 ###
 
-DELETE {{CorpusLegis.API_HostAddress}}/rogatio/c2675a4f-dabf-4b20-9d40-4b4ace56862f
-
+###
+# Eliminar un Rogatio
+DELETE {{CorpusLegis.API_HostAddress}}/rogatio/{{RogatioId}}
 ###
 
-PUT {{CorpusLegis.API_HostAddress}}/rogatio/00f05559-44d3-4f12-99a3-370ea5b06b67/status
+###
+# Transicionar estado de Rogatio
+PUT {{CorpusLegis.API_HostAddress}}/rogatio/{{RogatioId}}/status
 Content-type: application/json
+X-Civis-Id: {{CivisIdDefault}}
 
 {
-  "guid": "3be34b8e-31f0-4d04-a114-4acd1aa6387e",
-  "status": 2
+  "status": 1
 }
-
 ###
 
-POST {{CorpusLegis.API_HostAddress}}/rogatio/10bf5f52-a68d-459a-a9f5-0a6f84003548/vote
+###
+# Votar en una Rogatio
+POST {{CorpusLegis.API_HostAddress}}/rogatio/{{RogatioId}}/vote
 Content-type: application/json
+X-Civis-Id: {{CivisIdDefault}}
 
 {
-  "rogatioid": "10bf5f52-a68d-459a-a9f5-0a6f84003548",
-  "civisid": "11111111-1111-1111-1111-111111111111",
+  "rogatioid": "{{RogatioId}}",
+  "civisid": "{{CivisIdDefault}}",
   "votum": 0
 }
-
 ###
