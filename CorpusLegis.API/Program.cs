@@ -2,6 +2,7 @@
 using CorpusLegis.API.Data;
 using CorpusLegis.API.Domain;
 using CorpusLegis.API.Endpoints;
+using CorpusLegis.API.Infrastructure;
 using CorpusLegis.API.Services;
 using CorpusLegis.Shared.Dtos;
 using Microsoft.EntityFrameworkCore;
@@ -34,8 +35,15 @@ builder.Services.AddScoped<ISuffragiumService, SuffragiumService>();
 builder.Services.AddHttpContextAccessor(); // Necesario para que CurrentUserService pueda acceder al contexto HTTP.
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
+// Se registra el servicio de Excepciones.
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
+
 
 var app = builder.Build();
+
+// Manejador para Excepciones.
+app.UseExceptionHandler();
 
 app.MapDefaultEndpoints();
 

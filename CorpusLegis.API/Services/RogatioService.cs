@@ -1,5 +1,6 @@
 ﻿using CorpusLegis.API.Data;
 using CorpusLegis.API.Domain;
+using CorpusLegis.API.Exceptions;
 using CorpusLegis.Shared.Dtos;
 using CorpusLegis.Shared.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -66,7 +67,8 @@ public class RogatioService : IRogatioService
 
         if (dto == null)
         {
-            return null;
+            throw new NotFoundException("rOgAtIo", id);
+            //return null;
         }
 
         return dto;
@@ -106,7 +108,8 @@ public class RogatioService : IRogatioService
 
         if (existingRogatio.CivisId != civisId)
         {
-            throw new UnauthorizedAccessException("Sólo el creador de la Rogatio puede editarla.");
+            //throw new UnauthorizedAccessException("Sólo el creador de la Rogatio puede editarla.");
+            throw new UnauthorizedDomainException("Sólo el creador de la Rogatio puede editarla.");
         }
 
         if (existingRogatio.Status != RogatioStatus.Inchoatus)
@@ -141,7 +144,8 @@ public class RogatioService : IRogatioService
 
         if (rogatioMeta.CivisId != civisId)
         {
-            throw new UnauthorizedAccessException("Sólo el creador de la Rogatio puede eliminarla.");
+            //throw new UnauthorizedAccessException("Sólo el creador de la Rogatio puede eliminarla.");
+            throw new UnauthorizedDomainException("Sólo el creador de la Rogatio puede editarla.");
         }
 
         if (rogatioMeta.Status != RogatioStatus.Inchoatus)
@@ -286,7 +290,8 @@ public class RogatioService : IRogatioService
 
         if (rogatio.CivisId != civisId)
         {
-            throw new UnauthorizedAccessException("Sólo el creador de la Rogatio puede progresarla.");
+            //throw new UnauthorizedAccessException("Sólo el creador de la Rogatio puede progresarla.");
+            throw new UnauthorizedDomainException("Sólo el creador de la Rogatio puede progresarla.");
         }
 
         bool transicionValida = (estadoActual, nuevoEstado) switch
