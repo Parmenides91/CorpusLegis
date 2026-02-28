@@ -2,9 +2,11 @@
 @rendermode InteractiveServer
 
 @using CorpusLegis.Shared.Dtos
+@using CorpusLegis.Web.State
 @* @using Microsoft.AspNetCore.Components.Authorization *@
 
 @inject Clients.CorpusLegisApiClient ApiClient
+@inject CorpusLegis.Web.State.CivisState CivisState
 
 
 
@@ -45,11 +47,11 @@ else
                     <td>@rogatio.CreatedAt</td>
                     <td>
                         <a class="btn btn-sm btn-outline-primary" href="rogatio/@rogatio.Id">Ver detalles</a>
-                        @if (rogatio.Status == Shared.Enums.RogatioStatus.Inchoatus)
+                        @if (rogatio.Status == Shared.Enums.RogatioStatus.Inchoatus && rogatio.CivisId == CivisState.CurrentCivisId)
                         {
                             <a class="btn btn-sm btn-outline-secondary" href="rogatio/edit/@rogatio.Id">Editar</a>
+                            <a class="btn btn-sm btn-outline-warning" href="rogatio/delete/@rogatio.Id">¿Eliminar?</a>
                         }
-                        <a class="btn btn-sm btn-outline-warning" href="rogatio/delete/@rogatio.Id">¿Eliminar?</a>
                     </td>
                 </tr>
             }
@@ -63,6 +65,13 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadDataAsync();
+
+        CivisState.OnChange += OnCivisChanged;
+    }
+
+    private async Task LoadDataAsync()
+    {
         try
         {
             errorMessage = null; // Limpiar cualquier mensaje de error previo
@@ -74,5 +83,17 @@ else
             Console.WriteLine($"Error al cargar los Rogationes: {ex.Message}");
             errorMessage = $"Error al cargar los Rogationes: {ex.Message}";
         }
+    }
+
+    private async void OnCivisChanged()
+    {
+        await LoadDataAsync(); // si cambia el usuario, se vuelven a pedir los datos a la API.
+
+        await InvokeAsync(StateHasChanged); // forzar el repintado.
+    }
+
+    public void Dispose()
+    {
+        CivisState.OnChange -= OnCivisChanged;
     }
 }

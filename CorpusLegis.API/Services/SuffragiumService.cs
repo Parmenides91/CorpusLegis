@@ -9,18 +9,22 @@ namespace CorpusLegis.API.Services;
 public class SuffragiumService : ISuffragiumService
 {
     private readonly CorpusLegisContext _db;
+    private readonly ICurrentUserService _currentUser;
 
-    public SuffragiumService(CorpusLegisContext db)
+    public SuffragiumService(CorpusLegisContext db, ICurrentUserService currentUser)
     {
         _db = db;
+        _currentUser = currentUser;
     }
 
     public async Task<SuffragiumDetailsDto> CreateAsync(CreateSuffragiumDto newSuffragium)
     {
-        Guid CivisDefaultGuid = Guid.Parse("0f8fad5b-d9cb-469f-a165-70867728950e"); // Sempronio
+        //Guid CivisDefaultGuid = Guid.Parse("0f8fad5b-d9cb-469f-a165-70867728950e"); // Sempronio
         Guid CivitasDefaultGuid = Guid.Parse("7c9e6679-7425-40de-944b-e07fc1f90ae7"); // Solfamidas
 
-        bool alreadyVoted = await _db.Suffragia.AnyAsync(s => s.RogatioId == newSuffragium.RogatioId && s.CivisId == CivisDefaultGuid);
+        var civisId = _currentUser.CivisId;
+
+        bool alreadyVoted = await _db.Suffragia.AnyAsync(s => s.RogatioId == newSuffragium.RogatioId && s.CivisId == civisId);
 
         if (alreadyVoted)
         {
@@ -32,13 +36,7 @@ public class SuffragiumService : ISuffragiumService
             Id = Guid.NewGuid(),
             RogatioId = newSuffragium.RogatioId,
             Rogatio = _db.Rogationes.FirstOrDefault(c => c.Id == newSuffragium.RogatioId)!,
-
-            //CivisId = newSuffragium.CivisId,
-            CivisId = CivisDefaultGuid, // Sempronio // TODO: esto está hardcodeado.
-
-            //Civis = _db.Cives.FirstOrDefault(c => c.Id == newSuffragium.CivisId)!,
-            //Civis = _db.Cives.FirstOrDefault(c => c.Id == Guid.Parse("0f8fad5b - d9cb - 469f - a165 - 70867728950e"))!,
-
+            CivisId = civisId,
             Votum = newSuffragium.Votum,
             CastAt = DateTime.UtcNow
         };

@@ -1,21 +1,25 @@
 ﻿using CorpusLegis.API.Data;
 using CorpusLegis.API.Domain;
+using CorpusLegis.API.Exceptions;
 using CorpusLegis.Shared.Dtos;
 using CorpusLegis.Shared.Enums;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualBasic;
 
 namespace CorpusLegis.API.Services;
 
 public class RogatioService : IRogatioService
 {
     private readonly CorpusLegisContext _db;
+    private readonly ICurrentUserService _currentUser;
 
-    Guid CivisDefaultGuid = Guid.Parse("0f8fad5b-d9cb-469f-a165-70867728950e"); // Sempronio
+    //Guid CivisDefaultGuid = Guid.Parse("0f8fad5b-d9cb-469f-a165-70867728950e"); // Sempronio
     Guid CivitasDefaultGuid = Guid.Parse("7c9e6679-7425-40de-944b-e07fc1f90ae7"); // Solfamidas
 
-    public RogatioService(CorpusLegisContext db)
+    public RogatioService(CorpusLegisContext db, ICurrentUserService currentUser)
     {
         _db = db;
+        _currentUser = currentUser;
     }
 
 
@@ -37,11 +41,8 @@ public class RogatioService : IRogatioService
 
     public async Task<RogatioDetailsDto?> GetByIdAsync(Guid id)
     {
-        //return await _db.Rogatios.FindAsync(id);
-
-        // var rogatio = await _db.Rogationes.FindAsync(id);
-
-        var currentCivisId = CivisDefaultGuid; // TODO: esto está hardcodeado, debería venir del contexto de autenticación
+        //var currentCivisId = CivisDefaultGuid; // TODO: esto está hardcodeado, debería venir del contexto de autenticación
+        var civisId = _currentUser.CivisId; // TODO: proviene del servicio de mockeo.
 
         var dto = await _db.Rogationes
             .Where(r => r.Id == id)
@@ -58,7 +59,7 @@ public class RogatioService : IRogatioService
                 r.Suffragia.Count(s => s.Votum == SuffragiumValue.Pro),
                 r.Suffragia.Count(s => s.Votum == SuffragiumValue.Contra),
                 r.Suffragia.Count(s => s.Votum == SuffragiumValue.Abstentio),
-                r.Suffragia.Any(s => s.CivisId == currentCivisId)
+                r.Suffragia.Any(s => s.CivisId == civisId) // TODO: proviene del servicio de mockeo.
                 ))
             .AsNoTracking()
             .FirstOrDefaultAsync();
@@ -66,7 +67,8 @@ public class RogatioService : IRogatioService
 
         if (dto == null)
         {
-            return null;
+            throw new NotFoundException("rOgAtIo", id);
+            //return null;
         }
 
         return dto;
@@ -74,12 +76,14 @@ public class RogatioService : IRogatioService
 
     public async Task<RogatioDetailsDto> CreateAsync(CreateRogatioDto newRogatio)
     {
+        var civisId = _currentUser.CivisId;
+
         Rogatio rogatio = new Rogatio
         {
             Id = Guid.NewGuid(),
             Title = newRogatio.Title,
             Content = newRogatio.Content,
-            CivisId = CivisDefaultGuid, // TODO: esto está hardcodeado
+            CivisId = civisId, // TODO: proviene del servicio de mockeo.
             CivitasId = CivitasDefaultGuid, // TODO: esto está hardcodeado
             CreatedAt = DateTime.UtcNow,
             Status = newRogatio.Status
@@ -88,60 +92,24 @@ public class RogatioService : IRogatioService
         _db.Rogationes.Add(rogatio);
         await _db.SaveChangesAsync();
 
-        //RogatioDetailsDto dto = new(
-        //    rogatio.Id,
-        //    rogatio.Title,
-        //    rogatio.Content,
-        //    rogatio.CivisId,
-        //    rogatio.Civis.Name,
-        //    rogatio.CivitasId,
-        //    rogatio.Civitas.Name,
-        //    rogatio.CreatedAt,
-        //    rogatio.Status,
-        //    0, 0, 0, false
-        //);
-
-        //var dto = await _db.Rogationes
-        //    .Where(r => r.Id == rogatio.Id)
-        //    .Select(r => new RogatioDetailsDto(
-        //        r.Id,
-        //        r.Title,
-        //        r.Content,
-        //        r.CivisId,
-        //        r.Civis.Name,
-        //        r.CivitasId,
-        //        r.Civitas.Name,
-        //        r.CreatedAt,
-        //        r.Status,
-        //        0, 0, 0, false
-        //        ))
-        //    .AsNoTracking()
-        //    .FirstOrDefaultAsync();
-
-        //if (dto == null)
-        //{
-        //    return null;
-        //}
-
-        //return dto;
-
         return await GetByIdAsync(rogatio.Id);
     }
 
     public async Task<RogatioDetailsDto?> UpdateAsync(Guid id, UpdateRogatioDto updatedRogatio)
     {
-        // TODO: hay que validar que se está actualizando una Rogatio cuyo estado es Inchoatus, de lo contrario no se debería permitir la actualización.
+        var civisId = _currentUser.CivisId;
 
         var existingRogatio = await _db.Rogationes.FindAsync(id);
-
-        //var existingRogatio = await _db.Rogationes
-        //    .Include(r => r.Civis)
-        //    .Include(r => r.Civitas)
-        //    .FirstOrDefaultAsync(r => r.Id == id);
 
         if (existingRogatio == null)
         {
             return null;
+        }
+
+        if (existingRogatio.CivisId != civisId)
+        {
+            //throw new UnauthorizedAccessException("Sólo el creador de la Rogatio puede editarla.");
+            throw new UnauthorizedDomainException("Sólo el creador de la Rogatio puede editarla.");
         }
 
         if (existingRogatio.Status != RogatioStatus.Inchoatus)
@@ -151,32 +119,40 @@ public class RogatioService : IRogatioService
 
         existingRogatio.Title = updatedRogatio.Title;
         existingRogatio.Content = updatedRogatio.Content;
-        existingRogatio.CivisId = CivisDefaultGuid; // TODO: esto está hardcodeado
+        existingRogatio.CivisId = civisId; // TODO: proviene del servicio de mockeo.
         existingRogatio.CivitasId = CivitasDefaultGuid; // TODO: esto está hardcodeado
         existingRogatio.Status = updatedRogatio.Status;
 
         await _db.SaveChangesAsync();
-
-        //RogatioDetailsDto dto = new(
-        //    existingRogatio.Id,
-        //    existingRogatio.Title,
-        //    existingRogatio.Content,
-        //    existingRogatio.CivisId,
-        //    existingRogatio.Civis.Name,
-        //    existingRogatio.CivitasId,
-        //    existingRogatio.Civitas.Name,
-        //    existingRogatio.CreatedAt,
-        //    existingRogatio.Status,
-        //    0, 0, 0, false
-        //);
-
-        //return dto;
 
         return await GetByIdAsync(id);
     }
 
     public async Task<bool> DeleteAsync(Guid id)
     {
+        var civisId = _currentUser.CivisId;
+
+        var rogatioMeta = await _db.Rogationes
+            .Where(r => r.Id == id)
+            .Select(r => new { r.CivisId, r.Status }) // me traigo sólo los campos que me interesa validar, para hacer más ligera la consulta.
+            .FirstOrDefaultAsync();
+
+        if (rogatioMeta == null)
+        {
+            return false;
+        }
+
+        if (rogatioMeta.CivisId != civisId)
+        {
+            //throw new UnauthorizedAccessException("Sólo el creador de la Rogatio puede eliminarla.");
+            throw new UnauthorizedDomainException("Sólo el creador de la Rogatio puede editarla.");
+        }
+
+        if (rogatioMeta.Status != RogatioStatus.Inchoatus)
+        {
+            throw new InvalidOperationException($"Sólo se pueden borrar Rogatios en estado de Inchoatus. Estado actual: {rogatioMeta.Status}");
+        }
+
         var filasBorradas =  await _db.Rogationes.Where(r => r.Id == id)
                                                 .ExecuteDeleteAsync();
 
@@ -300,12 +276,9 @@ public class RogatioService : IRogatioService
 
     public async Task<RogatioDetailsDto?> ChangeStatusAsync(Guid id, WorkflowRogatioDto workflowRogatio)
     {
-        var rogatio = await _db.Rogationes.FindAsync(id);
+        var civisId = _currentUser.CivisId;
 
-        //var rogatio = await _db.Rogationes
-        //    .Include(r => r.Civis)
-        //    .Include(r => r.Civitas)
-        //    .FirstOrDefaultAsync(r => r.Id == id);
+        var rogatio = await _db.Rogationes.FindAsync(id);
 
         if (rogatio == null)
         {
@@ -314,6 +287,12 @@ public class RogatioService : IRogatioService
 
         var estadoActual = rogatio.Status;
         RogatioStatus nuevoEstado = workflowRogatio.Status;
+
+        if (rogatio.CivisId != civisId)
+        {
+            //throw new UnauthorizedAccessException("Sólo el creador de la Rogatio puede progresarla.");
+            throw new UnauthorizedDomainException("Sólo el creador de la Rogatio puede progresarla.");
+        }
 
         bool transicionValida = (estadoActual, nuevoEstado) switch
         {
@@ -347,25 +326,6 @@ public class RogatioService : IRogatioService
         }
 
         await _db.SaveChangesAsync();
-
-        //RogatioDetailsDto dto = new(
-        //    rogatio.Id,
-        //    rogatio.Title,
-        //    rogatio.Content,
-        //    rogatio.CivisId,
-        //    rogatio.Civis.Name,
-        //    rogatio.CivitasId,
-        //    rogatio.Civitas.Name,
-        //    rogatio.CreatedAt,
-        //    rogatio.Status,
-        //    //0, 0, 0, false // TODO: si mantengo esto cuando Apruebe o Rechaza, no voy a mostrar los votos.
-        //    await _db.Suffragia.CountAsync(s => s.RogatioId == rogatio.Id && s.Votum == SuffragiumValue.Pro),
-        //    await _db.Suffragia.CountAsync(s => s.RogatioId == rogatio.Id && s.Votum == SuffragiumValue.Contra),
-        //    await _db.Suffragia.CountAsync(s => s.RogatioId == rogatio.Id && s.Votum == SuffragiumValue.Abstentio),
-        //    await _db.Suffragia.AnyAsync(s => s.RogatioId == rogatio.Id && s.CivisId == CivisDefaultGuid) // TODO: esto está hardcodeado.
-        //);
-
-        //return dto;
 
         return await GetByIdAsync(id);
 
