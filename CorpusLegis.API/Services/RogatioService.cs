@@ -3,6 +3,7 @@ using CorpusLegis.API.Domain;
 using CorpusLegis.API.Exceptions;
 using CorpusLegis.Shared.Dtos;
 using CorpusLegis.Shared.Enums;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualBasic;
 
@@ -13,13 +14,16 @@ public class RogatioService : IRogatioService
     private readonly CorpusLegisContext _db;
     private readonly ICurrentUserService _currentUser;
 
+    private readonly IValidator<CreateRogatioDto> _createValidator;
+
     //Guid CivisDefaultGuid = Guid.Parse("0f8fad5b-d9cb-469f-a165-70867728950e"); // Sempronio
     Guid CivitasDefaultGuid = Guid.Parse("7c9e6679-7425-40de-944b-e07fc1f90ae7"); // Solfamidas
 
-    public RogatioService(CorpusLegisContext db, ICurrentUserService currentUser)
+    public RogatioService(CorpusLegisContext db, ICurrentUserService currentUser, IValidator<CreateRogatioDto> createValidator)
     {
         _db = db;
         _currentUser = currentUser;
+        _createValidator = createValidator;
     }
 
 
@@ -77,6 +81,16 @@ public class RogatioService : IRogatioService
     public async Task<RogatioDetailsDto> CreateAsync(CreateRogatioDto newRogatio)
     {
         var civisId = _currentUser.CivisId;
+
+        var validationResult = await _createValidator.ValidateAsync(newRogatio);
+
+        if (!validationResult.IsValid)
+        {
+            // extraemos los mensajes y los unimos o los serializamos como JSON.
+            // para mantenerlo simple y compatible con el ExceptionHanlder que tenemos:
+            var errors = string.Join(" | ", validationResult.Errors.Select(e => e.ErrorMessage));
+            throw new BusinessRuleValidationException($"Errores de validación en la creación de la Rogatio: {errors}");
+        }
 
         Rogatio rogatio = new Rogatio
         {

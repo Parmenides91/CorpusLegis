@@ -1,6 +1,8 @@
 ﻿using CorpusLegis.Shared.Dtos;
 using CorpusLegis.Shared.Dtos.Suffragium;
 using CorpusLegis.Shared.Validators;
+using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace CorpusLegis.Web.Clients;
 
@@ -42,6 +44,8 @@ public class CorpusLegisApiClient
 
         // Se lanzará una excepción si él código HTTP no es exitosa (fuera de 200-299).
         response.EnsureSuccessStatusCode();
+
+        await HandleNonSuccessResponseAsync(response);
 
         // Lee la respuesta JSON y la convierte al DTO correspondiente.
         return await response.Content.ReadFromJsonAsync<RogatioDetailsDto>();
@@ -109,5 +113,33 @@ public class CorpusLegisApiClient
 
         return await response.Content.ReadFromJsonAsync<RogatioDetailsDto>();
     }
+
+
+    private async Task HandleNonSuccessResponseAsync(HttpResponseMessage response)
+    {
+        if (response.IsSuccessStatusCode)
+        {
+            return;
+        }
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        try
+        {
+            var problemDetails = JsonSerializer.Deserialize<ProblemDetails>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true } );
+
+            if (problemDetails != null && !string.IsNullOrEmpty(problemDetails.Detail))
+            {
+                throw new ApplicationException(problemDetails.Detail);
+            }
+        }
+        catch (JsonException)
+        {
+            throw;
+        }
+
+        throw new ApplicationException($"Error HTTP {response.StatusCode}.");
+    }
+
 
 }

@@ -4,7 +4,9 @@ using CorpusLegis.API.Domain;
 using CorpusLegis.API.Endpoints;
 using CorpusLegis.API.Infrastructure;
 using CorpusLegis.API.Services;
+using CorpusLegis.API.Validators;
 using CorpusLegis.Shared.Dtos;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
 
@@ -38,6 +40,9 @@ builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 // Se registra el servicio de Excepciones.
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
+
+// Se registra el servicio de validaciones.
+builder.Services.AddValidatorsFromAssemblyContaining<CreateRogatioDtoValidator>();
 
 
 var app = builder.Build();
@@ -75,7 +80,7 @@ using (var scope = app.Services.CreateScope())
     //db.Database.EnsureCreated();
 
     // Al pasar a migraciones de EF ya no podemos tener ese EnsureCreated.
-    db.Database.Migrate();
+    db.Database.Migrate(); //esto sólo funciona si siempre elimino las migrations y empiezo de cero. Hay que corregir esto en algún momento.
     // cada vez que hagas una modificación del Domain debes hacer:
     // 1) situarte en el proyecto CorpusLegis.API con la Package Manager Console.
     // 2) ejecutar "dotnet ef migrations add NombreDeLaMigración".
