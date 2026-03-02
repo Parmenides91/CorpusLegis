@@ -33,6 +33,12 @@ builder.Services.AddScoped<IRogatioService, RogatioService>();
 // Se registra el servicio de Suffragium.
 builder.Services.AddScoped<ISuffragiumService, SuffragiumService>();
 
+// Se registra el servicio de Lex.
+builder.Services.AddScoped<ILexService, LexService>();
+
+// Se registra el servicio de Civitas.
+builder.Services.AddScoped<ICivitasService, CivitasService>();
+
 // Se registra el servicio del mockeo de usuarios que estamos haciendo.
 builder.Services.AddHttpContextAccessor(); // Necesario para que CurrentUserService pueda acceder al contexto HTTP.
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
@@ -57,6 +63,12 @@ app.MapRogatioEndpoints();
 
 // Se mapean los endpoints de Suffragium.
 app.MapSuffragiumEndpoints();
+
+// Se mapean los endpoints de Lex.
+app.MapLexEndpoints();
+
+// Se mapean los endpoints de Civitas.
+app.MapCivitasEndpoints();
 
 
 // Configure the HTTP request pipeline.

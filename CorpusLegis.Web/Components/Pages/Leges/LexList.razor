@@ -1,0 +1,82 @@
+﻿@page "/lex"
+@rendermode InteractiveServer
+
+@using CorpusLegis.Shared.Dtos.Lex
+
+@inject Clients.CorpusLegisApiClient ApiClient
+
+
+<h3>Leges actuales</h3>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+@if (leges == null)
+{
+    <p><em>Cargando del Senado...</em></p>
+}
+else if (!leges.Any())
+{
+    <p>No hay Leges registradas en el Codex actualmente.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Título</th>
+                <th>Id Civitas</th>
+                <th>Id Rogatio origen</th>
+                <th>Promulgación</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var lex in leges)
+            {
+                <tr>
+                    <td>@lex.Title</td>
+                    <td>@lex.CivitasId</td>
+                    <td>
+                        <a class="btn btn-sm" href="rogatio/@lex.OriginRogatioId">@lex.OriginRogatioId</a>
+                    </td>
+                    <td>@lex.PromulgatedAt</td>
+                    <td>
+                        @* Habría que hacer algo para que sólo pueda consultarla un Civis que pertenezca a esta Civitas. *@
+                        <a class="btn btn-sm btn-outline-primary" href="lex/@lex.Id">Ver detalles</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+
+
+@code {
+    private List<LexSummaryDto>? leges;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        errorMessage = null;
+
+        try
+        {
+            leges = await ApiClient.GetLegesAsync();
+        }
+        catch (ApplicationException ex)
+        {
+            Console.WriteLine($"Error al cargar las Leges: {ex.Message}");
+            errorMessage = $"Error al cargar las Leges: {ex.Message}";
+        }
+    }
+
+}

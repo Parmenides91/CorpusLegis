@@ -1,6 +1,7 @@
 @CorpusLegis.API_HostAddress = http://localhost:5208
 @RogatioId = 501f8ef7-128f-4e9f-9f39-f4067c752287
 @CivisIdDefault = 0f8fad5b-d9cb-469f-a165-70867728950e
+@LexId = 07a9c194-4f54-4ec0-bcda-d31a5ee4893d
 
 
 ###
@@ -67,4 +68,18 @@ X-Civis-Id: {{CivisIdDefault}}
   "civisid": "{{CivisIdDefault}}",
   "votum": 0
 }
+###
+
+###
+# Listar Leges: 
+GET {{CorpusLegis.API_HostAddress}}/lex
+Content-type: application/json
+X-Civis-Id: {{CivisIdDefault}}
+###
+
+###
+# Obtener una sola Lex
+GET {{CorpusLegis.API_HostAddress}}/lex/{{LexId}}
+Content-type: application/json
+X-Civis-Id: {{CivisIdDefault}}
 ###

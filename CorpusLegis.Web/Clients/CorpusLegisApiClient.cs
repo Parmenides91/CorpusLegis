@@ -1,4 +1,6 @@
 ﻿using CorpusLegis.Shared.Dtos;
+using CorpusLegis.Shared.Dtos.Civitas;
+using CorpusLegis.Shared.Dtos.Lex;
 using CorpusLegis.Shared.Dtos.Suffragium;
 using CorpusLegis.Shared.Validators;
 using Microsoft.AspNetCore.Mvc;
@@ -20,6 +22,7 @@ public class CorpusLegisApiClient
     // Aquí irán los métodos para interactuar con la API de CorpusLegis. Se pueden agregar métodos para obtener datos, enviar datos, etc.
 
 
+    #region Rogatio
     // Método para obtener un rogatio por su ID.
     public async Task<RogatioDetailsDto?> GetRogatioByIdAsync(Guid id)
     {
@@ -84,18 +87,6 @@ public class CorpusLegisApiClient
         return true;
     }
 
-
-    // Método para emitir un voto (suffragium) a un rogatio.
-    public async Task<SuffragiumDetailsDto?> CreateSuffragiumAsync(Guid idRogatio, CreateSuffragiumDto dto)
-    {
-        var response = await _httpClient.PostAsJsonAsync($"/rogatio/{idRogatio}/vote", dto);
-
-        response.EnsureSuccessStatusCode();
-
-        return await response.Content.ReadFromJsonAsync<SuffragiumDetailsDto>();
-    }
-
-
     // Método para cambiar el estado de un rogatio (workflow).
     public async Task<RogatioDetailsDto?> ChangeRogatioStatusAsync(Guid id, WorkflowRogatioDto dto)
     {
@@ -113,8 +104,62 @@ public class CorpusLegisApiClient
 
         return await response.Content.ReadFromJsonAsync<RogatioDetailsDto>();
     }
+    #endregion
 
 
+    #region Suffragium
+    // Método para emitir un voto (suffragium) a un rogatio.
+    public async Task<SuffragiumDetailsDto?> CreateSuffragiumAsync(Guid idRogatio, CreateSuffragiumDto dto)
+    {
+        var response = await _httpClient.PostAsJsonAsync($"/rogatio/{idRogatio}/vote", dto);
+
+        response.EnsureSuccessStatusCode();
+
+        return await response.Content.ReadFromJsonAsync<SuffragiumDetailsDto>();
+    }
+    #endregion
+
+
+
+    #region Lex
+    // Método para obtener una lex por su ID.
+    public async Task<LexDetailsDto?> GetLexByIdAsync(Guid id)
+    {
+        var response = await _httpClient.GetFromJsonAsync<LexDetailsDto>($"/lex/{id}");
+        return response;
+    }
+
+    // Método para obtener la lista de leges.
+    public async Task<List<LexSummaryDto>> GetLegesAsync()
+    {
+        var response = await _httpClient.GetFromJsonAsync<List<LexSummaryDto>>("/lex");
+        return response ?? new List<LexSummaryDto>();
+    }
+    #endregion
+
+
+
+    #region Civitas
+    // Método para obtener una civitas por su ID.
+    public async Task<CivitasDetailsDto?> GetCivitasByIdAsync(Guid id)
+    {
+        var response = await _httpClient.GetFromJsonAsync<CivitasDetailsDto>($"/civitas/{id}");
+
+        return response;
+    }
+
+    // Método para obtener la lista de civitates.
+    public async Task<List<CivitasSummaryDto>> GetCivitatesAsync()
+    {
+        var response = await _httpClient.GetFromJsonAsync<List<CivitasSummaryDto>>("/civitas");
+
+        return response ?? new List<CivitasSummaryDto>();
+    }
+    #endregion
+
+
+
+    #region Excepciones
     private async Task HandleNonSuccessResponseAsync(HttpResponseMessage response)
     {
         if (response.IsSuccessStatusCode)
@@ -140,6 +185,7 @@ public class CorpusLegisApiClient
 
         throw new ApplicationException($"Error HTTP {response.StatusCode}.");
     }
+    #endregion
 
 
 }

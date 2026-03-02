@@ -1,0 +1,77 @@
+﻿@page "/civitas"
+@rendermode InteractiveServer
+
+@using CorpusLegis.Shared.Dtos.Civitas
+
+@inject Clients.CorpusLegisApiClient ApiClient
+
+
+<h3>Listado de Civitas</h3>
+
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+@if (civitates == null)
+{
+    <p><em>Cargando las murallas...</em></p>
+}
+else if (!civitates.Any())
+{
+    <p>No hay Civitates dadas de alta.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Fecha de fundación</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var civitas in civitates)
+            {
+                <tr>
+                    <td>@civitas.Name</td>
+                    <td>@civitas.FoundedAt</td>
+                    <td>
+                        @* ¿Todo el mundo puede ver todas las Civitas que hay? *@
+                        <a class="btn btn-sm btn-outline-primary" href="civitas/@civitas.Id">Ver detalles</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+
+
+@code {
+    private List<CivitasSummaryDto>? civitates;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        errorMessage = null;
+
+        try
+        {
+            civitates = await ApiClient.GetCivitatesAsync();
+        }
+        catch (ApplicationException ex)
+        {
+            Console.WriteLine($"Error al cargar las Civitates: {ex.Message}.");
+            errorMessage = $"Error al cargar las Civitates: {ex.Message}.";
+        }
+    }
+
+}
