@@ -10,7 +10,7 @@ public class CreateRogatioDtoValidator : AbstractValidator<CreateRogatioDto>
     {
         RuleFor(x => x.Title)
             .NotEmpty().WithMessage("Debes definir un título para crear una Rogatio.")
-            .MinimumLength(10).WithMessage("El título debe ser descriptivo (mínimo 10 caracteres).")
+            .MinimumLength(3).WithMessage("El título debe ser descriptivo (mínimo 10 caracteres).")
             .MaximumLength(100).WithMessage("El título no debe exceder los 100 caracteres.");
 
         RuleFor(x => x.Content)

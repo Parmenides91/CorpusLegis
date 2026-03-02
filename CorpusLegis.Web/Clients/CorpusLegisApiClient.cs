@@ -43,7 +43,7 @@ public class CorpusLegisApiClient
         var response = await _httpClient.PostAsJsonAsync("/rogatio", dto);
 
         // Se lanzará una excepción si él código HTTP no es exitosa (fuera de 200-299).
-        response.EnsureSuccessStatusCode();
+        //response.EnsureSuccessStatusCode();
 
         await HandleNonSuccessResponseAsync(response);
 
