@@ -4,7 +4,9 @@ using CorpusLegis.API.Domain;
 using CorpusLegis.API.Endpoints;
 using CorpusLegis.API.Infrastructure;
 using CorpusLegis.API.Services;
+using CorpusLegis.API.Validators;
 using CorpusLegis.Shared.Dtos;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
 
@@ -31,6 +33,12 @@ builder.Services.AddScoped<IRogatioService, RogatioService>();
 // Se registra el servicio de Suffragium.
 builder.Services.AddScoped<ISuffragiumService, SuffragiumService>();
 
+// Se registra el servicio de Lex.
+builder.Services.AddScoped<ILexService, LexService>();
+
+// Se registra el servicio de Civitas.
+builder.Services.AddScoped<ICivitasService, CivitasService>();
+
 // Se registra el servicio del mockeo de usuarios que estamos haciendo.
 builder.Services.AddHttpContextAccessor(); // Necesario para que CurrentUserService pueda acceder al contexto HTTP.
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
@@ -38,6 +46,9 @@ builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 // Se registra el servicio de Excepciones.
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
+
+// Se registra el servicio de validaciones.
+builder.Services.AddValidatorsFromAssemblyContaining<CreateRogatioDtoValidator>();
 
 
 var app = builder.Build();
@@ -52,6 +63,12 @@ app.MapRogatioEndpoints();
 
 // Se mapean los endpoints de Suffragium.
 app.MapSuffragiumEndpoints();
+
+// Se mapean los endpoints de Lex.
+app.MapLexEndpoints();
+
+// Se mapean los endpoints de Civitas.
+app.MapCivitasEndpoints();
 
 
 // Configure the HTTP request pipeline.
@@ -75,7 +92,7 @@ using (var scope = app.Services.CreateScope())
     //db.Database.EnsureCreated();
 
     // Al pasar a migraciones de EF ya no podemos tener ese EnsureCreated.
-    db.Database.Migrate();
+    db.Database.Migrate(); //esto sólo funciona si siempre elimino las migrations y empiezo de cero. Hay que corregir esto en algún momento.
     // cada vez que hagas una modificación del Domain debes hacer:
     // 1) situarte en el proyecto CorpusLegis.API con la Package Manager Console.
     // 2) ejecutar "dotnet ef migrations add NombreDeLaMigración".

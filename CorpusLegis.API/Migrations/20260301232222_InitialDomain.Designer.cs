@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CorpusLegis.API.Migrations
 {
     [DbContext(typeof(CorpusLegisContext))]
-    [Migration("20260224222345_InitialDomain")]
+    [Migration("20260301232222_InitialDomain")]
     partial class InitialDomain
     {
         /// <inheritdoc />
@@ -131,6 +131,9 @@ namespace CorpusLegis.API.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("Deadline")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Status")

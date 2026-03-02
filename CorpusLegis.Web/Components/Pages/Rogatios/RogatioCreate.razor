@@ -12,7 +12,9 @@
 
 @if (!string.IsNullOrEmpty(errorMessage))
 {
-    <div class="alert alert-danger">@errorMessage</div>
+    <div class="alert alert-danger">
+        <strong>Error: </strong>@errorMessage
+    </div>
 }
 
 
@@ -55,16 +57,17 @@
 
             NavigationManager.NavigateTo("/rogatio"); // Redireccionar al listado de Rogatio después de crear uno nuevo
         }
-        catch (HttpRequestException ex)
+        //catch (HttpRequestException ex)
+        catch (ApplicationException ex)
         {
             Console.WriteLine($"Error de comunicación con la API: {ex.Message}");
             errorMessage = $"Error de comunicación con la API: {ex.Message}";
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error al crear el Rogatio: {ex.Message}");
-            errorMessage = $"Ha ocurrido un error inesperado: {ex.Message}";
-        }
+        // catch (Exception ex)
+        // {
+        //     Console.WriteLine($"Error al crear el Rogatio: {ex.Message}");
+        //     errorMessage = $"Ha ocurrido un error inesperado: {ex.Message}";
+        // }
     }
 
 }
