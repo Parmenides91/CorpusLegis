@@ -11,8 +11,11 @@ public static class CivitasEndpoints
 
         group.MapGet("/", GetAllCivitates);
         group.MapGet("/{id:guid}", GetCivitasById);
+        group.MapGet("/me", GetCivitatesForCurrentUser);
+        group.MapGet("/civis/{id:guid}", GetCivitatesForUser);
     }
 
+    
 
     private static async Task<IResult> GetAllCivitates(ICivitasService service)
     {
@@ -28,5 +31,16 @@ public static class CivitasEndpoints
         return civitas is not null ? Results.Ok(civitas) : Results.NotFound();
     }
 
+    private static async Task<IResult> GetCivitatesForCurrentUser(ICivitasService service)
+    {
+        var civitates = await service.GetCivitatesForCurrentUserAsync();
+        return Results.Ok(civitates);
+    }
+
+    private static async Task<IResult> GetCivitatesForUser(Guid id, ICivitasService service)
+    {
+        var civitates = await service.GetCivitatesForUserAsync(id);
+        return Results.Ok(civitates);
+    }
 
 }
