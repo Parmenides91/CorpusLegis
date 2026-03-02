@@ -26,54 +26,32 @@ public class CorpusLegisApiClient
     // Método para obtener un rogatio por su ID.
     public async Task<RogatioDetailsDto?> GetRogatioByIdAsync(Guid id)
     {
-        var response = await _httpClient.GetFromJsonAsync<RogatioDetailsDto>($"/rogatio/{id}");
-
-        return response;
+        var response = await _httpClient.GetAsync($"/rogatio/{id}");
+        await HandleNonSuccessResponseAsync(response);
+        return await response.Content.ReadFromJsonAsync<RogatioDetailsDto>();
     }
 
     // Método para obtener la lista de rogationes.
     public async Task<List<RogatioSummaryDto>> GetRogationesAsync()
     {
-        var response = await _httpClient.GetFromJsonAsync<List<RogatioSummaryDto>>("/rogatio");
-
-        return response ?? new List<RogatioSummaryDto>();
+        var response = await _httpClient.GetAsync("/rogatio");
+        await HandleNonSuccessResponseAsync(response);
+        return await response.Content.ReadFromJsonAsync<List<RogatioSummaryDto>>() ?? new List<RogatioSummaryDto>();
     }
 
     // Método para crear un nuevo rogatio.
     public async Task<RogatioDetailsDto?> CreateRogatioAsync(CreateRogatioDto dto)
     {
-        // Hace un POST a la ruta /rogatio enviado el DTO como JSON.
         var response = await _httpClient.PostAsJsonAsync("/rogatio", dto);
-
-        // Se lanzará una excepción si él código HTTP no es exitosa (fuera de 200-299).
-        //response.EnsureSuccessStatusCode();
-
         await HandleNonSuccessResponseAsync(response);
-
-        // Lee la respuesta JSON y la convierte al DTO correspondiente.
         return await response.Content.ReadFromJsonAsync<RogatioDetailsDto>();
     }
 
     // Método para actualizar un rogatio existente.
     public async Task<RogatioDetailsDto?> UpdateRogatioAsync(Guid id, UpdateRogatioDto dto)
     {
-        // Hace un PUT a la ruta /rogatio/{id} enviado el DTO como JSON.
         var response = await _httpClient.PutAsJsonAsync($"/rogatio/{id}", dto);
-
-
-        if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
-        {
-            var problemDetails = await response.Content.ReadFromJsonAsync<HttpValidationProblemDetails>();
-
-            if (problemDetails?.Errors != null)
-            {
-                throw new ApiValidationException(problemDetails.Errors);
-            }
-        }
-
-        // Se lanzará una excepción si él código HTTP no es exitosa (fuera de 200-299).
-        response.EnsureSuccessStatusCode();
-        // Lee la respuesta JSON y la convierte al DTO correspondiente.
+        await HandleNonSuccessResponseAsync(response);
         return await response.Content.ReadFromJsonAsync<RogatioDetailsDto>();
     }
 
@@ -81,9 +59,7 @@ public class CorpusLegisApiClient
     public async Task<bool> DeleteRogatioAsync(Guid id)
     {
         var response = await _httpClient.DeleteAsync($"/rogatio/{id}");
-        // Se lanzará una excepción si él código HTTP no es exitosa (fuera de 200-299).
-        response.EnsureSuccessStatusCode();
-
+        await HandleNonSuccessResponseAsync(response);
         return true;
     }
 
@@ -91,17 +67,7 @@ public class CorpusLegisApiClient
     public async Task<RogatioDetailsDto?> ChangeRogatioStatusAsync(Guid id, WorkflowRogatioDto dto)
     {
         var response = await _httpClient.PutAsJsonAsync($"/rogatio/{id}/status", dto);
-        //if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
-        //{
-        //    var problemDetails = await response.Content.ReadFromJsonAsync<HttpValidationProblemDetails>();
-        //    if (problemDetails?.Errors != null)
-        //    {
-        //        throw new ApiValidationException(problemDetails.Errors);
-        //    }
-        //}
-
-        response.EnsureSuccessStatusCode();
-
+        await HandleNonSuccessResponseAsync(response);
         return await response.Content.ReadFromJsonAsync<RogatioDetailsDto>();
     }
     #endregion
@@ -112,9 +78,7 @@ public class CorpusLegisApiClient
     public async Task<SuffragiumDetailsDto?> CreateSuffragiumAsync(Guid idRogatio, CreateSuffragiumDto dto)
     {
         var response = await _httpClient.PostAsJsonAsync($"/rogatio/{idRogatio}/vote", dto);
-
-        response.EnsureSuccessStatusCode();
-
+        await HandleNonSuccessResponseAsync(response);
         return await response.Content.ReadFromJsonAsync<SuffragiumDetailsDto>();
     }
     #endregion
