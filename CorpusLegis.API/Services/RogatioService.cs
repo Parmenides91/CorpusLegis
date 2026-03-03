@@ -92,13 +92,28 @@ public class RogatioService : IRogatioService
             throw new BusinessRuleValidationException($"Errores de validación en la creación de la Rogatio: {errors}");
         }
 
+        // ¿existe la Civitas?
+        var civitasExists = await _db.Civitates.AnyAsync(c => c.Id == newRogatio.CivitasId);
+        if (!civitasExists)
+        {
+            throw new BusinessRuleValidationException($"No existe una Civitas con el ID {newRogatio.CivitasId}.");
+        }
+
+        // ¿pertenece el Civis a la Civitas?
+        var civisBelongsToCivitas = await _db.Civitates.AnyAsync(civitas => civitas.Id == newRogatio.CivitasId && civitas.Cives.Any(civis => civis.Id == civisId));
+        if (!civisBelongsToCivitas)
+        {
+            throw new BusinessRuleValidationException($"El Civis con ID {civisId} no pertenece a la Civitas con ID {newRogatio.CivitasId}.");
+        }
+
         Rogatio rogatio = new Rogatio
         {
             Id = Guid.NewGuid(),
             Title = newRogatio.Title,
             Content = newRogatio.Content,
             CivisId = civisId, // TODO: proviene del servicio de mockeo.
-            CivitasId = CivitasDefaultGuid, // TODO: esto está hardcodeado
+            /*CivitasId = CivitasDefaultGuid,*/ // TODO: esto está hardcodeado
+            CivitasId = newRogatio.CivitasId,
             CreatedAt = DateTime.UtcNow,
             Status = newRogatio.Status
         };
@@ -134,7 +149,8 @@ public class RogatioService : IRogatioService
         existingRogatio.Title = updatedRogatio.Title;
         existingRogatio.Content = updatedRogatio.Content;
         existingRogatio.CivisId = civisId; // TODO: proviene del servicio de mockeo.
-        existingRogatio.CivitasId = CivitasDefaultGuid; // TODO: esto está hardcodeado
+        /*existingRogatio.CivitasId = CivitasDefaultGuid;*/ // TODO: esto está hardcodeado
+        existingRogatio.CivitasId = existingRogatio.CivitasId; // la Civitas nunca puede cambiar.
         existingRogatio.Status = updatedRogatio.Status;
 
         await _db.SaveChangesAsync();

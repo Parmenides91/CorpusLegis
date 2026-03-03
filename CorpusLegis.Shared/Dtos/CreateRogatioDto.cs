@@ -20,6 +20,8 @@ public class CreateRogatioDto
     public RogatioStatus Status { get; set; } = RogatioStatus.Inchoatus;
 
     public DateTime Deadline { get; set; } = DateTime.UtcNow.AddHours(48);
+
+    public Guid CivitasId { get; set; }
 }
 
 
