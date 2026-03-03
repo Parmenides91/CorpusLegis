@@ -42,7 +42,10 @@ else
             @foreach (var rogatio in rogationes)
             {
                 <tr>
-                    <td>@rogatio.Title</td>
+                    <td>
+                        @rogatio.Title
+                        <span class="badge bg-secondary">@rogatio.CivitasName</span>
+                    </td>
                     <td>@rogatio.Status</td>
                     <td>@rogatio.CreatedAt</td>
                     <td>
