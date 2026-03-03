@@ -43,12 +43,12 @@ public static class DatabaseSeeder
         defaultCivitates[4].Cives.Add(defaultCives[2]);
         defaultCives[3].Civitates.Add(defaultCivitates[5]);
 
-        //defaultCives[0].Civitates.Add(defaultCivitates[3]);
-        //defaultCives[0].Civitates.Add(defaultCivitates[4]);
-        //defaultCives[0].Civitates.Add(defaultCivitates[5]);
-        //defaultCivitates[3].Cives.Add(defaultCives[0]);
-        //defaultCivitates[4].Cives.Add(defaultCives[0]);
-        //defaultCivitates[5].Cives.Add(defaultCives[0]);
+        defaultCives[0].Civitates.Add(defaultCivitates[3]);
+        defaultCives[0].Civitates.Add(defaultCivitates[4]);
+        defaultCives[0].Civitates.Add(defaultCivitates[5]);
+        defaultCivitates[3].Cives.Add(defaultCives[0]);
+        defaultCivitates[4].Cives.Add(defaultCives[0]);
+        defaultCivitates[5].Cives.Add(defaultCives[0]);
 
 
         var rogatio = new Rogatio

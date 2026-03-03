@@ -2,6 +2,7 @@
 @rendermode InteractiveServer
 
 @using CorpusLegis.Shared.Dtos
+@using CorpusLegis.Shared.Dtos.Civitas
 
 @inject Clients.CorpusLegisApiClient ApiClient
 @inject NavigationManager NavigationManager
@@ -37,15 +38,47 @@
         <ValidationMessage For="@(() => newRogatio.Content)" />
     </div>
 
+    <div class="mb-3">
+        <label for="civitas" class="form-label>">Civitas</label>
+        <InputSelect id="civitas" class="form-select" @bind-Value="newRogatio.CivitasId">
+            <option value="">Seleccione una Civitas</option>
+            @foreach (var civitasItem in civitas)
+            {
+                <option value="@civitasItem.Id">@civitasItem.Name</option>
+            }
+        </InputSelect>
+        <ValidationMessage For="@(() => newRogatio.CivitasId)" />
+    </div>
+
     <button type="submit" class="btn btn-primary">Crear Rogatio</button>
 
 </EditForm>
 
 
 @code {
-    
+
     private CreateRogatioDto newRogatio = new();
+    private List<CivitasSummaryDto> civitas = new();
     private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        try
+        {
+            civitas = await ApiClient.GetUserCivitatesAsync();
+        }
+        catch (ApplicationException ex)
+        {
+            Console.WriteLine($"Error al cargar datos: {ex.Message}");
+            errorMessage = $"Error al cargar datos: {ex.Message}";
+        }
+        
+    }
 
     private async Task HandleSubmit()
     {
