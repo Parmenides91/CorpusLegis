@@ -11,11 +11,15 @@ public static class CivitasEndpoints
 
         group.MapGet("/", GetAllCivitates);
         group.MapGet("/{id:guid}", GetCivitasById);
-        group.MapGet("/me", GetCivitatesForCurrentUser);
-        group.MapGet("/civis/{id:guid}", GetCivitatesForUser);
+
+        group.MapGet("/me", GetCivitatesForCurrentUser); // TODO: cambia user por civis.
+        group.MapGet("/civis/{id:guid}", GetCivitatesForUser); // TODO: cambia user por civis.
+
+        group.MapPost("/{civitasId:guid}/join/me", JoinCurrentCivisToCivitas);
+        group.MapPost("/{civitasId:guid}/join/{civisId:guid}", JoinCivisToCivitas);
     }
 
-    
+
 
     private static async Task<IResult> GetAllCivitates(ICivitasService service)
     {
@@ -31,6 +35,8 @@ public static class CivitasEndpoints
         return civitas is not null ? Results.Ok(civitas) : Results.NotFound();
     }
 
+
+
     private static async Task<IResult> GetCivitatesForCurrentUser(ICivitasService service)
     {
         var civitates = await service.GetCivitatesForCurrentUserAsync();
@@ -41,6 +47,18 @@ public static class CivitasEndpoints
     {
         var civitates = await service.GetCivitatesForUserAsync(id);
         return Results.Ok(civitates);
+    }
+
+
+
+    private static async Task JoinCurrentCivisToCivitas(Guid civitasId, ICivitasService service)
+    {
+        await service.AddCurrentCivisToCivitas(civitasId);
+    }
+
+    private static async Task JoinCivisToCivitas(Guid civitasId, Guid civisId, ICivitasService service)
+    {
+        await service.AddCivisToCivitas(civitasId, civisId);
     }
 
 }

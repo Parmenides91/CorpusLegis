@@ -2,8 +2,10 @@
 @rendermode InteractiveServer
 
 @using CorpusLegis.Shared.Dtos.Civitas
+@using CorpusLegis.Web.State
 
 @inject Clients.CorpusLegisApiClient ApiClient
+@inject CorpusLegis.Web.State.CivisState CivisState
 
 
 <h3>Listado de Civitas</h3>
@@ -41,6 +43,14 @@ else
                     <td>
                         @* ¿Todo el mundo puede ver todas las Civitas que hay? *@
                         <a class="btn btn-sm btn-outline-primary" href="civitas/@civitas.Id">Ver detalles</a>
+                        @if (civitas.isMember)
+                        {
+                            <span class="badge bg-success ms-2">Miembro</span>
+                        }
+                        else
+                        {
+                            <button class="btn btn-sm btn-outline-secondary ms-2" @onclick="() => JoinCivitas(civitas.Id)" disabled="@joining">Solicitar unirse</button>
+                        }
                     </td>
                 </tr>
             }
@@ -53,10 +63,13 @@ else
 @code {
     private List<CivitasSummaryDto>? civitates;
     private string? errorMessage;
+    private bool joining;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadDataAsync();
+
+        CivisState.OnChange += OnCivisChanged;
     }
 
     private async Task LoadDataAsync()
@@ -72,6 +85,45 @@ else
             Console.WriteLine($"Error al cargar las Civitates: {ex.Message}.");
             errorMessage = $"Error al cargar las Civitates: {ex.Message}.";
         }
+    }
+
+    async Task JoinCivitas(Guid id)
+    {
+        if (joining)
+        {
+            return;
+        }
+
+        joining = true;
+
+        try
+        {
+            await ApiClient.JoinCurrentCivisToCivitasAsync(id);
+
+            civitates = await ApiClient.GetCivitatesAsync(); // recargamos las civitas para actualizar el estado de "isMember".
+
+            joining = false;
+
+            StateHasChanged();
+        }
+        catch (ApplicationException ex)
+        {
+            Console.WriteLine($"Error al agregar el Civis a la Civitas: {ex.Message}.");
+            errorMessage = $"Error al agregar el Civis a la Civitas: {ex.Message}.";
+        }
+        
+    }
+
+    private async void OnCivisChanged()
+    {
+        await LoadDataAsync(); // si cambia el usuario, se vuelven a pedir los datos a la API.
+
+        await InvokeAsync(StateHasChanged); // forzar el repintado.
+    }
+
+    public void Dispose()
+    {
+        CivisState.OnChange -= OnCivisChanged;
     }
 
 }

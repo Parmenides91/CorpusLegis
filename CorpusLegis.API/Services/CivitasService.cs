@@ -16,28 +16,33 @@ public class CivitasService : ICivitasService
         _currentUser = currentUser;
     }
 
+    
+
     public async Task<List<CivitasSummaryDto>> GetAllAsync()
     {
+        var currentCivisId = _currentUser.CivisId; // TODO: esto proviene del servicio de mockeo de lectura de cabeceras.
+
         return await _db.Civitates
+            .AsNoTracking()
             .Select(c => new CivitasSummaryDto (
                 c.Id,
                 c.Name,
-                c.FoundedAt
+                c.FoundedAt,
+                c.Cives.Any(u => u.Id == currentCivisId)
                 ))
-            .AsNoTracking()
             .ToListAsync();
     }
 
     public async Task<CivitasDetailsDto?> GetByIdAsync(Guid id)
     {
         var dto = await _db.Civitates
+            .AsNoTracking()
             .Where(c => c.Id == id)
             .Select(c => new CivitasDetailsDto (
                 c.Id,
                 c.Name,
                 c.FoundedAt
                 ))
-            .AsNoTracking()
             .FirstOrDefaultAsync();
 
         if (dto == null)
@@ -74,6 +79,72 @@ public class CivitasService : ICivitasService
                 c.FoundedAt
                 ))
             .ToListAsync();
+    }
+
+
+
+    public async Task AddCurrentCivisToCivitas(Guid civitasId)
+    {
+        var civisId = _currentUser.CivisId;
+
+        if (civisId == null)
+        {
+            throw new BusinessRuleValidationException("No se pudo determinar el Civis actual.");
+        }
+
+        var civis = await _db.Cives.FindAsync(civisId);
+
+        if (civis == null)
+        {
+            throw new BusinessRuleValidationException($"El Civis con ID {civisId} no existe.");
+        }
+
+        var civitasInfo = await _db.Civitates
+            .Include(c => c.Cives)
+            .FirstOrDefaultAsync(c => c.Id == civitasId);
+
+        if (civitasInfo == null)
+        {
+            throw new BusinessRuleValidationException($"El Civitas con ID {civitasId} no existe.");
+        }
+
+        if (civitasInfo.Cives.Any(c => c.Id == civisId))
+        {
+            throw new BusinessRuleValidationException($"El Civis con ID {civisId} ya es miembro del Civitas con ID {civitasId}.");
+        }
+
+        civitasInfo.Cives.Add(civis);
+
+        await _db.SaveChangesAsync();
+    }
+
+    public async Task AddCivisToCivitas(Guid civitasId, Guid civisId)
+    {
+        var civis = await _db.Cives.FindAsync(civisId);
+
+        if (civis == null)
+        {
+            throw new BusinessRuleValidationException($"El Civis con ID {civisId} no existe.");
+        }
+
+        var civitasInfo = await _db.Civitates
+            .Include(c => c.Cives)
+            .FirstOrDefaultAsync(c => c.Id == civitasId);
+
+        if (civitasInfo == null)
+        {
+            throw new BusinessRuleValidationException($"El Civitas con ID {civitasId} no existe.");
+        }
+
+        if(civitasInfo.Cives.Any(c => c.Id == civisId))
+        {
+            throw new BusinessRuleValidationException($"El Civis con ID {civisId} ya es miembro del Civitas con ID {civitasId}.");
+        }
+
+        civitasInfo.Cives.Add(civis);
+
+        await _db.SaveChangesAsync();
+
     }
 
 

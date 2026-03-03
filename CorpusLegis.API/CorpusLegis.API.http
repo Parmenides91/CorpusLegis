@@ -116,3 +116,17 @@ GET {{CorpusLegis.API_HostAddress}}/civitas/civis/{{CivisIdDefault}}
 Content-type: application/json
 X-Civis-Id: {{CivisIdDefault}}
 ###
+
+###
+# Agregar a la Civitas el Civis actual
+POST {{CorpusLegis.API_HostAddress}}/civitas/{{CivitasIdDefault}}/join/me
+Content-type: application/json
+X-Civis-Id: {{CivisIdDefault}}
+###
+
+###
+# Agregar a la Civitas un determinado Civis
+POST {{CorpusLegis.API_HostAddress}}/civitas/{{CivitasIdDefault}}/join/{{CivisIdDefault}}
+Content-type: application/json
+X-Civis-Id: {{CivisIdDefault}}
+###

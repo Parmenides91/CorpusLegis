@@ -93,18 +93,37 @@ public class RogatioService : IRogatioService
             throw new BusinessRuleValidationException($"Errores de validación en la creación de la Rogatio: {errors}");
         }
 
-        // ¿existe la Civitas?
-        var civitasExists = await _db.Civitates.AnyAsync(c => c.Id == newRogatio.CivitasId);
-        if (!civitasExists)
+        //// ¿existe la Civitas?
+        //var civitasExists = await _db.Civitates.AnyAsync(c => c.Id == newRogatio.CivitasId);
+        //if (!civitasExists)
+        //{
+        //    throw new BusinessRuleValidationException($"No existe una Civitas con el ID {newRogatio.CivitasId}.");
+        //}
+
+        //// ¿pertenece el Civis a la Civitas?
+        //var civisBelongsToCivitas = await _db.Civitates.AnyAsync(civitas => civitas.Id == newRogatio.CivitasId && civitas.Cives.Any(civis => civis.Id == civisId));
+        //if (!civisBelongsToCivitas)
+        //{
+        //    throw new BusinessRuleValidationException($"El Civis con ID {civisId} no pertenece a la Civitas con ID {newRogatio.CivitasId}.");
+        //}
+
+        var civitasInfo = await _db.Civitates
+            .Where(c => c.Id == newRogatio.CivitasId)
+            .Select(c => new
+            {
+                Exist = true,
+                IsMember = c.Cives.Any(civis => civis.Id == civisId)
+            })
+            .FirstOrDefaultAsync();
+
+        if (civitasInfo == null)
         {
             throw new BusinessRuleValidationException($"No existe una Civitas con el ID {newRogatio.CivitasId}.");
         }
 
-        // ¿pertenece el Civis a la Civitas?
-        var civisBelongsToCivitas = await _db.Civitates.AnyAsync(civitas => civitas.Id == newRogatio.CivitasId && civitas.Cives.Any(civis => civis.Id == civisId));
-        if (!civisBelongsToCivitas)
+        if (!civitasInfo.IsMember)
         {
-            throw new BusinessRuleValidationException($"El Civis con ID {civisId} no pertenece a la Civitas con ID {newRogatio.CivitasId}.");
+            throw new UnauthorizedDomainException($"El Civis con ID {civisId} no pertenece a la Civitas con ID {newRogatio.CivitasId}. Por lo tanto, no puede crear una Rogatio para ella.");
         }
 
         Rogatio rogatio = new Rogatio
@@ -190,118 +209,6 @@ public class RogatioService : IRogatioService
         return filasBorradas > 0;
     }
 
-
-
-
-    //// ---------------------------------------------------------
-    //// ENDPOINTS (MINIMAL API) para Rogatio.
-    //// ---------------------------------------------------------
-    //// GET /rogatio --> devuelve la lista de Rogatios
-    //app.MapGet("/rogatio", async (CorpusLegisContext db)
-    //    => await db.Rogatios
-    //        .Select(r => new RogatioSummaryDto (
-    //            r.Id,
-    //            r.Title,
-    //            r.Content,
-    //            r.AuthorId,
-    //            r.CreatedAt,
-    //            r.Status
-    //            ))
-    //        .AsNoTracking()
-    //        .ToListAsync()
-    //    );
-
-    //// GET /rogatio/{id} --> devuelve un Rogatio por su id
-    //app.MapGet("rogatio/{id:guid}", async (CorpusLegisContext db, Guid id) =>
-    //{
-    //    var rogatio = await db.Rogatios.FindAsync(id);
-
-    //    if (rogatio == null)
-    //    {
-    //        return Results.NotFound();
-    //    }
-
-    //    RogatioDetailsDto dto = new(
-    //        rogatio.Id,
-    //        rogatio.Title,
-    //        rogatio.Content,
-    //        Guid.Empty,
-    //        rogatio.CreatedAt,
-    //        rogatio.Status
-    //    );
-
-    //    return Results.Ok(dto);
-    //});
-
-    //// POST /rogatio --> crea un nuevo Rogatio
-    //app.MapPost("/rogatio", async (CorpusLegisContext db, CreateRogatioDto newRogatio) => 
-    //{
-    //    Rogatio rogatio = new Rogatio
-    //    {
-    //        Id = Guid.NewGuid(),
-    //        Title = newRogatio.Title,
-    //        Content = newRogatio.Content,
-    //        //AuthorId = newRogatio.AuthorId,
-    //        CreatedAt = DateTime.UtcNow,
-    //        Status = newRogatio.Status
-    //    };
-
-    //    db.Rogatios.Add(rogatio);
-    //    await db.SaveChangesAsync();
-
-    //    RogatioDetailsDto dto = new(
-    //        rogatio.Id,
-    //        rogatio.Title,
-    //        rogatio.Content,
-    //        Guid.Empty,
-    //        rogatio.CreatedAt,
-    //        rogatio.Status
-    //    );
-
-    //    return Results.Created($"/rogatio/{rogatio.Id}", dto); // se devuelve un 201 con el DTO de detalles
-    //});
-
-    //// PUT /rogatio/{id} --> actualiza un Rogatio existente por su id
-    //app.MapPut("/rogatio/{id:guid}", async (CorpusLegisContext db, Guid id, UpdateRogatioDto updatedRogatio) =>
-    //{
-    //    //var existingRogatio = await db.Rogatios.FindAsync(updatedRogatio.Id);
-    //    var existingRogatio = await db.Rogatios.FindAsync(id);
-
-    //    if (existingRogatio == null)
-    //    {
-    //        return Results.NotFound();
-    //    }
-
-    //    existingRogatio.Title = updatedRogatio.Title;
-    //    existingRogatio.Content = updatedRogatio.Content;
-    //    //existingRogatio.AuthorId = updatedRogatio.AuthorId;
-    //    existingRogatio.Status = updatedRogatio.Status;
-
-    //    await db.SaveChangesAsync();
-
-    //    RogatioDetailsDto dto = new(
-    //        existingRogatio.Id,
-    //        existingRogatio.Title,
-    //        existingRogatio.Content,
-    //        Guid.Empty,
-    //        existingRogatio.CreatedAt,
-    //        existingRogatio.Status
-    //    );
-
-    //    return Results.Ok(dto); // se devuelve un 200 con el DTO de detalles actualizado
-    //}
-    //);
-
-    //// DELETE /rogatio/{id} --> elimina un Rogatio por su id
-    //app.MapDelete("/rogatio/{id:guid}", async (CorpusLegisContext db, Guid id) =>
-    //{
-    //    await db.Rogatios.Where(r => r.Id == id).ExecuteDeleteAsync();
-
-    //    return Results.NoContent(); // se devuelve un 204
-    //}
-    //);
-    //// ---------------------------------------------------------
-    ///
 
 
 

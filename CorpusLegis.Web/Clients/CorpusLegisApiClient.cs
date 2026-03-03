@@ -139,6 +139,20 @@ public class CorpusLegisApiClient
         await HandleNonSuccessResponseAsync(response);
         return await response.Content.ReadFromJsonAsync<List<CivitasSummaryDto>>() ?? new List<CivitasSummaryDto>();
     }
+
+    // Método para agregar el Civis actual al Civitas.
+    public async Task JoinCurrentCivisToCivitasAsync(Guid idCivitas)
+    {
+        var response = await _httpClient.PostAsync($"/civitas/{idCivitas}/join/me", null);
+        await HandleNonSuccessResponseAsync(response);
+    }
+
+    // Método para agregar un Civis a un Civitas.
+    public async Task JoinCivisToCivitasAsync(Guid idCivitas, Guid idCivis)
+    {
+        var response = await _httpClient.PostAsync($"/civitas/{idCivitas}/join/{idCivis}", null);
+        await HandleNonSuccessResponseAsync(response);
+    }
     #endregion
 
 
