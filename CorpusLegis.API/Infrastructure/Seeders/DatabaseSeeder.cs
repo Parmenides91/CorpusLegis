@@ -38,6 +38,7 @@ public static class DatabaseSeeder
 
         defaultCives[0].Civitates.Add(defaultCivitates[0]);
         defaultCives[1].Civitates.Add(defaultCivitates[1]);
+        defaultCives[1].Civitates.Add(defaultCivitates[0]);
         defaultCivitates[2].Cives.Add(defaultCives[2]);
         defaultCivitates[3].Cives.Add(defaultCives[2]);
         defaultCivitates[4].Cives.Add(defaultCives[2]);

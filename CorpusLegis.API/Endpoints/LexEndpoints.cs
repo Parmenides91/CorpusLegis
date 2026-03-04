@@ -11,7 +11,12 @@ public static class LexEndpoints
 
         group.MapGet("/", GetAllLeges);
         group.MapGet("/{id:guid}", GetLexById);
+
+        group.MapGet("/civis/me", GetLegesForCurrentCivis);
+        group.MapGet("/civis/{civisId:guid}", GetLegesForCivis);
     }
+
+    
 
     
 
@@ -27,6 +32,22 @@ public static class LexEndpoints
         var lex = await service.GetByIdAsync(id);
 
         return lex is not null ? Results.Ok(lex) : Results.NotFound();
+    }
+
+
+
+    private static async Task<IResult> GetLegesForCurrentCivis(ILexService service)
+    {
+        var leges = await service.GetAllByCurrentCivisAsync();
+
+        return Results.Ok(leges);
+    }
+
+    private static async Task<IResult> GetLegesForCivis(Guid civisId, ILexService service)
+    {
+        var leges = await service.GetAllByCivisAsync(civisId);
+
+        return Results.Ok(leges);
     }
 
 }

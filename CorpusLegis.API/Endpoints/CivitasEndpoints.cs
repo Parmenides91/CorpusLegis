@@ -15,8 +15,8 @@ public static class CivitasEndpoints
         group.MapGet("/me", GetCivitatesForCurrentUser); // TODO: cambia user por civis.
         group.MapGet("/civis/{id:guid}", GetCivitatesForUser); // TODO: cambia user por civis.
 
-        group.MapPost("/{civitasId:guid}/join/me", JoinCurrentCivisToCivitas);
-        group.MapPost("/{civitasId:guid}/join/{civisId:guid}", JoinCivisToCivitas);
+        group.MapPost("/{civitasId:guid}/members/me", JoinCurrentCivisToCivitas);
+        group.MapPost("/{civitasId:guid}/members/{civisId:guid}", JoinCivisToCivitas);
     }
 
 

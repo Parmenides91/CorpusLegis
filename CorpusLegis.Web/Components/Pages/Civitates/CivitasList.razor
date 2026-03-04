@@ -43,7 +43,7 @@ else
                     <td>
                         @* ¿Todo el mundo puede ver todas las Civitas que hay? *@
                         <a class="btn btn-sm btn-outline-primary" href="civitas/@civitas.Id">Ver detalles</a>
-                        @if (civitas.isMember)
+                        @if (civitas.IsMember)
                         {
                             <span class="badge bg-success ms-2">Miembro</span>
                         }
@@ -100,7 +100,16 @@ else
         {
             await ApiClient.JoinCurrentCivisToCivitasAsync(id);
 
-            civitates = await ApiClient.GetCivitatesAsync(); // recargamos las civitas para actualizar el estado de "isMember".
+            // Tras haber hecho la petición de unirse, si todo ha ido bien, habrémos unido al Civis a la Civitas. Ahora toca actualizar la UI para reflejar ese cambio. Hay varias formas de hacerlo:
+            // Opción A: recargar toda la lista de civitas para actualizar el estado de "IsMember" de cada una --> poco eficiente y va a escalar fatal.
+            //civitates = await ApiClient.GetCivitatesAsync(); // recargamos las civitas para actualizar el estado de "IsMember".
+            // Opción B: modifico la lista localmente, buscando la civitas a la que me acabo de unir y marcándola como "IsMember = true" --> más eficiente, aunque no he verificado realmente contra la bbdd (pero asumible).
+            var civitasActualizada = civitates?.FirstOrDefault(c => c.Id == id);
+            if (civitasActualizada != null)
+            {
+                var index = civitates!.IndexOf(civitasActualizada);
+                civitates[index] = civitasActualizada with { IsMember = true };
+            }
 
             joining = false;
 

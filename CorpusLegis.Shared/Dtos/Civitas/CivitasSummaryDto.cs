@@ -8,5 +8,5 @@ public record CivitasSummaryDto(
     Guid Id,
     string Name,
     DateTime FoundedAt,
-    bool isMember = false
+    bool IsMember = false
     );

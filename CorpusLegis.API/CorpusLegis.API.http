@@ -119,14 +119,28 @@ X-Civis-Id: {{CivisIdDefault}}
 
 ###
 # Agregar a la Civitas el Civis actual
-POST {{CorpusLegis.API_HostAddress}}/civitas/{{CivitasIdDefault}}/join/me
+POST {{CorpusLegis.API_HostAddress}}/civitas/{{CivitasIdDefault}}/members/me
 Content-type: application/json
 X-Civis-Id: {{CivisIdDefault}}
 ###
 
 ###
 # Agregar a la Civitas un determinado Civis
-POST {{CorpusLegis.API_HostAddress}}/civitas/{{CivitasIdDefault}}/join/{{CivisIdDefault}}
+POST {{CorpusLegis.API_HostAddress}}/civitas/{{CivitasIdDefault}}/members/{{CivisIdDefault}}
+Content-type: application/json
+X-Civis-Id: {{CivisIdDefault}}
+###
+
+###
+# Obtener las Leges de las Civitas a las que pertenece el Civis actual
+GET {{CorpusLegis.API_HostAddress}}/lex/civis/me
+Content-type: application/json
+X-Civis-Id: {{CivisIdDefault}}
+###
+
+###
+# Obtener las Leges de las Civitas a las que pertenece un determinado Civis
+GET {{CorpusLegis.API_HostAddress}}/lex/civis/{{CivisIdDefault}}
 Content-type: application/json
 X-Civis-Id: {{CivisIdDefault}}
 ###
