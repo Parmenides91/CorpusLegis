@@ -181,6 +181,20 @@ public class CorpusLegisApiClient
         var response = await _httpClient.PostAsync($"/civitas/{idCivitas}/members/{idCivis}", null);
         await HandleNonSuccessResponseAsync(response);
     }
+
+    // Método para eliminar el Civis actual del Civitas.
+    public async Task LeaveCurrentCivisFromCivitasAsync(Guid idCivitas)
+    {
+        var response = await _httpClient.DeleteAsync($"/civitas/{idCivitas}/members/me");
+        await HandleNonSuccessResponseAsync(response);
+    }
+
+    // Método para eliminar un Civis de un Civitas.
+    public async Task LeaveCivisFromCivitasAsync(Guid idCivitas, Guid idCivis)
+    {
+        var response = await _httpClient.DeleteAsync($"/civitas/{idCivitas}/members/{idCivis}");
+        await HandleNonSuccessResponseAsync(response);
+    }
     #endregion
 
 

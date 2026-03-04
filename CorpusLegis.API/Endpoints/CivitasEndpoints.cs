@@ -17,6 +17,9 @@ public static class CivitasEndpoints
 
         group.MapPost("/{civitasId:guid}/members/me", JoinCurrentCivisToCivitas);
         group.MapPost("/{civitasId:guid}/members/{civisId:guid}", JoinCivisToCivitas);
+
+        group.MapDelete("/{civitasId:guid}/members/me", LeaveCurrentCivisFromCivitas);
+        group.MapDelete("/{civitasId:guid}/members/{civisId:guid}", LeaveCivisFromCivitas);
     }
 
 
@@ -59,6 +62,18 @@ public static class CivitasEndpoints
     private static async Task JoinCivisToCivitas(Guid civitasId, Guid civisId, ICivitasService service)
     {
         await service.AddCivisToCivitas(civitasId, civisId);
+    }
+
+
+
+    private static async Task LeaveCurrentCivisFromCivitas(Guid civitasId, ICivitasService service)
+    {
+        await service.RemoveCurrentCivisFromCivitas(civitasId);
+    }
+
+    private static async Task LeaveCivisFromCivitas(Guid civitasId, Guid civisId, ICivitasService service)
+    {
+        await service.RemoveCivisFromCivitas(civitasId, civisId);
     }
 
 }

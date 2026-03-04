@@ -18,4 +18,9 @@ public interface ICivitasService
     Task AddCurrentCivisToCivitas(Guid civitasId);
 
     Task AddCivisToCivitas(Guid civitasId, Guid civisId);
+
+
+    Task RemoveCurrentCivisFromCivitas(Guid civitasId);
+
+    Task RemoveCivisFromCivitas(Guid civitasId, Guid civisId);
 }
