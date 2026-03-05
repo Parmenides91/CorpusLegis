@@ -7,5 +7,6 @@ namespace CorpusLegis.Shared.Dtos.Civitas;
 public record CivitasSummaryDto(
     Guid Id,
     string Name,
-    DateTime FoundedAt
+    DateTime FoundedAt,
+    bool IsMember = false
     );

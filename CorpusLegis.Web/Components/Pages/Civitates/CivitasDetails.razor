@@ -8,6 +8,13 @@
 
 <h3>Detalles de la Civitas [ID: CCC]</h3>
 
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">
+        <strong>Error: </strong>@errorMessage
+    </div>
+}
+
 
 @if (civitas != null)
 {

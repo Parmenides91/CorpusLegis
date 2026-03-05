@@ -10,6 +10,7 @@ public record RogatioSummaryDto(
     string Title,
     string Content,
     Guid CivisId,
+    string CivitasName,
     DateTime CreatedAt,
     RogatioStatus Status
     );

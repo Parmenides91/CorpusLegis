@@ -19,6 +19,10 @@ public class CreateRogatioDtoValidator : AbstractValidator<CreateRogatioDto>
         RuleFor(x => x.Deadline)
             .GreaterThan(DateTime.UtcNow.AddHours(24))
             .WithMessage("La fecha límite de votación debe ser al menos 24 horas en el futuro.");
+
+        RuleFor(x => x.CivitasId)
+            .NotEmpty()
+            .WithMessage("Debes seleccionar una Civitas a la que ligar la Rogatio.");
     }
 
 }

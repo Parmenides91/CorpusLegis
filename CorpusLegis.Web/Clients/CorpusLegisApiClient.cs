@@ -89,15 +89,38 @@ public class CorpusLegisApiClient
     // Método para obtener una lex por su ID.
     public async Task<LexDetailsDto?> GetLexByIdAsync(Guid id)
     {
-        var response = await _httpClient.GetFromJsonAsync<LexDetailsDto>($"/lex/{id}");
-        return response;
+        //var response = await _httpClient.GetFromJsonAsync<LexDetailsDto>($"/lex/{id}");
+        //return response;
+        var response = await _httpClient.GetAsync($"/lex/{id}");
+        await HandleNonSuccessResponseAsync(response);
+        return await response.Content.ReadFromJsonAsync<LexDetailsDto>();
     }
 
     // Método para obtener la lista de leges.
     public async Task<List<LexSummaryDto>> GetLegesAsync()
     {
-        var response = await _httpClient.GetFromJsonAsync<List<LexSummaryDto>>("/lex");
-        return response ?? new List<LexSummaryDto>();
+        //var response = await _httpClient.GetFromJsonAsync<List<LexSummaryDto>>("/lex");
+        //return response ?? new List<LexSummaryDto>();
+        var response = await _httpClient.GetAsync("/lex");
+        await HandleNonSuccessResponseAsync(response);
+        return await response.Content.ReadFromJsonAsync<List<LexSummaryDto>>() ?? new List<LexSummaryDto>();
+
+    }
+
+    // Método para obtener la lista de leges a las que pertenece el Civis actual.
+    public async Task<List<LexSummaryDto>> GetLegesByCurrentCivisAsync()
+    {
+        var response = await _httpClient.GetAsync("/lex/civis/me");
+        await HandleNonSuccessResponseAsync(response);
+        return await response.Content.ReadFromJsonAsync<List<LexSummaryDto>>() ?? new List<LexSummaryDto>();
+    }
+
+    // Método para obtener las leges a las que pertenece un Civis.
+    public async Task<List<LexSummaryDto>> GetLegesByCivisIdAsync(Guid civisId)
+    {
+        var response = await _httpClient.GetAsync($"/lex/civis/{civisId}");
+        await HandleNonSuccessResponseAsync(response);
+        return await response.Content.ReadFromJsonAsync<List<LexSummaryDto>>() ?? new List<LexSummaryDto>();
     }
     #endregion
 
@@ -107,17 +130,70 @@ public class CorpusLegisApiClient
     // Método para obtener una civitas por su ID.
     public async Task<CivitasDetailsDto?> GetCivitasByIdAsync(Guid id)
     {
-        var response = await _httpClient.GetFromJsonAsync<CivitasDetailsDto>($"/civitas/{id}");
+        //var response = await _httpClient.GetFromJsonAsync<CivitasDetailsDto>($"/civitas/{id}");
+        //return response;
+        var response = await _httpClient.GetAsync($"/civitas/{id}");
+        await HandleNonSuccessResponseAsync(response);
+        return await response.Content.ReadFromJsonAsync<CivitasDetailsDto>();
 
-        return response;
     }
 
-    // Método para obtener la lista de civitates.
+    // Método para obtener la lista de Civitates.
     public async Task<List<CivitasSummaryDto>> GetCivitatesAsync()
     {
-        var response = await _httpClient.GetFromJsonAsync<List<CivitasSummaryDto>>("/civitas");
+        //var response = await _httpClient.GetFromJsonAsync<List<CivitasSummaryDto>>("/civitas");
+        //return response ?? new List<CivitasSummaryDto>();
+        var response = await _httpClient.GetAsync("/civitas");
+        await HandleNonSuccessResponseAsync(response);
+        return await response.Content.ReadFromJsonAsync<List<CivitasSummaryDto>>() ?? new List<CivitasSummaryDto>();
+    }
 
-        return response ?? new List<CivitasSummaryDto>();
+    // Método para obtener la lista de Civitates a las que pertenece el Civis actual.
+    public async Task<List<CivitasSummaryDto>> GetUserCivitatesAsync()
+    {
+        //var response = await _httpClient.GetFromJsonAsync<List<CivitasSummaryDto>>("/civitas/civis/me");
+        //return response ?? new List<CivitasSummaryDto>();
+        var response = await _httpClient.GetAsync("/civitas/me");
+        await HandleNonSuccessResponseAsync(response);
+        return await response.Content.ReadFromJsonAsync<List<CivitasSummaryDto>>() ?? new List<CivitasSummaryDto>();
+    }
+
+    // Método para obtener las Civitates a las que pertenece un Civis.
+    public async Task<List<CivitasSummaryDto>> GetCivitatesByCivisIdAsync(Guid idCivis)
+    {
+        //var response = await _httpClient.GetFromJsonAsync<List<CivitasSummaryDto>>($"/civitas/civis/{idCivis}");
+        //return response ?? new List<CivitasSummaryDto>();
+        var response = await _httpClient.GetAsync($"/civitas/civis/{idCivis}");
+        await HandleNonSuccessResponseAsync(response);
+        return await response.Content.ReadFromJsonAsync<List<CivitasSummaryDto>>() ?? new List<CivitasSummaryDto>();
+    }
+
+    // Método para agregar el Civis actual al Civitas.
+    public async Task JoinCurrentCivisToCivitasAsync(Guid idCivitas)
+    {
+        var response = await _httpClient.PostAsync($"/civitas/{idCivitas}/members/me", null);
+        await HandleNonSuccessResponseAsync(response);
+    }
+
+    // Método para agregar un Civis a un Civitas.
+    public async Task JoinCivisToCivitasAsync(Guid idCivitas, Guid idCivis)
+    {
+        var response = await _httpClient.PostAsync($"/civitas/{idCivitas}/members/{idCivis}", null);
+        await HandleNonSuccessResponseAsync(response);
+    }
+
+    // Método para eliminar el Civis actual del Civitas.
+    public async Task LeaveCurrentCivisFromCivitasAsync(Guid idCivitas)
+    {
+        var response = await _httpClient.DeleteAsync($"/civitas/{idCivitas}/members/me");
+        await HandleNonSuccessResponseAsync(response);
+    }
+
+    // Método para eliminar un Civis de un Civitas.
+    public async Task LeaveCivisFromCivitasAsync(Guid idCivitas, Guid idCivis)
+    {
+        var response = await _httpClient.DeleteAsync($"/civitas/{idCivitas}/members/{idCivis}");
+        await HandleNonSuccessResponseAsync(response);
     }
     #endregion
 
