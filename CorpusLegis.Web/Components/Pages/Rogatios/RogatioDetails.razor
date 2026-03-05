@@ -16,7 +16,22 @@
 
 <h3>Detalles del Rogatio [ID: xxx ]</h3>
 
-@if (rogatio != null)
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">
+        <strong>Error: </strong>@errorMessage
+    </div>
+}
+
+@if (loading)
+{
+    <p>Cargando</p>
+}
+else if (rogatio == null)
+{
+    <div class="alert alert-danger">Rogatio no encontrada.</div>
+}
+else
 {
     <div class="card mt-4">
 
@@ -45,6 +60,8 @@
                 <div class="col-sm-2"><strong>CivitasId: </strong> @rogatio.CivitasId</div>
                 @* <div class="col-sm-2"><strong>CivisId: </strong> @rogatio.Civitas</div> *@
                 <div class="col-sm-2"><small><strong>Fecha de creación: </strong> @rogatio.CreatedAt.ToString("g")</small></div>
+                <div class="col-sm-2"><small><strong>Quorum necesario para tomar decisión sobre ella: </strong> @rogatio.RequiredQuorum</small></div>
+                <div class="col-sm-2"><small><strong>Mayoría necesaria para aprobar: </strong> @rogatio.RequiredMajority</small></div>
             </div>
         </div>
 
@@ -130,7 +147,7 @@
     protected override async Task OnInitializedAsync()
     {
         await LoadDataAsync();
-
+        loading = false;
         CivisState.OnChange += OnCivisChanged; // nos subscribimos a los cambios de la identidad.
     }
 

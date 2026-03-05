@@ -18,6 +18,11 @@ public class Rogatio
     public DateTime Deadline { get; set; }
 
 
+    public decimal RequiredQuorum { get; set; } = 0.5m;
+
+    public decimal RequiredMajority { get; set; } = 0.5m;
+
+
     public Guid CivisId { get; set; }
     public Civis Civis { get; set; } = null!;
 

@@ -64,7 +64,9 @@ public class RogatioService : IRogatioService
                 r.Suffragia.Count(s => s.Votum == SuffragiumValue.Pro),
                 r.Suffragia.Count(s => s.Votum == SuffragiumValue.Contra),
                 r.Suffragia.Count(s => s.Votum == SuffragiumValue.Abstentio),
-                r.Suffragia.Any(s => s.CivisId == civisId) // TODO: proviene del servicio de mockeo.
+                r.Suffragia.Any(s => s.CivisId == civisId), // TODO: proviene del servicio de mockeo.
+                r.RequiredQuorum,
+                r.RequiredMajority
                 ))
             .AsNoTracking()
             .FirstOrDefaultAsync();

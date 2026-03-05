@@ -19,7 +19,9 @@ public record RogatioDetailsDto(
     int ProVotes,
     int ContraVotes,
     int AbstentioVotes,
-    bool HasVoted
+    bool HasVoted,
+    decimal RequiredQuorum,
+    decimal RequiredMajority
     );
 
 
