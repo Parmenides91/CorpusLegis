@@ -1,5 +1,6 @@
 ﻿using CorpusLegis.API.Data;
 using CorpusLegis.API.Domain;
+using CorpusLegis.API.Exceptions;
 using CorpusLegis.Shared.Dtos.Suffragium;
 using Microsoft.EntityFrameworkCore;
 using System.Runtime.InteropServices;
@@ -24,18 +25,47 @@ public class SuffragiumService : ISuffragiumService
 
         var civisId = _currentUser.CivisId;
 
-        bool alreadyVoted = await _db.Suffragia.AnyAsync(s => s.RogatioId == newSuffragium.RogatioId && s.CivisId == civisId);
+        //bool alreadyVoted = await _db.Suffragia.AnyAsync(s => s.RogatioId == newSuffragium.RogatioId && s.CivisId == civisId);
+        //if (alreadyVoted)
+        //{
+        //    throw new InvalidOperationException("El Civis ya ha emitido un voto para esta Rogatio.");
+        //}
+        var validationContext = await _db.Rogationes
+            .Where(r => r.Id == newSuffragium.RogatioId)
+            .Select(r => new
+            {
+                Exist = true,
+                r.Status,
+                IsMember = r.Civitas.Cives.Any(c => c.Id == civisId),
+                AlreadyVoted = r.Suffragia.Any(s => s.CivisId == civisId)
+            })
+            .FirstOrDefaultAsync();
 
-        if (alreadyVoted)
+        if (validationContext == null)
         {
-            throw new InvalidOperationException("El Civis ya ha emitido un voto para esta Rogatio.");
+            throw new NotFoundException("Rogatio", newSuffragium.RogatioId);
+        }
+
+        if (validationContext.Status != Shared.Enums.RogatioStatus.InSuffragium)
+        {
+            throw new BusinessRuleValidationException("La Rogatio no está abierta a votación.");
+        }
+
+        if (!validationContext.IsMember)
+        {
+            throw new UnauthorizedDomainException("No puedes votar en una Rogatio de una Civitas a la que no perteneces.");
+        }
+
+        if (validationContext.AlreadyVoted)
+        {
+            throw new BusinessRuleValidationException("El Civis ya ha emitido un voto para esta Rogatio.");
         }
 
         Suffragium suffragium = new Suffragium
         {
             Id = Guid.NewGuid(),
             RogatioId = newSuffragium.RogatioId,
-            Rogatio = _db.Rogationes.FirstOrDefault(c => c.Id == newSuffragium.RogatioId)!,
+            //Rogatio = _db.Rogationes.FirstOrDefault(c => c.Id == newSuffragium.RogatioId)!, // ¿lo hace él solo?
             CivisId = civisId,
             Votum = newSuffragium.Votum,
             CastAt = DateTime.UtcNow
