@@ -65,7 +65,7 @@ public class RogatioService : IRogatioService
                 r.Suffragia.Count(s => s.Votum == SuffragiumValue.Pro),
                 r.Suffragia.Count(s => s.Votum == SuffragiumValue.Contra),
                 r.Suffragia.Count(s => s.Votum == SuffragiumValue.Abstentio),
-                r.Suffragia.Any(s => s.CivisId == civisId), // TODO: proviene del servicio de mockeo.
+                r.Suffragia.Any(s => s.CivisId == civisId), // TODO: el civisId proviene del servicio de mockeo.
                 r.RequiredQuorum,
                 r.RequiredMajority
                 ))
@@ -281,63 +281,6 @@ public class RogatioService : IRogatioService
     }
 
 
-    // TODO: por completar.
-    public async Task<RogatioDetailsDto?> PreevalueAsync(Guid id, WorkflowRogatioDto workflowRogatio)
-    {
-        // Con este método simplemente devolveremos ¿una DTO de Suffragium? de cómo va el proceso de votación en la Rogatio, mostrando información de los Civis y de los votos ¿sin evidenciar, de momento, qué votó cada uno?
-
-        // compruebo si el ID recibido es de una Rogatio que tenga en la BB.DD.
-        if (id == null || workflowRogatio == null || workflowRogatio.Id == null)
-        {
-            throw new Exception("Hay algún problema con los datos proporcionados.");
-        }
-
-        // Busco la Rogatio en la bbdd.
-        var rogatio = await _db.Rogationes
-            .AsTracking()
-            .FirstOrDefaultAsync(r => r.Id == id);
-
-        if (rogatio == null)
-        {
-            throw new NotFoundException("Rogatio", id);
-        }
-
-        if (rogatio.Status != RogatioStatus.InSuffragium)
-        {
-            throw new InvalidOperationException($"Sólo se pueden evaluar Rogationes que estén en estado de InSuffragium. Estado actual: {rogatio.Status}");
-        }
-
-        var remainingTime = rogatio.Deadline - DateTime.UtcNow;
-
-        var poblacionCivitas = await _db.Civitates
-            .Where(c => c.Id == rogatio.CivitasId)
-            .SelectMany(c => c.Cives)
-            .CountAsync();
-
-        var votosTotales = await _db.Suffragia
-            .Where(s => s.RogatioId == rogatio.Id)
-            .CountAsync();
-
-        var requiredQuorumCount = (int)Math.Ceiling(poblacionCivitas * (double)rogatio.RequiredQuorum);
-
-        bool hasQuorum = votosTotales >= requiredQuorumCount;
-
-        var votosPro = await _db.Suffragia
-            .Where(s => s.RogatioId == rogatio.Id && s.Votum == SuffragiumValue.Pro)
-            .CountAsync();
-
-        var votosContra = await _db.Suffragia
-            .Where(s => s.RogatioId == rogatio.Id && s.Votum == SuffragiumValue.Contra)
-            .CountAsync();
-
-        var votosAbstentio = await _db.Suffragia
-            .Where(s => s.RogatioId == rogatio.Id && s.Votum == SuffragiumValue.Abstentio)
-            .CountAsync();
-
-        // 
-
-        throw new NotImplementedException();
-    }
 
     public async Task<RogatioDetailsDto?> EvalueAsync(Guid id, WorkflowRogatioDto workflowRogatio)
     {
@@ -364,8 +307,7 @@ public class RogatioService : IRogatioService
 
         if (DateTime.UtcNow < rogatio.Deadline)
         {
-            //TODO: descomentar para que funcione automáticamente cuando llegue su hora.
-            //throw new BusinessRuleValidationException("Aún no se ha cumplido la fecha límite de votación de la Rogatio, por lo que no se puede resolver.");
+            throw new BusinessRuleValidationException("Aún no se ha cumplido la fecha límite de votación de la Rogatio, por lo que no se puede resolver.");
         }
 
         var poblacionCivitas = await _db.Civitates

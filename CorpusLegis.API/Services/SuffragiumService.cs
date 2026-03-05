@@ -65,7 +65,6 @@ public class SuffragiumService : ISuffragiumService
         {
             Id = Guid.NewGuid(),
             RogatioId = newSuffragium.RogatioId,
-            //Rogatio = _db.Rogationes.FirstOrDefault(c => c.Id == newSuffragium.RogatioId)!, // ¿lo hace él solo?
             CivisId = civisId,
             Votum = newSuffragium.Votum,
             CastAt = DateTime.UtcNow

@@ -20,7 +20,6 @@ public static class RogatioEndpoints
         group.MapDelete("/{id:guid}", DeleteRogatio);
 
         group.MapPut("/{id:guid}/status", TransicionarRogatio);
-        group.MapPut("/{id:guid}/preevaluation", PreevaluarRogatio);
         group.MapPut("/{id:guid}/evaluation", EvaluarRogatio);
 
     }
@@ -88,11 +87,6 @@ public static class RogatioEndpoints
         {
             return Results.BadRequest(new { error = ex.Message });
         }
-    }
-
-    private static async Task<IResult> PreevaluarRogatio(Guid id, WorkflowRogatioDto dto, IRogatioService service)
-    {
-        throw new NotImplementedException();
     }
 
     private static async Task<IResult> EvaluarRogatio(Guid id, WorkflowRogatioDto dto, IRogatioService service)

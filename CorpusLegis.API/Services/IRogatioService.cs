@@ -20,7 +20,6 @@ public interface IRogatioService // Sólo se definen las firmas.
     Task<RogatioDetailsDto?> ChangeStatusAsync(Guid id, WorkflowRogatioDto dto);
 
 
-    Task<RogatioDetailsDto?> PreevalueAsync(Guid id, WorkflowRogatioDto dto);
 
     Task<RogatioDetailsDto?> EvalueAsync(Guid id, WorkflowRogatioDto dto);
 

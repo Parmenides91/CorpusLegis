@@ -71,14 +71,6 @@ public class CorpusLegisApiClient
         return await response.Content.ReadFromJsonAsync<RogatioDetailsDto>();
     }
 
-    // Método para preevaluar una rogatio.
-    public async Task<RogatioDetailsDto?> PreevaluateRogatioAsync(Guid id, WorkflowRogatioDto dto)
-    {
-        var response = await _httpClient.PutAsJsonAsync($"/rogatio/{id}/preevaluation", dto);
-        await HandleNonSuccessResponseAsync(response);
-        return await response.Content.ReadFromJsonAsync<RogatioDetailsDto>();
-    }
-
     // Método para evaluar una rogatio.
     public async Task<RogatioDetailsDto?> EvaluateRogatioAsync(Guid id, WorkflowRogatioDto dto)
     {

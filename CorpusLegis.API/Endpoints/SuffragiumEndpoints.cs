@@ -16,7 +16,7 @@ public static class SuffragiumEndpoints
     }
 
 
-    private static async Task<IResult> CreateSuffragium(CreateSuffragiumDto dto, ISuffragiumService service)
+    private static async Task<IResult> CreateSuffragium(CreateSuffragiumDto dto, ISuffragiumService service, IRogatioService rogatioService)
     {
         if (!MiniValidator.TryValidate(dto, out var errors))
         {
@@ -27,8 +27,11 @@ public static class SuffragiumEndpoints
         {
             var result = await service.CreateAsync(dto);
 
-            /* TODO: ¿Quiero devolver la DTO del voto, quiero ir a un listado de votos, quiero ir a la Rogatio y simplemente que se visualice que se ha votado? De ello depende qué devuelvo aquí*/
-            return Results.Created($"/rogatio/{result.Id}", result); // si ha ido bien, será un código 201 + el objeto (DTO) creado.
+            //return Results.Created($"/rogatio/{result.Id}", result); // si ha ido bien, será un código 201 + el objeto (DTO) creado.
+
+            var rogatioDto = await rogatioService.GetByIdAsync(dto.RogatioId);
+
+            return Results.Ok(rogatioDto); // si ha ido bien, será un código 200 + el objeto (DTO) actualizado.
         }
         catch (InvalidOperationException ex)
         {
