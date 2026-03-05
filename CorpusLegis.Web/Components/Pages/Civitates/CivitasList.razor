@@ -1,0 +1,180 @@
+﻿@page "/civitas"
+@rendermode InteractiveServer
+
+@using CorpusLegis.Shared.Dtos.Civitas
+@using CorpusLegis.Web.State
+
+@inject Clients.CorpusLegisApiClient ApiClient
+@inject CorpusLegis.Web.State.CivisState CivisState
+
+
+<h3>Listado de Civitas</h3>
+
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+@if (civitates == null)
+{
+    <p><em>Cargando las murallas...</em></p>
+}
+else if (!civitates.Any())
+{
+    <p>No hay Civitates dadas de alta.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Fecha de fundación</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var civitas in civitates)
+            {
+                <tr>
+                    <td>@civitas.Name</td>
+                    <td>@civitas.FoundedAt</td>
+                    <td>
+                        @* ¿Todo el mundo puede ver todas las Civitas que hay? *@
+                        <a class="btn btn-sm btn-outline-primary" href="civitas/@civitas.Id">Ver detalles</a>
+                        @if (civitas.IsMember)
+                        {
+                            <span class="badge bg-success ms-2">Miembro</span>
+                            <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => LeaveCivitas(civitas.Id)" disabled="@leaving">Abandonar</button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-sm btn-outline-secondary ms-2" @onclick="() => JoinCivitas(civitas.Id)" disabled="@joining">Solicitar unirse</button>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+
+
+@code {
+    private List<CivitasSummaryDto>? civitates;
+    private string? errorMessage;
+    private bool joining;
+    private bool leaving;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+
+        CivisState.OnChange += OnCivisChanged;
+    }
+
+    private async Task LoadDataAsync()
+    {
+        errorMessage = null;
+
+        try
+        {
+            civitates = await ApiClient.GetCivitatesAsync();
+        }
+        catch (ApplicationException ex)
+        {
+            Console.WriteLine($"Error al cargar las Civitates: {ex.Message}.");
+            errorMessage = $"Error al cargar las Civitates: {ex.Message}.";
+        }
+    }
+
+
+
+    async Task JoinCivitas(Guid id)
+    {
+        if (joining)
+        {
+            return;
+        }
+
+        joining = true;
+
+        try
+        {
+            await ApiClient.JoinCurrentCivisToCivitasAsync(id);
+
+            // Tras haber hecho la petición de unirse, si todo ha ido bien, habremos unido al Civis a la Civitas. Ahora toca actualizar la UI para reflejar ese cambio. Hay varias formas de hacerlo:
+            // Opción A: recargar toda la lista de civitas para actualizar el estado de "IsMember" de cada una --> poco eficiente y va a escalar fatal.
+            //civitates = await ApiClient.GetCivitatesAsync(); // recargamos las civitas para actualizar el estado de "IsMember".
+            // Opción B: modifico la lista localmente, buscando la civitas a la que me acabo de unir y marcándola como "IsMember = true" --> más eficiente, aunque no he verificado realmente contra la bbdd (pero asumible).
+            var civitasActualizada = civitates?.FirstOrDefault(c => c.Id == id);
+            if (civitasActualizada != null)
+            {
+                var index = civitates!.IndexOf(civitasActualizada);
+                civitates[index] = civitasActualizada with { IsMember = true };
+            }
+
+            joining = false;
+
+            StateHasChanged();
+        }
+        catch (ApplicationException ex)
+        {
+            Console.WriteLine($"Error al agregar el Civis a la Civitas: {ex.Message}.");
+            errorMessage = $"Error al agregar el Civis a la Civitas: {ex.Message}.";
+        }
+        
+    }
+
+    async Task LeaveCivitas(Guid id)
+    {
+        if (leaving)
+        {
+            return;
+        }
+
+        leaving = true;
+
+        try
+        {
+            await ApiClient.LeaveCurrentCivisFromCivitasAsync(id);
+
+            // Tras haber hecho la petición de abandonar, si todo ha ido bien, habremos quitado al Civis de la Civitas. Ahora toca actualizar la UI para reflejar ese cambio. Hay varias formas de hacerlo:
+            // Opción A: recargar toda la lista de civitas para actualizar el estado de "IsMember" de cada una --> poco eficiente y va a escalar fatal.
+            //civitates = await ApiClient.GetCivitatesAsync(); // recargamos las civitas para actualizar el estado de "IsMember".
+            // Opción B: modifico la lista localmente, buscando la civitas que acabao de abandonar y marcándola como "IsMember = false" --> más eficiente, aunque no he verificado realmente contra la bbdd (pero asumible).
+            var civitasActualizada = civitates?.FirstOrDefault(c => c.Id == id);
+            if (civitasActualizada != null)
+            {
+                var index = civitates!.IndexOf(civitasActualizada);
+                civitates[index] = civitasActualizada with { IsMember = false };
+            }
+
+            leaving = false;
+
+            StateHasChanged();
+        }
+        catch (ApplicationException ex)
+        {
+            Console.WriteLine($"Error al abandonar la Civitas: {ex.Message}.");
+            errorMessage = $"Error al abandonar la Civitas: {ex.Message}.";
+        }
+
+    }
+
+
+
+    private async void OnCivisChanged()
+    {
+        await LoadDataAsync(); // si cambia el usuario, se vuelven a pedir los datos a la API.
+
+        await InvokeAsync(StateHasChanged); // forzar el repintado.
+    }
+
+    public void Dispose()
+    {
+        CivisState.OnChange -= OnCivisChanged;
+    }
+
+}

@@ -70,6 +70,7 @@ namespace CorpusLegis.API.Migrations
                     Content = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Deadline = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CivisId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CivitasId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },

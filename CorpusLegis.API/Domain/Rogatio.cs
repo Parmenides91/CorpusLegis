@@ -15,6 +15,8 @@ public class Rogatio
 
     public RogatioStatus Status { get; set; } = RogatioStatus.Inchoatus;
 
+    public DateTime Deadline { get; set; }
+
 
     public Guid CivisId { get; set; }
     public Civis Civis { get; set; } = null!;

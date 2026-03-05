@@ -10,21 +10,18 @@ namespace CorpusLegis.Shared.Dtos;
 // Las DTO de creación y actualización no pueden ser record, porque el model binder de ASP.NET Core no puede asignar valores a las propiedades de un record (que son init-only). Por eso, se usan clases normales con propiedades con getters y setters.
 public class CreateRogatioDto
 {
-
-    // El Id no debería ir en el Create DTO, la bbdd o el backend es quien lo debe generar, no el formulario UI.
-
-    [Required(ErrorMessage = "Debes definir un título para crear una Rogatio.")]
-    [StringLength(100, ErrorMessage = "El título no debe exceder los 100 caracteres.")]
+    //[Required(ErrorMessage = "Debes definir un título para crear una Rogatio.")]
+    //[StringLength(100, ErrorMessage = "El título no debe exceder los 100 caracteres.")]
     public string Title { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Las Rogationes deben tener un contenido en el momento de la creación.")]
+    //[Required(ErrorMessage = "Las Rogationes deben tener un contenido en el momento de la creación.")]
     public string Content { get; set; } = string.Empty;
 
-    // El AuthorId lo inyectará el backend basándose en el usuario autentificado más adelante.
-
-    // public string Status { get; set; } = "Draft"; // Draft, Voting, Approved (Lex), Rejected
-
     public RogatioStatus Status { get; set; } = RogatioStatus.Inchoatus;
+
+    public DateTime Deadline { get; set; } = DateTime.UtcNow.AddHours(48);
+
+    public Guid CivitasId { get; set; }
 }
 
 

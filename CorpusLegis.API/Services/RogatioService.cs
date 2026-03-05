@@ -3,6 +3,7 @@ using CorpusLegis.API.Domain;
 using CorpusLegis.API.Exceptions;
 using CorpusLegis.Shared.Dtos;
 using CorpusLegis.Shared.Enums;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualBasic;
 
@@ -13,13 +14,16 @@ public class RogatioService : IRogatioService
     private readonly CorpusLegisContext _db;
     private readonly ICurrentUserService _currentUser;
 
+    private readonly IValidator<CreateRogatioDto> _createValidator;
+
     //Guid CivisDefaultGuid = Guid.Parse("0f8fad5b-d9cb-469f-a165-70867728950e"); // Sempronio
     Guid CivitasDefaultGuid = Guid.Parse("7c9e6679-7425-40de-944b-e07fc1f90ae7"); // Solfamidas
 
-    public RogatioService(CorpusLegisContext db, ICurrentUserService currentUser)
+    public RogatioService(CorpusLegisContext db, ICurrentUserService currentUser, IValidator<CreateRogatioDto> createValidator)
     {
         _db = db;
         _currentUser = currentUser;
+        _createValidator = createValidator;
     }
 
 
@@ -32,6 +36,7 @@ public class RogatioService : IRogatioService
                     r.Title,
                     r.Content,
                     r.CivisId,
+                    r.Civitas.Name,
                     r.CreatedAt,
                     r.Status
                     ))
@@ -78,13 +83,57 @@ public class RogatioService : IRogatioService
     {
         var civisId = _currentUser.CivisId;
 
+        var validationResult = await _createValidator.ValidateAsync(newRogatio);
+
+        if (!validationResult.IsValid)
+        {
+            // extraemos los mensajes y los unimos o los serializamos como JSON.
+            // para mantenerlo simple y compatible con el ExceptionHanlder que tenemos:
+            var errors = string.Join(" | ", validationResult.Errors.Select(e => e.ErrorMessage));
+            throw new BusinessRuleValidationException($"Errores de validación en la creación de la Rogatio: {errors}");
+        }
+
+        //// ¿existe la Civitas?
+        //var civitasExists = await _db.Civitates.AnyAsync(c => c.Id == newRogatio.CivitasId);
+        //if (!civitasExists)
+        //{
+        //    throw new BusinessRuleValidationException($"No existe una Civitas con el ID {newRogatio.CivitasId}.");
+        //}
+
+        //// ¿pertenece el Civis a la Civitas?
+        //var civisBelongsToCivitas = await _db.Civitates.AnyAsync(civitas => civitas.Id == newRogatio.CivitasId && civitas.Cives.Any(civis => civis.Id == civisId));
+        //if (!civisBelongsToCivitas)
+        //{
+        //    throw new BusinessRuleValidationException($"El Civis con ID {civisId} no pertenece a la Civitas con ID {newRogatio.CivitasId}.");
+        //}
+
+        var civitasInfo = await _db.Civitates
+            .Where(c => c.Id == newRogatio.CivitasId)
+            .Select(c => new
+            {
+                Exist = true,
+                IsMember = c.Cives.Any(civis => civis.Id == civisId)
+            })
+            .FirstOrDefaultAsync();
+
+        if (civitasInfo == null)
+        {
+            throw new BusinessRuleValidationException($"No existe una Civitas con el ID {newRogatio.CivitasId}.");
+        }
+
+        if (!civitasInfo.IsMember)
+        {
+            throw new UnauthorizedDomainException($"El Civis con ID {civisId} no pertenece a la Civitas con ID {newRogatio.CivitasId}. Por lo tanto, no puede crear una Rogatio para ella.");
+        }
+
         Rogatio rogatio = new Rogatio
         {
             Id = Guid.NewGuid(),
             Title = newRogatio.Title,
             Content = newRogatio.Content,
             CivisId = civisId, // TODO: proviene del servicio de mockeo.
-            CivitasId = CivitasDefaultGuid, // TODO: esto está hardcodeado
+            /*CivitasId = CivitasDefaultGuid,*/ // TODO: esto está hardcodeado
+            CivitasId = newRogatio.CivitasId,
             CreatedAt = DateTime.UtcNow,
             Status = newRogatio.Status
         };
@@ -120,7 +169,8 @@ public class RogatioService : IRogatioService
         existingRogatio.Title = updatedRogatio.Title;
         existingRogatio.Content = updatedRogatio.Content;
         existingRogatio.CivisId = civisId; // TODO: proviene del servicio de mockeo.
-        existingRogatio.CivitasId = CivitasDefaultGuid; // TODO: esto está hardcodeado
+        /*existingRogatio.CivitasId = CivitasDefaultGuid;*/ // TODO: esto está hardcodeado
+        existingRogatio.CivitasId = existingRogatio.CivitasId; // la Civitas nunca puede cambiar.
         existingRogatio.Status = updatedRogatio.Status;
 
         await _db.SaveChangesAsync();
@@ -159,118 +209,6 @@ public class RogatioService : IRogatioService
         return filasBorradas > 0;
     }
 
-
-
-
-    //// ---------------------------------------------------------
-    //// ENDPOINTS (MINIMAL API) para Rogatio.
-    //// ---------------------------------------------------------
-    //// GET /rogatio --> devuelve la lista de Rogatios
-    //app.MapGet("/rogatio", async (CorpusLegisContext db)
-    //    => await db.Rogatios
-    //        .Select(r => new RogatioSummaryDto (
-    //            r.Id,
-    //            r.Title,
-    //            r.Content,
-    //            r.AuthorId,
-    //            r.CreatedAt,
-    //            r.Status
-    //            ))
-    //        .AsNoTracking()
-    //        .ToListAsync()
-    //    );
-
-    //// GET /rogatio/{id} --> devuelve un Rogatio por su id
-    //app.MapGet("rogatio/{id:guid}", async (CorpusLegisContext db, Guid id) =>
-    //{
-    //    var rogatio = await db.Rogatios.FindAsync(id);
-
-    //    if (rogatio == null)
-    //    {
-    //        return Results.NotFound();
-    //    }
-
-    //    RogatioDetailsDto dto = new(
-    //        rogatio.Id,
-    //        rogatio.Title,
-    //        rogatio.Content,
-    //        Guid.Empty,
-    //        rogatio.CreatedAt,
-    //        rogatio.Status
-    //    );
-
-    //    return Results.Ok(dto);
-    //});
-
-    //// POST /rogatio --> crea un nuevo Rogatio
-    //app.MapPost("/rogatio", async (CorpusLegisContext db, CreateRogatioDto newRogatio) => 
-    //{
-    //    Rogatio rogatio = new Rogatio
-    //    {
-    //        Id = Guid.NewGuid(),
-    //        Title = newRogatio.Title,
-    //        Content = newRogatio.Content,
-    //        //AuthorId = newRogatio.AuthorId,
-    //        CreatedAt = DateTime.UtcNow,
-    //        Status = newRogatio.Status
-    //    };
-
-    //    db.Rogatios.Add(rogatio);
-    //    await db.SaveChangesAsync();
-
-    //    RogatioDetailsDto dto = new(
-    //        rogatio.Id,
-    //        rogatio.Title,
-    //        rogatio.Content,
-    //        Guid.Empty,
-    //        rogatio.CreatedAt,
-    //        rogatio.Status
-    //    );
-
-    //    return Results.Created($"/rogatio/{rogatio.Id}", dto); // se devuelve un 201 con el DTO de detalles
-    //});
-
-    //// PUT /rogatio/{id} --> actualiza un Rogatio existente por su id
-    //app.MapPut("/rogatio/{id:guid}", async (CorpusLegisContext db, Guid id, UpdateRogatioDto updatedRogatio) =>
-    //{
-    //    //var existingRogatio = await db.Rogatios.FindAsync(updatedRogatio.Id);
-    //    var existingRogatio = await db.Rogatios.FindAsync(id);
-
-    //    if (existingRogatio == null)
-    //    {
-    //        return Results.NotFound();
-    //    }
-
-    //    existingRogatio.Title = updatedRogatio.Title;
-    //    existingRogatio.Content = updatedRogatio.Content;
-    //    //existingRogatio.AuthorId = updatedRogatio.AuthorId;
-    //    existingRogatio.Status = updatedRogatio.Status;
-
-    //    await db.SaveChangesAsync();
-
-    //    RogatioDetailsDto dto = new(
-    //        existingRogatio.Id,
-    //        existingRogatio.Title,
-    //        existingRogatio.Content,
-    //        Guid.Empty,
-    //        existingRogatio.CreatedAt,
-    //        existingRogatio.Status
-    //    );
-
-    //    return Results.Ok(dto); // se devuelve un 200 con el DTO de detalles actualizado
-    //}
-    //);
-
-    //// DELETE /rogatio/{id} --> elimina un Rogatio por su id
-    //app.MapDelete("/rogatio/{id:guid}", async (CorpusLegisContext db, Guid id) =>
-    //{
-    //    await db.Rogatios.Where(r => r.Id == id).ExecuteDeleteAsync();
-
-    //    return Results.NoContent(); // se devuelve un 204
-    //}
-    //);
-    //// ---------------------------------------------------------
-    ///
 
 
 

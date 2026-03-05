@@ -1,0 +1,81 @@
+﻿@page "/civitas/{Id:guid}"
+@rendermode InteractiveServer
+
+@using CorpusLegis.Shared.Dtos.Civitas
+
+@inject Clients.CorpusLegisApiClient ApiClient
+
+
+<h3>Detalles de la Civitas [ID: CCC]</h3>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">
+        <strong>Error: </strong>@errorMessage
+    </div>
+}
+
+
+@if (civitas != null)
+{
+    <div class="card mt-4">
+
+        <div class="card-header bg-primary text-white">
+            <div class="row">
+                <div class="col-sm-8">
+                    <h4 class="mb-0">@civitas.Name</h4>
+                </div>
+                <div class="col-sm-2">Civis: @* @lex.CivisName *@</div>
+                <div class="col-sm-2">Civitas: @* @lex.CivitasName *@</div>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <p class="lead">@civitas.Id</p>
+        </div>
+
+        <div class="card-footer">
+            <div class="col-sm-2"><small><strong>Fecha de fundación: </strong> @civitas.FoundedAt.ToString("g")</small></div>
+        </div>
+
+    </div>
+
+}
+
+<div class="row mt-4">
+    <a href="/civitas" class="btn btn-lg btn-dark">Volver al listado de Civitates</a>
+</div>
+
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private CivitasDetailsDto? civitas;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        try
+        {
+            civitas = await ApiClient.GetCivitasByIdAsync(Id);
+
+            if (civitas == null)
+            {
+                Console.WriteLine($"No se ha encontrado la Civitas de la que mostrar detalles.");
+                errorMessage = "No se ha encontrado la Civitas de la que mostrar detalles.";
+            }
+        }
+        catch (ApplicationException ex)
+        {
+            Console.WriteLine($"Error de comunicación con la API: {ex.Message}.");
+            errorMessage = $"Error de comunicación con la API: {ex.Message}.";
+        }
+
+    }
+
+}

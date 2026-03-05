@@ -9,8 +9,8 @@ public record RogatioSummaryDto(
     Guid Id,
     string Title,
     string Content,
-    //Guid AuthorId,
     Guid CivisId,
+    string CivitasName,
     DateTime CreatedAt,
     RogatioStatus Status
     );

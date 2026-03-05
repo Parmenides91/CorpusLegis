@@ -23,7 +23,10 @@
             @* <h4 class="mb-0">@rogatio.Title</h4> *@
             <div class="row">
                 <div class="col-sm-8">
-                    <h4 class="mb-0">@rogatio.Title</h4>
+                    <h4 class="mb-0">
+                        @rogatio.Title
+                        <span class="badge bg-secondary">@rogatio.CivitasName</span>
+                    </h4>
                 </div>
                 <div class="col-sm-2">Civis: @rogatio.CivisName</div>
                 <div class="col-sm-2">Civitas: @rogatio.CivitasName</div>
@@ -197,8 +200,8 @@
 
             if (rogatio == null)
             {
-                Console.WriteLine($"Rogatio no encontrada para editar.");
-                errorMessage = "Rogatio no encontrada para editar.";
+                Console.WriteLine($"Rogatio no encontrada para mostrar detalles.");
+                errorMessage = "Rogatio no encontrada para mostrar detalles.";
             }
         }
         catch (HttpRequestException ex)

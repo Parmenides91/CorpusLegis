@@ -1,6 +1,11 @@
 @CorpusLegis.API_HostAddress = http://localhost:5208
-@RogatioId = 8596df00-b3c8-4d01-a245-0b3051ef32ac
+
 @CivisIdDefault = 0f8fad5b-d9cb-469f-a165-70867728950e
+@CivitasIdDefault = 7c9e6679-7425-40de-944b-e07fc1f90ae7
+
+@RogatioId = 501f8ef7-128f-4e9f-9f39-f4067c752287
+@LexId = 07a9c194-4f54-4ec0-bcda-d31a5ee4893d
+
 
 
 ###
@@ -24,7 +29,8 @@ X-Civis-Id: {{CivisIdDefault}}
 
 {
   "title": "Amarse",
-  "content": "Juntos somos"
+  "content": "Juntos somos",
+  "civitasid": "44444444-2222-1111-1111-111111111111"
 }
 ###
 
@@ -68,3 +74,88 @@ X-Civis-Id: {{CivisIdDefault}}
   "votum": 0
 }
 ###
+
+###
+# Listar Leges: 
+GET {{CorpusLegis.API_HostAddress}}/lex
+Content-type: application/json
+X-Civis-Id: {{CivisIdDefault}}
+###
+
+###
+# Obtener una sola Lex
+GET {{CorpusLegis.API_HostAddress}}/lex/{{LexId}}
+Content-type: application/json
+X-Civis-Id: {{CivisIdDefault}}
+###
+
+###
+# Obtener las Leges de las Civitas a las que pertenece el Civis actual
+GET {{CorpusLegis.API_HostAddress}}/lex/civis/me
+Content-type: application/json
+X-Civis-Id: {{CivisIdDefault}}
+###
+
+###
+# Obtener las Leges de las Civitas a las que pertenece un determinado Civis
+GET {{CorpusLegis.API_HostAddress}}/lex/civis/{{CivisIdDefault}}
+Content-type: application/json
+X-Civis-Id: {{CivisIdDefault}}
+###
+
+###
+# Listar Civitates: 
+GET {{CorpusLegis.API_HostAddress}}/civitas
+Content-type: application/json
+X-Civis-Id: {{CivisIdDefault}}
+###
+
+###
+# Obtener una sola Civitas
+GET {{CorpusLegis.API_HostAddress}}/civitas/{{CivitasIdDefault}}
+Content-type: application/json
+X-Civis-Id: {{CivisIdDefault}}
+###
+
+###
+# Obtener las Civitas del Civis actual
+GET {{CorpusLegis.API_HostAddress}}/civitas/me
+Content-type: application/json
+X-Civis-Id: {{CivisIdDefault}}
+###
+
+###
+# Obtener las Civitas de un determinado Civis
+GET {{CorpusLegis.API_HostAddress}}/civitas/civis/{{CivisIdDefault}}
+Content-type: application/json
+X-Civis-Id: {{CivisIdDefault}}
+###
+
+###
+# Agregar a la Civitas el Civis actual
+POST {{CorpusLegis.API_HostAddress}}/civitas/{{CivitasIdDefault}}/members/me
+Content-type: application/json
+X-Civis-Id: {{CivisIdDefault}}
+###
+
+###
+# Agregar a la Civitas un determinado Civis
+POST {{CorpusLegis.API_HostAddress}}/civitas/{{CivitasIdDefault}}/members/{{CivisIdDefault}}
+Content-type: application/json
+X-Civis-Id: {{CivisIdDefault}}
+###
+
+###
+# Quitar al Civis actual de la Civitas
+DELETE {{CorpusLegis.API_HostAddress}}/civitas/{{CivitasIdDefault}}/members/me
+Content-type: application/json
+X-Civis-Id: {{CivisIdDefault}}
+###
+
+###
+# Quitar un Civis de una Civitas
+DELETE {{CorpusLegis.API_HostAddress}}/civitas/{{CivitasIdDefault}}/members/{{CivisIdDefault}}
+Content-type: application/json
+X-Civis-Id: {{CivisIdDefault}}
+###
+
