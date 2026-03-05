@@ -20,6 +20,8 @@ public static class RogatioEndpoints
         group.MapDelete("/{id:guid}", DeleteRogatio);
 
         group.MapPut("/{id:guid}/status", TransicionarRogatio);
+        group.MapPut("/{id:guid}/preevaluation", PreevaluarRogatio);
+        group.MapPut("/{id:guid}/evaluation", EvaluarRogatio);
 
     }
 
@@ -80,6 +82,24 @@ public static class RogatioEndpoints
         try
         {
             var result = await service.ChangeStatusAsync(id, dto);
+            return result != null ? Results.Ok(result) : Results.NotFound();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.BadRequest(new { error = ex.Message });
+        }
+    }
+
+    private static async Task<IResult> PreevaluarRogatio(Guid id, WorkflowRogatioDto dto, IRogatioService service)
+    {
+        throw new NotImplementedException();
+    }
+
+    private static async Task<IResult> EvaluarRogatio(Guid id, WorkflowRogatioDto dto, IRogatioService service)
+    {
+        try
+        {
+            var result = await service.EvalueAsync(id, dto);
             return result != null ? Results.Ok(result) : Results.NotFound();
         }
         catch (InvalidOperationException ex)

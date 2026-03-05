@@ -22,7 +22,7 @@ public class CreateRogatioDto
     public Guid CivitasId { get; set; }
 
 
-    public decimal RequiredQuorum { get; set; } = 0.5m;
-    public decimal RequiredMajority { get; set; } = 0.5m;
+    public decimal RequiredQuorum { get; set; } = 0.51m;
+    public decimal RequiredMajority { get; set; } = 0.51m;
 
 }

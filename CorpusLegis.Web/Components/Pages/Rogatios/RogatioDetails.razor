@@ -122,6 +122,7 @@ else
                     <button type="button" class="btn btn-sm btn-outline-info" @onclick="() => CambiarEstado(RogatioStatus.Approbata)">Aprobar</button>
                     <button type="button" class="btn btn-sm btn-outline-info" @onclick="() => CambiarEstado(RogatioStatus.Reprobata)">Rechazar</button>
                 }
+                <button type="button" class=" btn btn-sm btn-outline-warning" @onclick="() => EvaluarRogatio(RogatioStatus.InSuffragium)">Evaluar</button>
             </div>
         </div>
     </div>
@@ -208,6 +209,27 @@ else
         {
             Console.WriteLine($"Error al cambiar el estado: {ex.Message}");
             errorMessage = $"No se ha podido cambiar el estado: {ex.Message}";
+        }
+    }
+
+
+    async Task EvaluarRogatio(RogatioStatus estadoActual)
+    {
+        try
+        {
+            var dto = new WorkflowRogatioDto
+            {
+                Id = Id,
+                Status = estadoActual
+            };
+            await ApiClient.EvaluateRogatioAsync(Id, dto);
+            rogatio = await ApiClient.GetRogatioByIdAsync(Id);
+            NavigationManager.NavigateTo($"/rogatio/{Id}");
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"Error al evaluar la Rogatio: {ex.Message}");
+            errorMessage = $"No se ha podido evaluar la Rogatio: {ex.Message}";
         }
     }
 
