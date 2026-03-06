@@ -16,7 +16,7 @@ public static class SuffragiumEndpoints
     }
 
 
-    private static async Task<IResult> CreateSuffragium(CreateSuffragiumDto dto, ISuffragiumService service, IRogatioService rogatioService)
+    private static async Task<IResult> CreateSuffragium(CreateSuffragiumDto dto, ISuffragiumService service)
     {
         if (!MiniValidator.TryValidate(dto, out var errors))
         {
@@ -27,11 +27,15 @@ public static class SuffragiumEndpoints
         {
             var result = await service.CreateAsync(dto);
 
+            //opción 1 (¿mal?)
             //return Results.Created($"/rogatio/{result.Id}", result); // si ha ido bien, será un código 201 + el objeto (DTO) creado.
 
-            var rogatioDto = await rogatioService.GetByIdAsync(dto.RogatioId);
+            //opción 2 (¿mal?)
+            //var rogatioDto = await rogatioService.GetByIdAsync(dto.RogatioId);
+            //return Results.Ok(rogatioDto); // si ha ido bien, será un código 200 + el objeto (DTO) actualizado.
 
-            return Results.Ok(rogatioDto); // si ha ido bien, será un código 200 + el objeto (DTO) actualizado.
+            //opción 3 (¿bien?)
+            return Results.Ok(result);
         }
         catch (InvalidOperationException ex)
         {
