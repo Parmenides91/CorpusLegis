@@ -6,6 +6,7 @@ using CorpusLegis.Shared.Enums;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualBasic;
+using System.Reflection.Metadata.Ecma335;
 
 namespace CorpusLegis.API.Services;
 
@@ -15,6 +16,8 @@ public class RogatioService : IRogatioService
     private readonly ICurrentUserService _currentUser;
 
     private readonly IValidator<CreateRogatioDto> _createValidator;
+
+    //private readonly ILogger _logger;
 
     //Guid CivisDefaultGuid = Guid.Parse("0f8fad5b-d9cb-469f-a165-70867728950e"); // Sempronio
     Guid CivitasDefaultGuid = Guid.Parse("7c9e6679-7425-40de-944b-e07fc1f90ae7"); // Solfamidas
@@ -64,7 +67,9 @@ public class RogatioService : IRogatioService
                 r.Suffragia.Count(s => s.Votum == SuffragiumValue.Pro),
                 r.Suffragia.Count(s => s.Votum == SuffragiumValue.Contra),
                 r.Suffragia.Count(s => s.Votum == SuffragiumValue.Abstentio),
-                r.Suffragia.Any(s => s.CivisId == civisId) // TODO: proviene del servicio de mockeo.
+                r.Suffragia.Any(s => s.CivisId == civisId), // TODO: el civisId proviene del servicio de mockeo.
+                r.RequiredQuorum,
+                r.RequiredMajority
                 ))
             .AsNoTracking()
             .FirstOrDefaultAsync();
@@ -135,7 +140,11 @@ public class RogatioService : IRogatioService
             /*CivitasId = CivitasDefaultGuid,*/ // TODO: esto está hardcodeado
             CivitasId = newRogatio.CivitasId,
             CreatedAt = DateTime.UtcNow,
-            Status = newRogatio.Status
+            Status = newRogatio.Status,
+            //Deadline = newRogatio.Deadline, // TODO: vuelve a descomentar esto para tener la fecha en futuro y no en pasado.
+            RequiredQuorum = newRogatio.RequiredQuorum,
+            RequiredMajority = newRogatio.RequiredMajority
+
         };
 
         _db.Rogationes.Add(rogatio);
@@ -220,7 +229,7 @@ public class RogatioService : IRogatioService
 
         if (rogatio == null)
         {
-            return null;
+            throw new NotFoundException("Rogatio", id);
         }
 
         var estadoActual = rogatio.Status;
@@ -228,13 +237,13 @@ public class RogatioService : IRogatioService
 
         if (rogatio.CivisId != civisId)
         {
-            //throw new UnauthorizedAccessException("Sólo el creador de la Rogatio puede progresarla.");
             throw new UnauthorizedDomainException("Sólo el creador de la Rogatio puede progresarla.");
         }
 
         bool transicionValida = (estadoActual, nuevoEstado) switch
         {
             (RogatioStatus.Inchoatus, RogatioStatus.Proposita) => true,
+            (RogatioStatus.Proposita, RogatioStatus.Inchoatus) => true,
             (RogatioStatus.Proposita, RogatioStatus.InSuffragium) => true,
             (RogatioStatus.InSuffragium, RogatioStatus.Approbata) => true,
             (RogatioStatus.InSuffragium, RogatioStatus.Reprobata) => true,
@@ -247,8 +256,9 @@ public class RogatioService : IRogatioService
             throw new Exception($"Transición no válida: {estadoActual} -> {nuevoEstado}.");
         }
 
-        rogatio.Status = nuevoEstado;
 
+
+        // TODO: esto es temporal hasta que termino de crear toda la parafernalia.
         if (nuevoEstado == RogatioStatus.Approbata)
         {
             var nuevaLex = new Lex
@@ -262,11 +272,155 @@ public class RogatioService : IRogatioService
             };
             _db.Leges.Add(nuevaLex);
         }
+        // TODO: hasta aquí la temporalidad.
+
+        rogatio.Status = nuevoEstado;
 
         await _db.SaveChangesAsync();
 
         return await GetByIdAsync(id);
 
     }
+
+
+
+    public async Task<RogatioDetailsDto?> EvalueAsync(Guid id, WorkflowRogatioDto workflowRogatio)
+    {
+        var rogatio = await _db.Rogationes
+            .AsTracking()
+            .FirstOrDefaultAsync(r => r.Id == id);
+
+        if (rogatio == null)
+        {
+            throw new NotFoundException("Rogatio", id);
+        }
+
+        if (rogatio.Status == RogatioStatus.Approbata || rogatio.Status == RogatioStatus.Reprobata)
+        {
+            // El ciclo de vida de la Rogatio ya ha acabado. ¿Devuelvo la Rogatio o informo de alguna manera que yo no he podido hacer lo que me han pedido hacer para esta determinada Rogatio?
+            return await GetByIdAsync(id);
+        }
+
+        if (rogatio.Status == RogatioStatus.Inchoatus || rogatio.Status == RogatioStatus.Proposita)
+        {
+            // Aún no ha llegado el momento de decidir qué pasa con la Rogatio. ¿Devuelvo la Rogatio o informo de alguna manera que yo no he podido hacer lo que me han pedido hacer para esta determinada Rogatio?
+            return await GetByIdAsync(id);
+        }
+
+        if (DateTime.UtcNow < rogatio.Deadline)
+        {
+            throw new BusinessRuleValidationException("Aún no se ha cumplido la fecha límite de votación de la Rogatio, por lo que no se puede resolver.");
+        }
+
+        var poblacionCivitas = await _db.Civitates
+            .Where(c => c.Id == rogatio.CivitasId)
+            .SelectMany(c => c.Cives)
+            .CountAsync();
+
+        var votosTotales = await _db.Suffragia
+            .Where(s => s.RogatioId == rogatio.Id)
+            .CountAsync();
+
+        if (votosTotales == 0) // no ha votado nadie.
+        {
+            rogatio.Status = RogatioStatus.Reprobata;
+            await _db.SaveChangesAsync();
+            return await GetByIdAsync(rogatio.Id);
+        }
+
+        var requiredQuorumCount = (int) Math.Ceiling(poblacionCivitas * (double) rogatio.RequiredQuorum);
+
+        if (votosTotales < requiredQuorumCount) // no ha habido cuórum.
+        {
+            rogatio.Status = RogatioStatus.Reprobata;
+            await _db.SaveChangesAsync();
+            return await GetByIdAsync(rogatio.Id);
+        }
+
+        var votosPro = await _db.Suffragia
+            .Where(s => s.RogatioId == rogatio.Id && s.Votum == SuffragiumValue.Pro)
+            .CountAsync();
+
+        decimal proFraction = (decimal)votosPro / (decimal)votosTotales;
+
+        if (proFraction >= rogatio.RequiredMajority) // sí se cumplen los requisitos para aprobar la Rogatio, por lo que se aprueba.
+        {
+            try
+            {
+                var nuevaLex = new Lex
+                {
+                    Id = Guid.NewGuid(),
+                    CivitasId = rogatio.CivitasId,
+                    OriginRogatioId = rogatio.Id,
+                    Title = rogatio.Title,
+                    Content = rogatio.Content,
+                    PromulgatedAt = DateTime.UtcNow
+                };
+
+                _db.Leges.Add(nuevaLex);
+                rogatio.Status = RogatioStatus.Approbata;
+                await _db.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                //_logger.LogCritical(ex, "Error al resolver Rogatio {RogatioId}. ProcessUser={User}, CurrentDirectory={Cwd}", rogatio.Id, Environment.UserName, Environment.CurrentDirectory);
+                Console.WriteLine("{ex} - Error al resolver Rogatio {RogatioId}. ProcessUser={User}, CurrentDirectory={Cwd}", ex, rogatio.Id, Environment.UserName, Environment.CurrentDirectory);
+
+                // si hay operaciones de fichero conocidas, loguea rutas y permisos
+                try
+                {
+                    var path = "/ruta/posible/archivo";
+                    if (File.Exists(path))
+                    {
+                        var info = new FileInfo(path);
+                        //_logger.LogCritical("FileInfo: Exists={Exists}, Length={Length}, Attributes={Attributes}", info.Exists, info.Length, info.Attributes);
+                        Console.WriteLine("FileInfo: Exists={Exists}, Length={Length}, Attributes={Attributes}", info.Exists, info.Length, info.Attributes);
+                    }
+                }
+                catch (Exception inner) {
+                    //_logger.LogWarning(inner, "No se pudo inspeccionar la ruta de fichero");
+                    Console.WriteLine("{inner} - No se pudo inspeccionar la ruta de fichero", inner);
+                }
+                throw;
+            }
+        }
+        else // No se cumplen los requisitos para aprobar la Rogatio, por lo que se rechaza.
+        {
+            rogatio.Status = RogatioStatus.Reprobata;
+            await _db.SaveChangesAsync();
+        }
+
+        return await GetByIdAsync(rogatio.Id);
+
+    }
+
+    public async Task<int> EvaluatePendingAsync()
+    {
+        var pendingRogationes = await _db.Rogationes
+            .Where(r => r.Status == RogatioStatus.InSuffragium && r.Deadline <= DateTime.UtcNow)
+            .Select(r => r.Id)
+            .ToListAsync();
+
+        int processedCount = 0;
+
+        foreach (var rogatioId in pendingRogationes)
+        {
+            try
+            {
+                await EvalueAsync(rogatioId, new WorkflowRogatioDto { Id = rogatioId, Status = RogatioStatus.InSuffragium});
+                processedCount++;
+            }
+            catch (Exception ex)
+            {
+                // TODO: integrar ILogger<RogatioService> cuando lo tenga.
+                Console.WriteLine($"Error al evaluar la Rogatio con ID {rogatioId}: {ex.Message}");
+            }
+        }
+
+        return processedCount;
+
+    }
+
+
 
 }

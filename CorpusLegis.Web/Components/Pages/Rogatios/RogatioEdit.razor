@@ -9,6 +9,13 @@
 
 <h3>Edición del Rogatio [ID: xxx ]</h3>
 
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">
+        <strong>Error: </strong>@errorMessage
+    </div>
+}
+
 @if (loading)
 {
     <div class="spinner-border text-primary" role="status">

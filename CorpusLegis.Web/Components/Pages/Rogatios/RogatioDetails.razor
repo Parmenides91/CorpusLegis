@@ -4,6 +4,7 @@
 @using CorpusLegis.Shared.Dtos
 @using CorpusLegis.Shared.Dtos.Suffragium
 @using CorpusLegis.Shared.Enums
+@using CorpusLegis.Web.Components.Pages.Suffragium
 @using CorpusLegis.Web.State
 
 @implements IDisposable
@@ -15,7 +16,22 @@
 
 <h3>Detalles del Rogatio [ID: xxx ]</h3>
 
-@if (rogatio != null)
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">
+        <strong>Error: </strong>@errorMessage
+    </div>
+}
+
+@if (loading)
+{
+    <p>Cargando</p>
+}
+else if (rogatio == null)
+{
+    <div class="alert alert-danger">Rogatio no encontrada.</div>
+}
+else
 {
     <div class="card mt-4">
 
@@ -44,6 +60,8 @@
                 <div class="col-sm-2"><strong>CivitasId: </strong> @rogatio.CivitasId</div>
                 @* <div class="col-sm-2"><strong>CivisId: </strong> @rogatio.Civitas</div> *@
                 <div class="col-sm-2"><small><strong>Fecha de creación: </strong> @rogatio.CreatedAt.ToString("g")</small></div>
+                <div class="col-sm-2"><small><strong>Quorum necesario para tomar decisión sobre ella: </strong> @((rogatio.RequiredQuorum * 100).ToString("0.##")) %</small></div>
+                <div class="col-sm-2"><small><strong>Mayoría necesaria para aprobar: </strong> @((rogatio.RequiredMajority * 100).ToString("0.##")) %</small></div>
             </div>
         </div>
 
@@ -68,24 +86,26 @@
                 {
                     <div class="alert alert-info">Ya has emitido tu voto en esta Rogatio.</div>
                 }
-                <div class="d-flex justify-content-start gap-3 mt-3 mb-3">
+                @* <div class="d-flex justify-content-start gap-3 mt-3 mb-3">
                     <span class="badge bg-success">A favor: @rogatio.ProVotes</span>
                     <span class="badge bg-danger">En contra: @rogatio.ContraVotes</span>
                     <span class="badge bg-warning">Abstenciones: @rogatio.AbstentioVotes</span>
-                </div>
+                </div> *@
+                <SuffragiumSummary ProVotes="@rogatio.ProVotes" ContraVotes="@rogatio.ContraVotes" AbstentioVotes="@rogatio.AbstentioVotes" />
             }
             else if (rogatio.Status == Shared.Enums.RogatioStatus.Approbata)
             {
                 <p>Aprobada</p>
-                <p>Resultado de la votación: XXXXXX</p>
-                <a class="btn btn-sm btn-outline-secondary" href="rogatio/clonar">Clonar Rogatio (pendiente de crear)</a>
+                <SuffragiumSummary ProVotes="@rogatio.ProVotes" ContraVotes="@rogatio.ContraVotes" AbstentioVotes="@rogatio.AbstentioVotes" />
+                <a class="btn btn-sm btn-outline-secondary" href="#">Clonar Rogatio (pendiente de crear)</a>
             }
             else if (rogatio.Status == Shared.Enums.RogatioStatus.Reprobata)
             {
                 <p>Rechazada</p>
-                <p>Resultado de la votación: XXXXXX</p>
-                <a class="btn btn-sm btn-outline-secondary" href="rogatio/clonar">Clonar Rogatio (pendiente de crear)</a>
+                <SuffragiumSummary ProVotes="@rogatio.ProVotes" ContraVotes="@rogatio.ContraVotes" AbstentioVotes="@rogatio.AbstentioVotes" />
+                <a class="btn btn-sm btn-outline-secondary" href="#">Clonar Rogatio (pendiente de crear)</a>
             }
+
         </div>
 
     </div>
@@ -102,6 +122,7 @@
                     <button type="button" class="btn btn-sm btn-outline-info" @onclick="() => CambiarEstado(RogatioStatus.Approbata)">Aprobar</button>
                     <button type="button" class="btn btn-sm btn-outline-info" @onclick="() => CambiarEstado(RogatioStatus.Reprobata)">Rechazar</button>
                 }
+                <button type="button" class=" btn btn-sm btn-outline-warning" @onclick="() => EvaluarRogatio(RogatioStatus.InSuffragium)">Evaluar</button>
             </div>
         </div>
     </div>
@@ -120,6 +141,7 @@
 
     private RogatioDetailsDto? rogatio;
     private string? errorMessage;
+    private bool disposed;
     private bool loading = true;
 
     private bool voting;
@@ -127,7 +149,7 @@
     protected override async Task OnInitializedAsync()
     {
         await LoadDataAsync();
-
+        loading = false;
         CivisState.OnChange += OnCivisChanged; // nos subscribimos a los cambios de la identidad.
     }
 
@@ -192,6 +214,27 @@
     }
 
 
+    async Task EvaluarRogatio(RogatioStatus estadoActual)
+    {
+        try
+        {
+            var dto = new WorkflowRogatioDto
+            {
+                Id = Id,
+                Status = estadoActual
+            };
+            await ApiClient.EvaluateRogatioAsync(Id, dto);
+            rogatio = await ApiClient.GetRogatioByIdAsync(Id);
+            NavigationManager.NavigateTo($"/rogatio/{Id}");
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"Error al evaluar la Rogatio: {ex.Message}");
+            errorMessage = $"No se ha podido evaluar la Rogatio: {ex.Message}";
+        }
+    }
+
+
     private async Task LoadDataAsync()
     {
         try
@@ -218,13 +261,27 @@
 
     private async void OnCivisChanged()
     {
-        await LoadDataAsync(); // si cambia el usuario, se vuelven a pedir los datos a la API.
+        if (disposed)
+        {
+            return;
+        }
 
-        await InvokeAsync(StateHasChanged); // forzar el repintado.
+        // await LoadDataAsync(); // si cambia el usuario, se vuelven a pedir los datos a la API.
+
+        // await InvokeAsync(StateHasChanged); // forzar el repintado.
+
+        await InvokeAsync(async () =>
+        {
+            await LoadDataAsync();
+            StateHasChanged();
+        }
+        );
     }
 
     public void Dispose()
     {
+        disposed = true;
+
         CivisState.OnChange -= OnCivisChanged;
     }
 

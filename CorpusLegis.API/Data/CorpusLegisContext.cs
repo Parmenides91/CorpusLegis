@@ -80,6 +80,17 @@ public class CorpusLegisContext(DbContextOptions<CorpusLegisContext> options)
             .WithMany(c => c.Leges)
             .HasForeignKey(l => l.CivitasId)
             .OnDelete(DeleteBehavior.Restrict);
+
+
+
+        // Los parámetros que definen los resultados de las votaciones de las Rogationes necesitan tener más precisión.
+        modelBuilder.Entity<Rogatio>()
+            .Property(r => r.RequiredQuorum)
+            .HasPrecision(5, 4); // Admite valores desde -9'9999 hasta 9'9999.
+
+        modelBuilder.Entity<Rogatio>()
+            .Property(r => r.RequiredMajority)
+            .HasPrecision(5, 4);
     }
 
 }

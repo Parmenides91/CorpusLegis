@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CorpusLegis.API\CorpusLegis.API.csproj" />
+    <ProjectReference Include="..\CorpusLegis.EscrutinioWorker\CorpusLegis.EscrutinioWorker.csproj" />
     <ProjectReference Include="..\CorpusLegis.PdfWorker\CorpusLegis.PdfWorker.csproj" />
     <ProjectReference Include="..\CorpusLegis.Web\CorpusLegis.Web.csproj" />
   </ItemGroup>

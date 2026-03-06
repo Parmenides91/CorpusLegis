@@ -13,6 +13,7 @@ public class CivisHeaderHandler : DelegatingHandler
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
+        request.Headers.Remove("X-Civis-Id");
         request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
 
         return await base.SendAsync(request, cancellationToken);

@@ -16,4 +16,8 @@ builder.AddProject<Projects.CorpusLegis_Web>("corpuslegis-web")
 // se agrega el proyecto del Worker para la creación de PDFs
 builder.AddProject<Projects.CorpusLegis_PdfWorker>("corpuslegis-pdfworker");
 
+// se agrega el proyecto del Worker para la evaluación de las Rogationes.
+builder.AddProject<Projects.CorpusLegis_EscrutinioWorker>("corpuslegis-escrutinioworker")
+    .WithReference(api_corpuslegis);
+
 builder.Build().Run();

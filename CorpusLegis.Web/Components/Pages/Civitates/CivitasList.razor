@@ -4,6 +4,8 @@
 @using CorpusLegis.Shared.Dtos.Civitas
 @using CorpusLegis.Web.State
 
+@implements IDisposable
+
 @inject Clients.CorpusLegisApiClient ApiClient
 @inject CorpusLegis.Web.State.CivisState CivisState
 
@@ -64,6 +66,7 @@ else
 @code {
     private List<CivitasSummaryDto>? civitates;
     private string? errorMessage;
+    private bool disposed;
     private bool joining;
     private bool leaving;
 
@@ -167,13 +170,27 @@ else
 
     private async void OnCivisChanged()
     {
-        await LoadDataAsync(); // si cambia el usuario, se vuelven a pedir los datos a la API.
+        if (disposed)
+        {
+            return;
+        }
 
-        await InvokeAsync(StateHasChanged); // forzar el repintado.
+        // await LoadDataAsync(); // si cambia el usuario, se vuelven a pedir los datos a la API.
+
+        // await InvokeAsync(StateHasChanged); // forzar el repintado.
+
+        await InvokeAsync(async () =>
+        {
+            await LoadDataAsync();
+            StateHasChanged();
+        }
+        );
     }
 
     public void Dispose()
     {
+        disposed = true;
+
         CivisState.OnChange -= OnCivisChanged;
     }
 
