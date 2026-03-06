@@ -21,9 +21,11 @@ public static class RogatioEndpoints
 
         group.MapPut("/{id:guid}/status", TransicionarRogatio);
         group.MapPut("/{id:guid}/evaluation", EvaluarRogatio);
+        group.MapPost("/evaluate-pending", EvaluatePendingRogationes);
 
     }
 
+    
 
     private static async Task<IResult> GetAllRogationes(IRogatioService service)
     {
@@ -101,5 +103,21 @@ public static class RogatioEndpoints
             return Results.BadRequest(new { error = ex.Message });
         }
     }
+
+
+    private static async Task<IResult> EvaluatePendingRogationes(IRogatioService service)
+    {
+        try
+        {
+            int count = await service.EvaluatePendingAsync();
+            return Results.Ok(new { evaluatedCount = count });
+        }
+        catch (Exception ex)
+        {
+            return Results.Problem(detail: ex.Message, title: "Error during batch evaluation");
+        }
+    }
+
+
 
 }

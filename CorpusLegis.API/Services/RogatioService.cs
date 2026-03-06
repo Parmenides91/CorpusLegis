@@ -17,6 +17,8 @@ public class RogatioService : IRogatioService
 
     private readonly IValidator<CreateRogatioDto> _createValidator;
 
+    //private readonly ILogger _logger;
+
     //Guid CivisDefaultGuid = Guid.Parse("0f8fad5b-d9cb-469f-a165-70867728950e"); // Sempronio
     Guid CivitasDefaultGuid = Guid.Parse("7c9e6679-7425-40de-944b-e07fc1f90ae7"); // Solfamidas
 
@@ -139,7 +141,7 @@ public class RogatioService : IRogatioService
             CivitasId = newRogatio.CivitasId,
             CreatedAt = DateTime.UtcNow,
             Status = newRogatio.Status,
-            Deadline = newRogatio.Deadline,
+            //Deadline = newRogatio.Deadline, // TODO: vuelve a descomentar esto para tener la fecha en futuro y no en pasado.
             RequiredQuorum = newRogatio.RequiredQuorum,
             RequiredMajority = newRogatio.RequiredMajority
 
@@ -345,23 +347,40 @@ public class RogatioService : IRogatioService
         {
             try
             {
+                var nuevaLex = new Lex
+                {
+                    Id = Guid.NewGuid(),
+                    CivitasId = rogatio.CivitasId,
+                    OriginRogatioId = rogatio.Id,
+                    Title = rogatio.Title,
+                    Content = rogatio.Content,
+                    PromulgatedAt = DateTime.UtcNow
+                };
 
-                    var nuevaLex = new Lex
-                    {
-                        Id = Guid.NewGuid(),
-                        CivitasId = rogatio.CivitasId,
-                        OriginRogatioId = rogatio.Id,
-                        Title = rogatio.Title,
-                        Content = rogatio.Content,
-                        PromulgatedAt = DateTime.UtcNow
-                    };
-                    _db.Leges.Add(nuevaLex);
-
+                _db.Leges.Add(nuevaLex);
                 rogatio.Status = RogatioStatus.Approbata;
                 await _db.SaveChangesAsync();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                //_logger.LogCritical(ex, "Error al resolver Rogatio {RogatioId}. ProcessUser={User}, CurrentDirectory={Cwd}", rogatio.Id, Environment.UserName, Environment.CurrentDirectory);
+                Console.WriteLine("{ex} - Error al resolver Rogatio {RogatioId}. ProcessUser={User}, CurrentDirectory={Cwd}", ex, rogatio.Id, Environment.UserName, Environment.CurrentDirectory);
+
+                // si hay operaciones de fichero conocidas, loguea rutas y permisos
+                try
+                {
+                    var path = "/ruta/posible/archivo";
+                    if (File.Exists(path))
+                    {
+                        var info = new FileInfo(path);
+                        //_logger.LogCritical("FileInfo: Exists={Exists}, Length={Length}, Attributes={Attributes}", info.Exists, info.Length, info.Attributes);
+                        Console.WriteLine("FileInfo: Exists={Exists}, Length={Length}, Attributes={Attributes}", info.Exists, info.Length, info.Attributes);
+                    }
+                }
+                catch (Exception inner) {
+                    //_logger.LogWarning(inner, "No se pudo inspeccionar la ruta de fichero");
+                    Console.WriteLine("{inner} - No se pudo inspeccionar la ruta de fichero", inner);
+                }
                 throw;
             }
         }
@@ -374,5 +393,34 @@ public class RogatioService : IRogatioService
         return await GetByIdAsync(rogatio.Id);
 
     }
+
+    public async Task<int> EvaluatePendingAsync()
+    {
+        var pendingRogationes = await _db.Rogationes
+            .Where(r => r.Status == RogatioStatus.InSuffragium && r.Deadline <= DateTime.UtcNow)
+            .Select(r => r.Id)
+            .ToListAsync();
+
+        int processedCount = 0;
+
+        foreach (var rogatioId in pendingRogationes)
+        {
+            try
+            {
+                await EvalueAsync(rogatioId, new WorkflowRogatioDto { Id = rogatioId, Status = RogatioStatus.InSuffragium});
+                processedCount++;
+            }
+            catch (Exception ex)
+            {
+                // TODO: integrar ILogger<RogatioService> cuando lo tenga.
+                Console.WriteLine($"Error al evaluar la Rogatio con ID {rogatioId}: {ex.Message}");
+            }
+        }
+
+        return processedCount;
+
+    }
+
+
 
 }

@@ -3,6 +3,7 @@ using CorpusLegis.Shared.Dtos.Civitas;
 using CorpusLegis.Shared.Dtos.Lex;
 using CorpusLegis.Shared.Dtos.Suffragium;
 using CorpusLegis.Shared.Validators;
+using CorpusLegis.Web.State;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
@@ -12,10 +13,14 @@ public class CorpusLegisApiClient
 {
 
     private readonly HttpClient _httpClient;
+    private readonly CivisState _civisState;
 
-    public CorpusLegisApiClient(HttpClient httpClient)
+    public CorpusLegisApiClient(HttpClient httpClient, CivisState civisState)
     {
         _httpClient = httpClient;
+        _civisState = civisState;
+
+        _httpClient.DefaultRequestHeaders.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
     }
 
 
@@ -29,6 +34,12 @@ public class CorpusLegisApiClient
         var response = await _httpClient.GetAsync($"/rogatio/{id}");
         await HandleNonSuccessResponseAsync(response);
         return await response.Content.ReadFromJsonAsync<RogatioDetailsDto>();
+
+        //var request = new HttpRequestMessage(HttpMethod.Get, $"/rogatio/{id}");
+        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
+        //var response = await _httpClient.SendAsync(request);
+        //await HandleNonSuccessResponseAsync(response);
+        //return await response.Content.ReadFromJsonAsync<RogatioDetailsDto>();
     }
 
     // Método para obtener la lista de rogationes.
@@ -37,6 +48,12 @@ public class CorpusLegisApiClient
         var response = await _httpClient.GetAsync("/rogatio");
         await HandleNonSuccessResponseAsync(response);
         return await response.Content.ReadFromJsonAsync<List<RogatioSummaryDto>>() ?? new List<RogatioSummaryDto>();
+
+        //var request = new HttpRequestMessage(HttpMethod.Get, $"/rogatio");
+        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
+        //var response = await _httpClient.SendAsync(request);
+        //await HandleNonSuccessResponseAsync(response);
+        //return await response.Content.ReadFromJsonAsync<List<RogatioSummaryDto>>() ?? new List<RogatioSummaryDto>();
     }
 
     // Método para crear un nuevo rogatio.
@@ -45,6 +62,13 @@ public class CorpusLegisApiClient
         var response = await _httpClient.PostAsJsonAsync("/rogatio", dto);
         await HandleNonSuccessResponseAsync(response);
         return await response.Content.ReadFromJsonAsync<RogatioDetailsDto>();
+
+        //var request = new HttpRequestMessage(HttpMethod.Post, $"/rogatio");
+        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
+        //request.Content = JsonContent.Create(dto);
+        //var response = await _httpClient.SendAsync(request);
+        //await HandleNonSuccessResponseAsync(response);
+        //return await response.Content.ReadFromJsonAsync<RogatioDetailsDto>();
     }
 
     // Método para actualizar un rogatio existente.
@@ -53,6 +77,13 @@ public class CorpusLegisApiClient
         var response = await _httpClient.PutAsJsonAsync($"/rogatio/{id}", dto);
         await HandleNonSuccessResponseAsync(response);
         return await response.Content.ReadFromJsonAsync<RogatioDetailsDto>();
+
+        //var request = new HttpRequestMessage(HttpMethod.Put, $"/rogatio/{id}"); 
+        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
+        //request.Content = JsonContent.Create(dto);
+        //var response = await _httpClient.SendAsync(request);
+        //await HandleNonSuccessResponseAsync(response);
+        //return await response.Content.ReadFromJsonAsync<RogatioDetailsDto>();
     }
 
     // Método para eliminar un rogatio por su ID.
@@ -61,6 +92,12 @@ public class CorpusLegisApiClient
         var response = await _httpClient.DeleteAsync($"/rogatio/{id}");
         await HandleNonSuccessResponseAsync(response);
         return true;
+
+        //var request = new HttpRequestMessage(HttpMethod.Delete, $"/rogatio/{id}");
+        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
+        //var response = await _httpClient.SendAsync(request);
+        //await HandleNonSuccessResponseAsync(response);
+        //return true;
     }
 
     // Método para cambiar el estado de un rogatio (workflow).
@@ -69,6 +106,13 @@ public class CorpusLegisApiClient
         var response = await _httpClient.PutAsJsonAsync($"/rogatio/{id}/status", dto);
         await HandleNonSuccessResponseAsync(response);
         return await response.Content.ReadFromJsonAsync<RogatioDetailsDto>();
+
+        //var request = new HttpRequestMessage(HttpMethod.Put, $"/rogatio/{id}/status");
+        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
+        //request.Content = JsonContent.Create(dto);
+        //var response = await _httpClient.SendAsync(request);
+        //await HandleNonSuccessResponseAsync(response);
+        //return await response.Content.ReadFromJsonAsync<RogatioDetailsDto>();
     }
 
     // Método para evaluar una rogatio.
@@ -77,6 +121,13 @@ public class CorpusLegisApiClient
         var response = await _httpClient.PutAsJsonAsync($"/rogatio/{id}/evaluation", dto);
         await HandleNonSuccessResponseAsync(response);
         return await response.Content.ReadFromJsonAsync<RogatioDetailsDto>();
+
+        //var request = new HttpRequestMessage(HttpMethod.Put, $"/rogatio/{id}/evaluation");
+        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
+        //request.Content = JsonContent.Create(dto);
+        //var response = await _httpClient.SendAsync(request);
+        //await HandleNonSuccessResponseAsync(response);
+        //return await response.Content.ReadFromJsonAsync<RogatioDetailsDto>();
     }
     #endregion
 
@@ -88,6 +139,13 @@ public class CorpusLegisApiClient
         var response = await _httpClient.PostAsJsonAsync($"/rogatio/{idRogatio}/vote", dto);
         await HandleNonSuccessResponseAsync(response);
         return await response.Content.ReadFromJsonAsync<SuffragiumDetailsDto>();
+
+        //var request = new HttpRequestMessage(HttpMethod.Post, $"/rogatio/{idRogatio}/vote");
+        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
+        //request.Content = JsonContent.Create(dto);
+        //var response = await _httpClient.SendAsync(request);
+        //await HandleNonSuccessResponseAsync(response);
+        //return await response.Content.ReadFromJsonAsync<SuffragiumDetailsDto>();
     }
     #endregion
 
@@ -99,9 +157,16 @@ public class CorpusLegisApiClient
     {
         //var response = await _httpClient.GetFromJsonAsync<LexDetailsDto>($"/lex/{id}");
         //return response;
+
         var response = await _httpClient.GetAsync($"/lex/{id}");
         await HandleNonSuccessResponseAsync(response);
         return await response.Content.ReadFromJsonAsync<LexDetailsDto>();
+
+        //var request = new HttpRequestMessage(HttpMethod.Get, $"/lex/{id}");
+        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
+        //var response = await _httpClient.SendAsync(request);
+        //await HandleNonSuccessResponseAsync(response);
+        //return await response.Content.ReadFromJsonAsync<LexDetailsDto>();
     }
 
     // Método para obtener la lista de leges.
@@ -109,10 +174,16 @@ public class CorpusLegisApiClient
     {
         //var response = await _httpClient.GetFromJsonAsync<List<LexSummaryDto>>("/lex");
         //return response ?? new List<LexSummaryDto>();
+
         var response = await _httpClient.GetAsync("/lex");
         await HandleNonSuccessResponseAsync(response);
         return await response.Content.ReadFromJsonAsync<List<LexSummaryDto>>() ?? new List<LexSummaryDto>();
 
+        //var request = new HttpRequestMessage(HttpMethod.Get, $"/lex");
+        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
+        //var response = await _httpClient.SendAsync(request);
+        //await HandleNonSuccessResponseAsync(response);
+        //return await response.Content.ReadFromJsonAsync<List<LexSummaryDto>>() ?? new List<LexSummaryDto>();
     }
 
     // Método para obtener la lista de leges a las que pertenece el Civis actual.
@@ -121,6 +192,12 @@ public class CorpusLegisApiClient
         var response = await _httpClient.GetAsync("/lex/civis/me");
         await HandleNonSuccessResponseAsync(response);
         return await response.Content.ReadFromJsonAsync<List<LexSummaryDto>>() ?? new List<LexSummaryDto>();
+
+        //var request = new HttpRequestMessage(HttpMethod.Get, $"/lex/civis/me");
+        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
+        //var response = await _httpClient.SendAsync(request);
+        //await HandleNonSuccessResponseAsync(response);
+        //return await response.Content.ReadFromJsonAsync<List<LexSummaryDto>>() ?? new List<LexSummaryDto>();
     }
 
     // Método para obtener las leges a las que pertenece un Civis.
@@ -129,6 +206,12 @@ public class CorpusLegisApiClient
         var response = await _httpClient.GetAsync($"/lex/civis/{civisId}");
         await HandleNonSuccessResponseAsync(response);
         return await response.Content.ReadFromJsonAsync<List<LexSummaryDto>>() ?? new List<LexSummaryDto>();
+
+        //var request = new HttpRequestMessage(HttpMethod.Get, $"/lex/civis/{civisId}");
+        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
+        //var response = await _httpClient.SendAsync(request);
+        //await HandleNonSuccessResponseAsync(response);
+        //return await response.Content.ReadFromJsonAsync<List<LexSummaryDto>>() ?? new List<LexSummaryDto>();
     }
     #endregion
 
@@ -140,10 +223,16 @@ public class CorpusLegisApiClient
     {
         //var response = await _httpClient.GetFromJsonAsync<CivitasDetailsDto>($"/civitas/{id}");
         //return response;
+
         var response = await _httpClient.GetAsync($"/civitas/{id}");
         await HandleNonSuccessResponseAsync(response);
         return await response.Content.ReadFromJsonAsync<CivitasDetailsDto>();
 
+        //var request = new HttpRequestMessage(HttpMethod.Get, $"/civitas/{id}");
+        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
+        //var response = await _httpClient.SendAsync(request);
+        //await HandleNonSuccessResponseAsync(response);
+        //return await response.Content.ReadFromJsonAsync<CivitasDetailsDto>();
     }
 
     // Método para obtener la lista de Civitates.
@@ -151,9 +240,16 @@ public class CorpusLegisApiClient
     {
         //var response = await _httpClient.GetFromJsonAsync<List<CivitasSummaryDto>>("/civitas");
         //return response ?? new List<CivitasSummaryDto>();
+
         var response = await _httpClient.GetAsync("/civitas");
         await HandleNonSuccessResponseAsync(response);
         return await response.Content.ReadFromJsonAsync<List<CivitasSummaryDto>>() ?? new List<CivitasSummaryDto>();
+
+        //var request = new HttpRequestMessage(HttpMethod.Get, $"/civitas");
+        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
+        //var response = await _httpClient.SendAsync(request);
+        //await HandleNonSuccessResponseAsync(response);
+        //return await response.Content.ReadFromJsonAsync<List<CivitasSummaryDto>>() ?? new List<CivitasSummaryDto>();
     }
 
     // Método para obtener la lista de Civitates a las que pertenece el Civis actual.
@@ -161,9 +257,16 @@ public class CorpusLegisApiClient
     {
         //var response = await _httpClient.GetFromJsonAsync<List<CivitasSummaryDto>>("/civitas/civis/me");
         //return response ?? new List<CivitasSummaryDto>();
+
         var response = await _httpClient.GetAsync("/civitas/me");
         await HandleNonSuccessResponseAsync(response);
         return await response.Content.ReadFromJsonAsync<List<CivitasSummaryDto>>() ?? new List<CivitasSummaryDto>();
+
+        //var request = new HttpRequestMessage(HttpMethod.Get, $"/civitas/me");
+        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
+        //var response = await _httpClient.SendAsync(request);
+        //await HandleNonSuccessResponseAsync(response);
+        //return await response.Content.ReadFromJsonAsync<List<CivitasSummaryDto>>() ?? new List<CivitasSummaryDto>();
     }
 
     // Método para obtener las Civitates a las que pertenece un Civis.
@@ -171,9 +274,16 @@ public class CorpusLegisApiClient
     {
         //var response = await _httpClient.GetFromJsonAsync<List<CivitasSummaryDto>>($"/civitas/civis/{idCivis}");
         //return response ?? new List<CivitasSummaryDto>();
+
         var response = await _httpClient.GetAsync($"/civitas/civis/{idCivis}");
         await HandleNonSuccessResponseAsync(response);
         return await response.Content.ReadFromJsonAsync<List<CivitasSummaryDto>>() ?? new List<CivitasSummaryDto>();
+
+        //var request = new HttpRequestMessage(HttpMethod.Get, $"/civitas/civis/{idCivis}");
+        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
+        //var response = await _httpClient.SendAsync(request);
+        //await HandleNonSuccessResponseAsync(response);
+        //return await response.Content.ReadFromJsonAsync<List<CivitasSummaryDto>>() ?? new List<CivitasSummaryDto>();
     }
 
     // Método para agregar el Civis actual al Civitas.
@@ -181,6 +291,11 @@ public class CorpusLegisApiClient
     {
         var response = await _httpClient.PostAsync($"/civitas/{idCivitas}/members/me", null);
         await HandleNonSuccessResponseAsync(response);
+
+        //var request = new HttpRequestMessage(HttpMethod.Post, $"/civitas/{idCivitas}/members/me");
+        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
+        //var response = await _httpClient.SendAsync(request);
+        //await HandleNonSuccessResponseAsync(response);
     }
 
     // Método para agregar un Civis a un Civitas.
@@ -188,6 +303,11 @@ public class CorpusLegisApiClient
     {
         var response = await _httpClient.PostAsync($"/civitas/{idCivitas}/members/{idCivis}", null);
         await HandleNonSuccessResponseAsync(response);
+
+        //var request = new HttpRequestMessage(HttpMethod.Post, $"/civitas/{idCivitas}/members/{idCivis}");
+        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
+        //var response = await _httpClient.SendAsync(request);
+        //await HandleNonSuccessResponseAsync(response);
     }
 
     // Método para eliminar el Civis actual del Civitas.
@@ -195,6 +315,11 @@ public class CorpusLegisApiClient
     {
         var response = await _httpClient.DeleteAsync($"/civitas/{idCivitas}/members/me");
         await HandleNonSuccessResponseAsync(response);
+
+        //var request = new HttpRequestMessage(HttpMethod.Delete, $"/civitas/{idCivitas}/members/me");
+        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
+        //var response = await _httpClient.SendAsync(request);
+        //await HandleNonSuccessResponseAsync(response);
     }
 
     // Método para eliminar un Civis de un Civitas.
@@ -202,6 +327,11 @@ public class CorpusLegisApiClient
     {
         var response = await _httpClient.DeleteAsync($"/civitas/{idCivitas}/members/{idCivis}");
         await HandleNonSuccessResponseAsync(response);
+
+        //var request = new HttpRequestMessage(HttpMethod.Delete, $"/civitas/{idCivitas}/members/{idCivis}");
+        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
+        //var response = await _httpClient.SendAsync(request);
+        //await HandleNonSuccessResponseAsync(response);
     }
     #endregion
 

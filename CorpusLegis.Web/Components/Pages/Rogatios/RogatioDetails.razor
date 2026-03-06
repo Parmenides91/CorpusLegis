@@ -141,6 +141,7 @@ else
 
     private RogatioDetailsDto? rogatio;
     private string? errorMessage;
+    private bool disposed;
     private bool loading = true;
 
     private bool voting;
@@ -260,13 +261,27 @@ else
 
     private async void OnCivisChanged()
     {
-        await LoadDataAsync(); // si cambia el usuario, se vuelven a pedir los datos a la API.
+        if (disposed)
+        {
+            return;
+        }
 
-        await InvokeAsync(StateHasChanged); // forzar el repintado.
+        // await LoadDataAsync(); // si cambia el usuario, se vuelven a pedir los datos a la API.
+
+        // await InvokeAsync(StateHasChanged); // forzar el repintado.
+
+        await InvokeAsync(async () =>
+        {
+            await LoadDataAsync();
+            StateHasChanged();
+        }
+        );
     }
 
     public void Dispose()
     {
+        disposed = true;
+
         CivisState.OnChange -= OnCivisChanged;
     }
 
