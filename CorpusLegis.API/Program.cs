@@ -8,7 +8,9 @@ using CorpusLegis.API.Services;
 using CorpusLegis.API.Validators;
 using CorpusLegis.Shared.Dtos;
 using FluentValidation;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
+using OpenTelemetry.Trace;
 
 
 var builder = WebApplication.CreateBuilder(args);

@@ -27,8 +27,15 @@ public static class SuffragiumEndpoints
         {
             var result = await service.CreateAsync(dto);
 
-            /* TODO: ¿Quiero devolver la DTO del voto, quiero ir a un listado de votos, quiero ir a la Rogatio y simplemente que se visualice que se ha votado? De ello depende qué devuelvo aquí*/
-            return Results.Created($"/rogatio/{result.Id}", result); // si ha ido bien, será un código 201 + el objeto (DTO) creado.
+            //opción 1 (¿mal?)
+            //return Results.Created($"/rogatio/{result.Id}", result); // si ha ido bien, será un código 201 + el objeto (DTO) creado.
+
+            //opción 2 (¿mal?)
+            //var rogatioDto = await rogatioService.GetByIdAsync(dto.RogatioId);
+            //return Results.Ok(rogatioDto); // si ha ido bien, será un código 200 + el objeto (DTO) actualizado.
+
+            //opción 3 (¿bien?)
+            return Results.Ok(result);
         }
         catch (InvalidOperationException ex)
         {

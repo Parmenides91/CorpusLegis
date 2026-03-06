@@ -1,0 +1,14 @@
+﻿
+
+<div class="d-flex justify-content-start gap-3 mt-3 mb-3">
+    <span class="badge bg-success">A favor: @ProVotes</span>
+    <span class="badge bg-danger">En contra: @ContraVotes</span>
+    <span class="badge bg-warning">Abstenciones: @AbstentioVotes</span>
+</div>
+
+
+@code {
+    [Parameter] public int ProVotes { get; set; }
+    [Parameter] public int ContraVotes { get; set; }
+    [Parameter] public int AbstentioVotes { get; set; }
+}

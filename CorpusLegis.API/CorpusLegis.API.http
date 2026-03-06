@@ -159,3 +159,9 @@ Content-type: application/json
 X-Civis-Id: {{CivisIdDefault}}
 ###
 
+###
+# Evaluar Rogationes a aprobar o rechazar [ESTO NO TIRA; tampoco sé si debería]
+POST {{CorpusLegis.API_HostAddress}}/rogatio/evaluate-pending
+Content-type: application/json
+X-Civis-Id: {{CivisIdDefault}}
+###

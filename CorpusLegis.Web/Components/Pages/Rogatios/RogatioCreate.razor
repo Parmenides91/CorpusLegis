@@ -4,7 +4,10 @@
 @using CorpusLegis.Shared.Dtos
 @using CorpusLegis.Shared.Dtos.Civitas
 
+@implements IDisposable
+
 @inject Clients.CorpusLegisApiClient ApiClient
+@inject CorpusLegis.Web.State.CivisState CivisState
 @inject NavigationManager NavigationManager
 
 
@@ -60,10 +63,13 @@
     private CreateRogatioDto newRogatio = new();
     private List<CivitasSummaryDto> civitas = new();
     private string? errorMessage;
+    private bool disposed;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadDataAsync();
+
+        CivisState.OnChange += OnCivisChanged;
     }
 
     private async Task LoadDataAsync()
@@ -102,5 +108,33 @@
         //     errorMessage = $"Ha ocurrido un error inesperado: {ex.Message}";
         // }
     }
+
+
+    private async void OnCivisChanged()
+    {
+        if (disposed)
+        {
+            return;
+        }
+
+        // await LoadDataAsync(); // si cambia el usuario, se vuelven a pedir los datos a la API.
+
+        // await InvokeAsync(StateHasChanged); // forzar el repintado.
+
+        await InvokeAsync(async () =>
+        {
+            await LoadDataAsync();
+            StateHasChanged();
+        }
+        );
+    }
+
+    public void Dispose()
+    {
+        disposed = true;
+
+        CivisState.OnChange -= OnCivisChanged;
+    }
+
 
 }

@@ -4,6 +4,7 @@ using CorpusLegis.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CorpusLegis.API.Migrations
 {
     [DbContext(typeof(CorpusLegisContext))]
-    partial class CorpusLegisContextModelSnapshot : ModelSnapshot
+    [Migration("20260305114015_QuorumAndMajorityFields")]
+    partial class QuorumAndMajorityFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -134,12 +137,10 @@ namespace CorpusLegis.API.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<decimal>("RequiredMajority")
-                        .HasPrecision(5, 4)
-                        .HasColumnType("decimal(5,4)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("RequiredQuorum")
-                        .HasPrecision(5, 4)
-                        .HasColumnType("decimal(5,4)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Status")
                         .IsRequired()

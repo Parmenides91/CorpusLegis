@@ -9,6 +9,13 @@
 
 <h3>Eliminar Rogatio</h3>
 
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">
+        <strong>Error: </strong>@errorMessage
+    </div>
+}
+
 @if (loading)
 {
     <p>Cargando</p>
@@ -45,8 +52,15 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        try
+        {
+            rogatio = await ApiClient.GetRogatioByIdAsync(Id);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error al cargar el Rogatio: {ex.Message}";
+        }
 
-        rogatio = await ApiClient.GetRogatioByIdAsync(Id);
         loading = false;
     }
 
