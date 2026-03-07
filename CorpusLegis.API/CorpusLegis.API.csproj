@@ -9,6 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Aspire.Microsoft.EntityFrameworkCore.SqlServer" Version="13.1.2" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
+    <PackageReference Include="MassTransit.RabbitMQ" Version="9.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.3">
@@ -19,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CorpusLegis.Contracts\CorpusLegis.Contracts.csproj" />
     <ProjectReference Include="..\CorpusLegis.ServiceDefaults\CorpusLegis.ServiceDefaults.csproj" />
     <ProjectReference Include="..\CorpusLegis.Shared\CorpusLegis.Shared.csproj" />
   </ItemGroup>

@@ -1,9 +1,11 @@
 ﻿using CorpusLegis.API.Data;
 using CorpusLegis.API.Domain;
 using CorpusLegis.API.Exceptions;
+using CorpusLegis.Contracts.PdfGeneration;
 using CorpusLegis.Shared.Dtos;
 using CorpusLegis.Shared.Enums;
 using FluentValidation;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualBasic;
 using System.Reflection.Metadata.Ecma335;
@@ -17,16 +19,19 @@ public class RogatioService : IRogatioService
 
     private readonly IValidator<CreateRogatioDto> _createValidator;
 
+    private readonly IPublishEndpoint _publishEndpoint;
+
     //private readonly ILogger _logger;
 
     //Guid CivisDefaultGuid = Guid.Parse("0f8fad5b-d9cb-469f-a165-70867728950e"); // Sempronio
     Guid CivitasDefaultGuid = Guid.Parse("7c9e6679-7425-40de-944b-e07fc1f90ae7"); // Solfamidas
 
-    public RogatioService(CorpusLegisContext db, ICurrentUserService currentUser, IValidator<CreateRogatioDto> createValidator)
+    public RogatioService(CorpusLegisContext db, ICurrentUserService currentUser, IValidator<CreateRogatioDto> createValidator, IPublishEndpoint publishEndpoint)
     {
         _db = db;
         _currentUser = currentUser;
         _createValidator = createValidator;
+        _publishEndpoint = publishEndpoint;
     }
 
 
@@ -360,6 +365,14 @@ public class RogatioService : IRogatioService
                 _db.Leges.Add(nuevaLex);
                 rogatio.Status = RogatioStatus.Approbata;
                 await _db.SaveChangesAsync();
+
+                await _publishEndpoint.Publish(new LexPromulgatedIntegrationEvent
+                {
+                    LexId = nuevaLex.Id,
+                    Title = nuevaLex.Title,
+                    Content = nuevaLex.Content,
+                    PromulgatedAt = nuevaLex.PromulgatedAt
+                });
             }
             catch (Exception ex)
             {
