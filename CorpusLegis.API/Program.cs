@@ -27,6 +27,15 @@ builder.AddServiceDefaults();
 // Se configura MassTransit para usar RabbitMQ como Message Broker.
 builder.Services.AddMassTransit(x =>
 {
+    // Outbox para garantizar la entrega de mensajes si algo falla cuando se hacen transacciones.
+    x.AddEntityFrameworkOutbox<CorpusLegisContext>(outbox =>
+    {
+        outbox.QueryDelay = TimeSpan.FromSeconds(5); // Intervalo de tiempo para consultar la tabla de Outbox.
+        outbox.DuplicateDetectionWindow = TimeSpan.FromMinutes(5); // Ventana de tiempo para detectar mensajes duplicados.
+        outbox.UseSqlServer(); // Configura el Outbox para usar SQL Server.
+        outbox.UseBusOutbox(); // Configura el Outbox para enviar los mensajes a través del bus de MassTransit.
+    });
+
     x.UsingRabbitMq((context, cfg) =>
     {
         var connectionString = builder.Configuration.GetConnectionString("rabbitmq-corpuslegis"); // mismo nombre que tenga en AppHost.cs o no va a funcionar.

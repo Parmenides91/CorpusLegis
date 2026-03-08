@@ -350,52 +350,28 @@ public class RogatioService : IRogatioService
 
         if (proFraction >= rogatio.RequiredMajority) // sí se cumplen los requisitos para aprobar la Rogatio, por lo que se aprueba.
         {
-            try
+            var nuevaLex = new Lex
             {
-                var nuevaLex = new Lex
-                {
-                    Id = Guid.NewGuid(),
-                    CivitasId = rogatio.CivitasId,
-                    OriginRogatioId = rogatio.Id,
-                    Title = rogatio.Title,
-                    Content = rogatio.Content,
-                    PromulgatedAt = DateTime.UtcNow
-                };
+                Id = Guid.NewGuid(),
+                CivitasId = rogatio.CivitasId,
+                OriginRogatioId = rogatio.Id,
+                Title = rogatio.Title,
+                Content = rogatio.Content,
+                PromulgatedAt = DateTime.UtcNow
+            };
 
-                _db.Leges.Add(nuevaLex);
-                rogatio.Status = RogatioStatus.Approbata;
-                await _db.SaveChangesAsync();
+            _db.Leges.Add(nuevaLex);
+            rogatio.Status = RogatioStatus.Approbata;
 
-                await _publishEndpoint.Publish(new LexPromulgatedIntegrationEvent
-                {
-                    LexId = nuevaLex.Id,
-                    Title = nuevaLex.Title,
-                    Content = nuevaLex.Content,
-                    PromulgatedAt = nuevaLex.PromulgatedAt
-                });
-            }
-            catch (Exception ex)
+            await _publishEndpoint.Publish(new LexPromulgatedIntegrationEvent
             {
-                //_logger.LogCritical(ex, "Error al resolver Rogatio {RogatioId}. ProcessUser={User}, CurrentDirectory={Cwd}", rogatio.Id, Environment.UserName, Environment.CurrentDirectory);
-                Console.WriteLine("{ex} - Error al resolver Rogatio {RogatioId}. ProcessUser={User}, CurrentDirectory={Cwd}", ex, rogatio.Id, Environment.UserName, Environment.CurrentDirectory);
+                LexId = nuevaLex.Id,
+                Title = nuevaLex.Title,
+                Content = nuevaLex.Content,
+                PromulgatedAt = nuevaLex.PromulgatedAt
+            });
 
-                // si hay operaciones de fichero conocidas, loguea rutas y permisos
-                try
-                {
-                    var path = "/ruta/posible/archivo";
-                    if (File.Exists(path))
-                    {
-                        var info = new FileInfo(path);
-                        //_logger.LogCritical("FileInfo: Exists={Exists}, Length={Length}, Attributes={Attributes}", info.Exists, info.Length, info.Attributes);
-                        Console.WriteLine("FileInfo: Exists={Exists}, Length={Length}, Attributes={Attributes}", info.Exists, info.Length, info.Attributes);
-                    }
-                }
-                catch (Exception inner) {
-                    //_logger.LogWarning(inner, "No se pudo inspeccionar la ruta de fichero");
-                    Console.WriteLine("{inner} - No se pudo inspeccionar la ruta de fichero", inner);
-                }
-                throw;
-            }
+            await _db.SaveChangesAsync(); // Este SaveChangesAsync debe contener la creación de la Lex && el cambio de estado de Rogatio && la creación del evento, para que el Outbox sepa que tiene un evento relacionado con esto (en concreto, con la creación de la Lex).
         }
         else // No se cumplen los requisitos para aprobar la Rogatio, por lo que se rechaza.
         {
