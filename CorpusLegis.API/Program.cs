@@ -49,7 +49,7 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 // Se agrega el contexto de la base de datos (a la manera Aspire)
-builder.AddSqlServerDbContext<CorpusLegisContext>("corpuslegis-db");
+builder.AddSqlServerDbContext<CorpusLegisContext>("sqlserver-db-corpuslegis");
 
 // Se registra el servicio de Rogatio.
 builder.Services.AddScoped<IRogatioService, RogatioService>();

@@ -7,7 +7,8 @@ builder.Services.AddHostedService<EscrutinioBatchWorker>();
 
 builder.Services.AddHttpClient("CorpuesLegisApiClient", client =>
 {
-    client.BaseAddress = new Uri("http://corpusLegis-api");
+    //client.BaseAddress = new Uri("http://corpusLegis-api");
+    client.BaseAddress = new Uri("http://api-corpuslegis");
 });
 
 builder.Services.AddHostedService<EscrutinioBatchWorker>();

@@ -45,7 +45,8 @@ builder.Services.AddScoped<CorpusLegis.Web.State.CivisState>();
 //    );
 builder.Services.AddHttpClient<CorpusLegisApiClient>(client =>
     {
-        client.BaseAddress = new Uri("http://corpusLegis-api");
+        //client.BaseAddress = new Uri("http://corpusLegis-api");
+        client.BaseAddress = new Uri("http://api-corpuslegis");
     })
     //.AddHttpMessageHandler<CivisHeaderHandler>()
     ;
