@@ -9,6 +9,7 @@ using CorpusLegis.API.Validators;
 using CorpusLegis.Shared.Dtos;
 using FluentValidation;
 using MassTransit;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using OpenTelemetry.Trace;
@@ -43,6 +44,26 @@ builder.Services.AddMassTransit(x =>
         cfg.ConfigureEndpoints(context);
     });
 });
+
+// Se configura AspNetCore Authentication JwtBearer.
+var keycloakUrl = builder.Configuration.GetConnectionString("keycloak-corpuslegis");
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer( options =>
+    {
+        options.Authority = $"{keycloakUrl}/realms/CorpusLegis";
+        options.RequireHttpsMetadata = false; // en PRO esto tendrá que ser true.
+
+        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = false, // Habrá que ajustarlo en PRO.
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            NameClaimType = "preferred_username",
+            RoleClaimType = "realm_access.roles"
+        };
+    });
+builder.Services.AddAuthorization();
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -80,6 +101,10 @@ var app = builder.Build();
 // Manejador para Excepciones.
 app.UseExceptionHandler();
 
+// Se habilita la autenticación y autorización.
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapDefaultEndpoints();
 
 // Se mapean los endpoints de Rogatio.
@@ -103,7 +128,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthorization();
 
 app.MapControllers();
 

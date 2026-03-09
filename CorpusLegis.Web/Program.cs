@@ -1,5 +1,8 @@
 using CorpusLegis.Web.Clients;
 using CorpusLegis.Web.Components;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +12,41 @@ builder.AddServiceDefaults();
 // Se agrega una referencia al proyecto de CorpusLegis.Shared para poder usar sus servicios
 //var api_corpuslegis = builder.AddProject<Projects.CorpusLegis_API>("corpuslegis-api");
 // TODO: no me dice Gemini cómo hacerlo. --> se hace desde el SolutionExplorer.
+
+// Se configura OIDC para la autentificación y autorización con Keycloak.
+var keycloakUrl = builder.Configuration.GetConnectionString("keycloak-corpuslegis");
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+})
+    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+    {
+        options.Cookie.Name = "__Host-CorpusLegis";
+        options.Cookie.SameSite = SameSiteMode.Strict;
+    })
+    .AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options =>
+    {
+        options.Authority = $"{keycloakUrl}/realms/CorpusLegis";
+        options.ClientId = builder.Configuration["Keycloak:ClientId"];
+        options.ClientSecret = builder.Configuration["keycloak:ClientSecret"];
+        options.ResponseType = OpenIdConnectResponseType.Code;
+
+        options.SaveTokens = true; // Fundamental para recuperar el Access Token después.
+        options.RequireHttpsMetadata = false; // en PRO esto tendrá que ser true.
+
+        // Scopes stándard de OpenId.
+        options.Scope.Clear();
+        options.Scope.Add("openid");
+        options.Scope.Add("profile");
+
+        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+        {
+            NameClaimType = "preferred_username",
+            RoleClaimType = "realm_access.roles"
+        };
+    });
+builder.Services.AddAuthorization();
 
 
 // Se registra el servicio del mockeo del Civis como Scoped (para que sea uno distinto para cada usuario).
