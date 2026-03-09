@@ -291,24 +291,121 @@ public class RogatioService : IRogatioService
 
     public async Task<RogatioDetailsDto?> EvalueAsync(Guid id, WorkflowRogatioDto workflowRogatio)
     {
-        var rogatio = await _db.Rogationes
-            .AsTracking()
-            .FirstOrDefaultAsync(r => r.Id == id);
+        //var rogatio = await _db.Rogationes
+        //    .AsTracking()
+        //    .FirstOrDefaultAsync(r => r.Id == id);
 
-        if (rogatio == null)
+        //if (rogatio == null)
+        //{
+        //    throw new NotFoundException("Rogatio", id);
+        //}
+
+        //if (rogatio.Status == RogatioStatus.Approbata || rogatio.Status == RogatioStatus.Reprobata)
+        //{
+        //    // El ciclo de vida de la Rogatio ya ha acabado. ¿Devuelvo la Rogatio o informo de alguna manera que yo no he podido hacer lo que me han pedido hacer para esta determinada Rogatio?
+        //    return await GetByIdAsync(id);
+        //}
+
+        //if (rogatio.Status == RogatioStatus.Inchoatus || rogatio.Status == RogatioStatus.Proposita)
+        //{
+        //    // Aún no ha llegado el momento de decidir qué pasa con la Rogatio. ¿Devuelvo la Rogatio o informo de alguna manera que yo no he podido hacer lo que me han pedido hacer para esta determinada Rogatio?
+        //    return await GetByIdAsync(id);
+        //}
+
+        //if (DateTime.UtcNow < rogatio.Deadline)
+        //{
+        //    throw new BusinessRuleValidationException("Aún no se ha cumplido la fecha límite de votación de la Rogatio, por lo que no se puede resolver.");
+        //}
+
+        //var poblacionCivitas = await _db.Civitates
+        //    .Where(c => c.Id == rogatio.CivitasId)
+        //    .SelectMany(c => c.Cives)
+        //    .CountAsync();
+
+        //var votosTotales = await _db.Suffragia
+        //    .Where(s => s.RogatioId == rogatio.Id)
+        //    .CountAsync();
+
+        //if (votosTotales == 0) // no ha votado nadie.
+        //{
+        //    rogatio.Status = RogatioStatus.Reprobata;
+        //    await _db.SaveChangesAsync();
+        //    return await GetByIdAsync(rogatio.Id);
+        //}
+
+        //var requiredQuorumCount = (int) Math.Ceiling(poblacionCivitas * (double) rogatio.RequiredQuorum);
+
+        //if (votosTotales < requiredQuorumCount) // no ha habido cuórum.
+        //{
+        //    rogatio.Status = RogatioStatus.Reprobata;
+        //    await _db.SaveChangesAsync();
+        //    return await GetByIdAsync(rogatio.Id);
+        //}
+
+        //var votosPro = await _db.Suffragia
+        //    .Where(s => s.RogatioId == rogatio.Id && s.Votum == SuffragiumValue.Pro)
+        //    .CountAsync();
+
+        //decimal proFraction = (decimal)votosPro / (decimal)votosTotales;
+
+        //if (proFraction >= rogatio.RequiredMajority) // sí se cumplen los requisitos para aprobar la Rogatio, por lo que se aprueba.
+        //{
+        //    var nuevaLex = new Lex
+        //    {
+        //        Id = Guid.NewGuid(),
+        //        CivitasId = rogatio.CivitasId,
+        //        OriginRogatioId = rogatio.Id,
+        //        Title = rogatio.Title,
+        //        Content = rogatio.Content,
+        //        PromulgatedAt = DateTime.UtcNow
+        //    };
+
+        //    _db.Leges.Add(nuevaLex);
+        //    rogatio.Status = RogatioStatus.Approbata;
+
+        //    await _publishEndpoint.Publish(new LexPromulgatedIntegrationEvent
+        //    {
+        //        LexId = nuevaLex.Id,
+        //        Title = nuevaLex.Title,
+        //        Content = nuevaLex.Content,
+        //        PromulgatedAt = nuevaLex.PromulgatedAt
+        //    });
+
+        //    await _db.SaveChangesAsync(); // Este SaveChangesAsync debe contener la creación de la Lex && el cambio de estado de Rogatio && la creación del evento, para que el Outbox sepa que tiene un evento relacionado con esto (en concreto, con la creación de la Lex).
+        //}
+        //else // No se cumplen los requisitos para aprobar la Rogatio, por lo que se rechaza.
+        //{
+        //    rogatio.Status = RogatioStatus.Reprobata;
+        //    await _db.SaveChangesAsync();
+        //}
+
+        //return await GetByIdAsync(rogatio.Id);
+
+        var escrutinioData = await _db.Rogationes
+            .Where(r => r.Id == id)
+            .Select(r => new
+            {
+                Rogatio = r,
+                PoblacionCivitas = r.Civitas.Cives.Count(),
+                VotosTotales = r.Suffragia.Count(),
+                VotosPro = r.Suffragia.Count(s => s.Votum == SuffragiumValue.Pro)
+            })
+            .FirstOrDefaultAsync();
+
+        if (escrutinioData == null)
         {
             throw new NotFoundException("Rogatio", id);
         }
 
-        if (rogatio.Status == RogatioStatus.Approbata || rogatio.Status == RogatioStatus.Reprobata)
+        var rogatio = escrutinioData.Rogatio;
+
+        if (rogatio.Status == RogatioStatus.Approbata || rogatio.Status == RogatioStatus.Reprobata) // El ciclo de vida de la Rogatio ya ha acabado.
         {
-            // El ciclo de vida de la Rogatio ya ha acabado. ¿Devuelvo la Rogatio o informo de alguna manera que yo no he podido hacer lo que me han pedido hacer para esta determinada Rogatio?
             return await GetByIdAsync(id);
         }
 
-        if (rogatio.Status == RogatioStatus.Inchoatus || rogatio.Status == RogatioStatus.Proposita)
+        if (rogatio.Status == RogatioStatus.Inchoatus || rogatio.Status == RogatioStatus.Proposita) // Aún no ha llegado el momento de decidir qué pasa con la Rogatio.
         {
-            // Aún no ha llegado el momento de decidir qué pasa con la Rogatio. ¿Devuelvo la Rogatio o informo de alguna manera que yo no he podido hacer lo que me han pedido hacer para esta determinada Rogatio?
             return await GetByIdAsync(id);
         }
 
@@ -317,38 +414,25 @@ public class RogatioService : IRogatioService
             throw new BusinessRuleValidationException("Aún no se ha cumplido la fecha límite de votación de la Rogatio, por lo que no se puede resolver.");
         }
 
-        var poblacionCivitas = await _db.Civitates
-            .Where(c => c.Id == rogatio.CivitasId)
-            .SelectMany(c => c.Cives)
-            .CountAsync();
-
-        var votosTotales = await _db.Suffragia
-            .Where(s => s.RogatioId == rogatio.Id)
-            .CountAsync();
-
-        if (votosTotales == 0) // no ha votado nadie.
+        if (escrutinioData.VotosTotales == 0)
         {
             rogatio.Status = RogatioStatus.Reprobata;
             await _db.SaveChangesAsync();
-            return await GetByIdAsync(rogatio.Id);
+            return await GetByIdAsync(id);
         }
 
-        var requiredQuorumCount = (int) Math.Ceiling(poblacionCivitas * (double) rogatio.RequiredQuorum);
+        var requiredQuorumCount = (int)Math.Ceiling(escrutinioData.PoblacionCivitas * (double)rogatio.RequiredQuorum);
 
-        if (votosTotales < requiredQuorumCount) // no ha habido cuórum.
+        if (escrutinioData.VotosTotales > requiredQuorumCount) // no ha habido cuórum.
         {
             rogatio.Status = RogatioStatus.Reprobata;
             await _db.SaveChangesAsync();
-            return await GetByIdAsync(rogatio.Id);
+            return await GetByIdAsync(id);
         }
 
-        var votosPro = await _db.Suffragia
-            .Where(s => s.RogatioId == rogatio.Id && s.Votum == SuffragiumValue.Pro)
-            .CountAsync();
+        decimal proFraction = (decimal)escrutinioData.VotosPro / (decimal)escrutinioData.VotosTotales;
 
-        decimal proFraction = (decimal)votosPro / (decimal)votosTotales;
-
-        if (proFraction >= rogatio.RequiredMajority) // sí se cumplen los requisitos para aprobar la Rogatio, por lo que se aprueba.
+        if (proFraction >= rogatio.RequiredMajority) // sí ha habido mayoría.
         {
             var nuevaLex = new Lex
             {
@@ -371,15 +455,15 @@ public class RogatioService : IRogatioService
                 PromulgatedAt = nuevaLex.PromulgatedAt
             });
 
-            await _db.SaveChangesAsync(); // Este SaveChangesAsync debe contener la creación de la Lex && el cambio de estado de Rogatio && la creación del evento, para que el Outbox sepa que tiene un evento relacionado con esto (en concreto, con la creación de la Lex).
+            await _db.SaveChangesAsync();
         }
-        else // No se cumplen los requisitos para aprobar la Rogatio, por lo que se rechaza.
+        else
         {
             rogatio.Status = RogatioStatus.Reprobata;
             await _db.SaveChangesAsync();
         }
 
-        return await GetByIdAsync(rogatio.Id);
+        return await GetByIdAsync(id);
 
     }
 
