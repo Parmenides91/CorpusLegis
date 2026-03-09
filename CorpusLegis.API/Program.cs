@@ -8,6 +8,7 @@ using CorpusLegis.API.Services;
 using CorpusLegis.API.Validators;
 using CorpusLegis.Shared.Dtos;
 using FluentValidation;
+using MassTransit;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using OpenTelemetry.Trace;
@@ -22,6 +23,26 @@ builder.AddServiceDefaults();
 // TODO: no me dice Gemini cómo hacerlo. --> se hace desde el SolutionExplorer.
 
 // Add services to the container.
+
+// Se configura MassTransit para usar RabbitMQ como Message Broker.
+builder.Services.AddMassTransit(x =>
+{
+    // Outbox para garantizar la entrega de mensajes si algo falla cuando se hacen transacciones.
+    x.AddEntityFrameworkOutbox<CorpusLegisContext>(outbox =>
+    {
+        outbox.QueryDelay = TimeSpan.FromSeconds(5); // Intervalo de tiempo para consultar la tabla de Outbox.
+        outbox.DuplicateDetectionWindow = TimeSpan.FromMinutes(5); // Ventana de tiempo para detectar mensajes duplicados.
+        outbox.UseSqlServer(); // Configura el Outbox para usar SQL Server.
+        outbox.UseBusOutbox(); // Configura el Outbox para enviar los mensajes a través del bus de MassTransit.
+    });
+
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        var connectionString = builder.Configuration.GetConnectionString("rabbitmq-corpuslegis"); // mismo nombre que tenga en AppHost.cs o no va a funcionar.
+        cfg.Host(connectionString);
+        cfg.ConfigureEndpoints(context);
+    });
+});
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
