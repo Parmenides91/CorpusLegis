@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using CorpusLegis.API.Domain;
+using MassTransit;
 
 namespace CorpusLegis.API.Data;
 
@@ -91,6 +92,13 @@ public class CorpusLegisContext(DbContextOptions<CorpusLegisContext> options)
         modelBuilder.Entity<Rogatio>()
             .Property(r => r.RequiredMajority)
             .HasPrecision(5, 4);
+
+
+
+        // Configuración necesaria para que funcione el Outbox de MassTransit con EF Core.
+        modelBuilder.AddInboxStateEntity();
+        modelBuilder.AddOutboxMessageEntity();
+        modelBuilder.AddOutboxStateEntity();
     }
 
 }
