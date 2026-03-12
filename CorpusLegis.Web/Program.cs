@@ -1,5 +1,6 @@
 using CorpusLegis.Web.Clients;
 using CorpusLegis.Web.Components;
+using CorpusLegis.Web.State;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
@@ -8,13 +9,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
-
-// Se agrega una referencia al proyecto de CorpusLegis.Shared para poder usar sus servicios
-//var api_corpuslegis = builder.AddProject<Projects.CorpusLegis_API>("corpuslegis-api");
-// TODO: no me dice Gemini cómo hacerlo. --> se hace desde el SolutionExplorer.
-
-// Se configura OIDC para la autentificación y autorización con Keycloak.
-var keycloakUrl = builder.Configuration.GetConnectionString("keycloak-corpuslegis");
+var keycloakAuthority = builder.Configuration["Keycloak:Authority"];
+if (string.IsNullOrEmpty(keycloakAuthority))
+{
+    throw new InvalidOperationException("La variable 'Keycloak:Authority' no se ha inyectado correctamente desde el AppHost.");
+}
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -22,13 +21,15 @@ builder.Services.AddAuthentication(options =>
 })
     .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
     {
-        options.Cookie.Name = "__Host-CorpusLegis";
-        options.Cookie.SameSite = SameSiteMode.Strict;
+        //options.Cookie.Name = "__Host-CorpusLegis";
+        //options.Cookie.SameSite = SameSiteMode.Strict;
+        options.Cookie.Name = "CorpusLegis.Auth";
+        options.Cookie.SameSite = SameSiteMode.Lax;
     })
     .AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options =>
     {
-        options.Authority = $"{keycloakUrl}/realms/CorpusLegis";
-        options.ClientId = builder.Configuration["Keycloak:ClientId"];
+        options.Authority = keycloakAuthority;
+        options.ClientId = builder.Configuration["Keycloak:ClientId"] ?? "corpuslegis-web"; // TODO: ¿no debería ser corpuslegis-web-blazor?
         options.ClientSecret = builder.Configuration["keycloak:ClientSecret"];
         options.ResponseType = OpenIdConnectResponseType.Code;
 
@@ -49,45 +50,15 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization();
 
 
-// Se registra el servicio del mockeo del Civis como Scoped (para que sea uno distinto para cada usuario).
-builder.Services.AddScoped<CorpusLegis.Web.State.CivisState>();
-
-//builder.Services.AddTransient<CivisHeaderHandler>(); // Los DelegatinHandler deben registrarse como Transient.
-//builder.Services.AddScoped<CivisHeaderHandler>();
+// Se registra el handler de la autentificación.
+builder.Services.AddScoped<CorpusLegis.Web.State.TokenProvider>();
 
 // Se le indica dónde está la API.
-//builder.Services.AddHttpClient<CorpusLegisApiClient>(client =>
-//    client.BaseAddress = new Uri("https+http://corpuslegis-api")); // Se agrega el handler al Client que ya usamos para que añada la cabecera con el CivisId a cada petición.
-
-// Se le indica dónde está la API ++ y se agrega el handler al Client que ya usamos para que añada la cabecera con el CivisId a cada petición.
-//builder.Services.AddScoped<CorpusLegisApiClient>(sp =>
-//    {
-//        // se obtiene el estado real de la sesión Blazor actual.
-//        var state = sp.GetRequiredService<CorpusLegis.Web.State.CivisState>();
-//        //se instancia el Handler pasándole el estado actual.
-//        var handler = new CorpusLegis.Web.Clients.CivisHeaderHandler(state)
-//        {
-//            InnerHandler = new HttpClientHandler() // El Handler que realmente hace la petición HTTP.
-//        }
-//        ;
-//        // se crea el HttpClient atado a este Handler.
-//        var httpClient = new HttpClient(handler)
-//        {
-//            //BaseAddress = new Uri("https+http://corpuslegis-api")
-//            BaseAddress = new Uri("http://localhost:5208") // Para que funcione en producción, ya que el esquema "https+http" no es reconocido por los navegadores.
-//            //BaseAddress = new Uri("http://corpusLegis-api")
-//        };
-//        // se devuelve el cliente tipado
-//        return new CorpusLegis.Web.Clients.CorpusLegisApiClient(httpClient);
-//    }
-//    );
 builder.Services.AddHttpClient<CorpusLegisApiClient>(client =>
-    {
-        //client.BaseAddress = new Uri("http://corpusLegis-api");
-        client.BaseAddress = new Uri("http://api-corpuslegis");
-    })
-    //.AddHttpMessageHandler<CivisHeaderHandler>()
-    ;
+{
+    client.BaseAddress = new Uri("http://api-corpuslegis");
+});
+    //.AddHttpMessageHandler<AccessTokenDelegatingHandler>(); // se inyecta el nuevo handler.
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -96,6 +67,22 @@ builder.Services.AddRazorComponents()
 var app = builder.Build();
 
 app.MapDefaultEndpoints();
+
+// Se definen los endpoints de control de sesión
+app.MapGet("/login", (string? returnUrl, HttpContext context) =>
+{
+    return TypedResults.Challenge(
+        new Microsoft.AspNetCore.Authentication.AuthenticationProperties
+        {
+            RedirectUri = string.IsNullOrEmpty(returnUrl) ? "/" : returnUrl
+        });
+});
+app.MapPost("/logout", (HttpContext context) =>
+{
+    return TypedResults.SignOut(
+        new Microsoft.AspNetCore.Authentication.AuthenticationProperties { RedirectUri = "/" },
+        [CookieAuthenticationDefaults.AuthenticationScheme, OpenIdConnectDefaults.AuthenticationScheme]);
+});
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -106,6 +93,11 @@ if (!app.Environment.IsDevelopment())
 }
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
+
+app.UseRouting(); // recomendado antes de Auth.
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseAntiforgery();
 

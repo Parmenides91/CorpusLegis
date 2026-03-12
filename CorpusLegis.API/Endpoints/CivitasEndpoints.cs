@@ -7,7 +7,10 @@ public static class CivitasEndpoints
 
     public static void MapCivitasEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/civitas").WithTags("Civitas");
+        var group = app.MapGroup("/civitas")
+            .WithTags("Civitas")
+            //.RequireAuthorization()
+            ;
 
         group.MapGet("/", GetAllCivitates);
         group.MapGet("/{id:guid}", GetCivitasById);

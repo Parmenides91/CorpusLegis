@@ -9,7 +9,10 @@ public static class SuffragiumEndpoints
 {
     public static void MapSuffragiumEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/rogatio").WithTags("Rogatio");
+        var group = app.MapGroup("/rogatio")
+            .WithTags("Rogatio")
+            //.RequireAuthorization()
+            ;
 
         // Se enlazan las rutas a métodos locales
         group.MapPost("/{id:guid}/vote", CreateSuffragium);

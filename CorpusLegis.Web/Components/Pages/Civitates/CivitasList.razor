@@ -2,12 +2,13 @@
 @rendermode InteractiveServer
 
 @using CorpusLegis.Shared.Dtos.Civitas
-@using CorpusLegis.Web.State
+@* @using CorpusLegis.Web.State *@
+@using Microsoft.AspNetCore.Authentication
 
-@implements IDisposable
+@* @implements IDisposable *@
 
 @inject Clients.CorpusLegisApiClient ApiClient
-@inject CorpusLegis.Web.State.CivisState CivisState
+@* @inject CorpusLegis.Web.State.CivisState CivisState *@
 
 
 <h3>Listado de Civitas</h3>
@@ -66,7 +67,7 @@ else
 @code {
     private List<CivitasSummaryDto>? civitates;
     private string? errorMessage;
-    private bool disposed;
+    // private bool disposed;
     private bool joining;
     private bool leaving;
 
@@ -74,7 +75,7 @@ else
     {
         await LoadDataAsync();
 
-        CivisState.OnChange += OnCivisChanged;
+        // CivisState.OnChange += OnCivisChanged;
     }
 
     private async Task LoadDataAsync()
@@ -89,6 +90,22 @@ else
         {
             Console.WriteLine($"Error al cargar las Civitates: {ex.Message}.");
             errorMessage = $"Error al cargar las Civitates: {ex.Message}.";
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            Console.WriteLine($"Error de autorización: {ex.Message}");
+            errorMessage = "Tu sesión ha expirado o necesitas iniciar sesión para ver esta información.";
+            //NavigationManager.NavigateTo("/login");
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"Error al cargar los Civitates: {ex.Message}");
+            errorMessage = $"Error al cargar los Civitates: {ex.Message}";
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error inesperado: {ex.Message}");
+            errorMessage = "Ha ocurrido un error inesperado al intentar cargar los datos.";
         }
     }
 
@@ -168,30 +185,30 @@ else
 
 
 
-    private async void OnCivisChanged()
-    {
-        if (disposed)
-        {
-            return;
-        }
+    // private async void OnCivisChanged()
+    // {
+    //     if (disposed)
+    //     {
+    //         return;
+    //     }
 
-        // await LoadDataAsync(); // si cambia el usuario, se vuelven a pedir los datos a la API.
+    //     // await LoadDataAsync(); // si cambia el usuario, se vuelven a pedir los datos a la API.
 
-        // await InvokeAsync(StateHasChanged); // forzar el repintado.
+    //     // await InvokeAsync(StateHasChanged); // forzar el repintado.
 
-        await InvokeAsync(async () =>
-        {
-            await LoadDataAsync();
-            StateHasChanged();
-        }
-        );
-    }
+    //     await InvokeAsync(async () =>
+    //     {
+    //         await LoadDataAsync();
+    //         StateHasChanged();
+    //     }
+    //     );
+    // }
 
-    public void Dispose()
-    {
-        disposed = true;
+    // public void Dispose()
+    // {
+    //     disposed = true;
 
-        CivisState.OnChange -= OnCivisChanged;
-    }
+    //     CivisState.OnChange -= OnCivisChanged;
+    // }
 
 }
