@@ -46,6 +46,15 @@ builder.Services.AddAuthentication(options =>
             NameClaimType = "preferred_username",
             RoleClaimType = "realm_access.roles"
         };
+        options.Events = new OpenIdConnectEvents
+        {
+            OnRedirectToIdentityProvider = context =>
+            {
+                var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+                logger.LogInformation("OIDC RedirectUri: {uri}", context.ProtocolMessage.RedirectUri);
+                return Task.CompletedTask;
+            }
+        };
     });
 builder.Services.AddAuthorization();
 
@@ -57,7 +66,8 @@ builder.Services.AddScoped<CorpusLegis.Web.State.TokenProvider>();
 builder.Services.AddHttpClient<CorpusLegisApiClient>(client =>
 {
     client.BaseAddress = new Uri("http://api-corpuslegis");
-});
+})
+    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
     //.AddHttpMessageHandler<AccessTokenDelegatingHandler>(); // se inyecta el nuevo handler.
 
 // Add services to the container.
@@ -92,9 +102,16 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseRouting(); // recomendado antes de Auth.
+
+app.Use(async (ctx, next) =>
+{
+    var logger = ctx.RequestServices.GetRequiredService<ILogger<Program>>();
+    logger.LogInformation("Incoming Authorization WEB: {Auth}", ctx.Request.Headers["Authorization"].ToString());
+    await next();
+});
 
 app.UseAuthentication();
 app.UseAuthorization();

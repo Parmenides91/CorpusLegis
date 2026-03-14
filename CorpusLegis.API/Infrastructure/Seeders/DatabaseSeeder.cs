@@ -13,7 +13,7 @@ public static class DatabaseSeeder
             return;
         }
 
-        var defaultCivisIds = new[] { Guid.Parse("0f8fad5b-d9cb-469f-a165-70867728950e"), Guid.Parse("11111111-1111-1111-1111-111111111111"), Guid.Parse("22222222-1111-1111-1111-111111111111"), Guid.Parse("33333333-1111-1111-1111-111111111111"), Guid.Parse("44444444-1111-1111-1111-111111111111"), Guid.Parse("55555555-1111-1111-1111-111111111111") };
+        var defaultCivisIds = new[] { Guid.Parse("0f8fad5b-d9cb-469f-a165-70867728950e"), Guid.Parse("11111111-1111-1111-1111-111111111111"), Guid.Parse("22222222-1111-1111-1111-111111111111"), Guid.Parse("33333333-1111-1111-1111-111111111111"), Guid.Parse("44444444-1111-1111-1111-111111111111"), Guid.Parse("e5991ab1-2e75-4bac-884d-deb11ffadfb5") };
         var defaultCivitasIds = new[] { Guid.Parse("7c9e6679-7425-40de-944b-e07fc1f90ae7"), Guid.Parse("11111111-2222-1111-1111-111111111111"), Guid.Parse("22222222-2222-1111-1111-111111111111"), Guid.Parse("33333333-2222-1111-1111-111111111111"), Guid.Parse("44444444-2222-1111-1111-111111111111"), Guid.Parse("55555555-2222-1111-1111-111111111111") };
 
         var defaultCives = new List<Civis>
@@ -49,6 +49,11 @@ public static class DatabaseSeeder
         //defaultCivitates[3].Cives.Add(defaultCives[0]);
         //defaultCivitates[4].Cives.Add(defaultCives[0]);
         //defaultCivitates[5].Cives.Add(defaultCives[0]);
+
+        defaultCives[5].Civitates.Add(defaultCivitates[0]);
+        defaultCives[5].Civitates.Add(defaultCivitates[1]);
+        defaultCives[5].Civitates.Add(defaultCivitates[2]);
+        defaultCives[5].Civitates.Add(defaultCivitates[3]);
 
 
         var rogatio = new Rogatio

@@ -9,7 +9,7 @@ public static class CivitasEndpoints
     {
         var group = app.MapGroup("/civitas")
             .WithTags("Civitas")
-            //.RequireAuthorization()
+            .RequireAuthorization()
             ;
 
         group.MapGet("/", GetAllCivitates);

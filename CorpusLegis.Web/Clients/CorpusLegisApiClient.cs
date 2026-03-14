@@ -290,24 +290,112 @@ public class CorpusLegisApiClient
         //await HandleNonSuccessResponseAsync(response);
         //return await response.Content.ReadFromJsonAsync<List<CivitasSummaryDto>>() ?? new List<CivitasSummaryDto>();
 
+
+        // INICIO MÉTODO NORMAL - este método es el normal con trazas de debug
+        //if (string.IsNullOrEmpty(_tokenProvider.AccessToken))
+        //{
+        //    throw new InvalidOperationException("[CRÍTICO] El AccessToken es nulo.");
+        //}
+
+        //// Comprobación de rigor: Un JWT debe tener tres partes separadas por puntos.
+        //if (!_tokenProvider.AccessToken.Contains('.'))
+        //{
+        //    throw new InvalidOperationException($"[CRÍTICO] El token obtenido de Keycloak no es un JWT válido. Valor recibido: {_tokenProvider.AccessToken}");
+        //}
+
+        //var request = new HttpRequestMessage(HttpMethod.Get, $"/civitas");
+        //request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _tokenProvider.AccessToken);
+
+        //var verlo = request.Headers.Authorization?.ToString();
+        //Console.WriteLine("[CLIENT] Authorization header preview: " + (request.Headers.Authorization?.ToString() ?? "<null>"));
+
+        //var response = await _httpClient.SendAsync(request);
+
+        //if ((int)response.StatusCode >= 300 && (int)response.StatusCode < 400 && response.Headers.Location != null)
+        //{
+        //    var location = response.Headers.Location;
+        //    // Solo reenviar si es el mismo host y esquema (evita filtrar token a terceros)
+        //    if (location.IsAbsoluteUri && location.Scheme == _httpClient.BaseAddress.Scheme && location.Host == _httpClient.BaseAddress.Host)
+        //    {
+        //        var newReq = new HttpRequestMessage(HttpMethod.Get, location);
+        //        newReq.Headers.Authorization = request.Headers.Authorization;
+        //        response = await _httpClient.SendAsync(newReq);
+        //    }
+        //    else
+        //    {
+        //        // Log para depuración
+        //        Console.WriteLine("[CLIENT] Redirection to different host or scheme, not re-sending Authorization: " + location);
+        //    }
+        //}
+
+        //await HandleNonSuccessResponseAsync(response);
+
+        //return await response.Content.ReadFromJsonAsync<List<CivitasSummaryDto>>() ?? new List<CivitasSummaryDto>();
+        // FIN MÉTODO NORMAL - Hasta aquí
+
+
+
+        //Método para el debug:
         if (string.IsNullOrEmpty(_tokenProvider.AccessToken))
-        {
             throw new InvalidOperationException("[CRÍTICO] El AccessToken es nulo.");
-        }
 
-        // Comprobación de rigor: Un JWT debe tener tres partes separadas por puntos.
         if (!_tokenProvider.AccessToken.Contains('.'))
-        {
             throw new InvalidOperationException($"[CRÍTICO] El token obtenido de Keycloak no es un JWT válido. Valor recibido: {_tokenProvider.AccessToken}");
-        }
 
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/civitas");
+        var request = new HttpRequestMessage(HttpMethod.Get, "/civitas");
         request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _tokenProvider.AccessToken);
 
-        var response = await _httpClient.SendAsync(request);
-        await HandleNonSuccessResponseAsync(response);
+        // Pedimos explícitamente JSON
+        request.Headers.Accept.Clear();
+        request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
 
-        return await response.Content.ReadFromJsonAsync<List<CivitasSummaryDto>>() ?? new List<CivitasSummaryDto>();
+        Console.WriteLine("[CLIENT] Authorization header preview: " + (request.Headers.Authorization?.ToString() ?? "<null>"));
+
+        var response = await _httpClient.SendAsync(request);
+
+        // Manejo de redirecciones manual (ya lo tenías)
+        if ((int)response.StatusCode >= 300 && (int)response.StatusCode < 400 && response.Headers.Location != null)
+        {
+            var location = response.Headers.Location;
+            if (location.IsAbsoluteUri && location.Scheme == _httpClient.BaseAddress.Scheme && location.Host == _httpClient.BaseAddress.Host)
+            {
+                var newReq = new HttpRequestMessage(HttpMethod.Get, location);
+                newReq.Headers.Authorization = request.Headers.Authorization;
+                newReq.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+                response = await _httpClient.SendAsync(newReq);
+            }
+            else
+            {
+                Console.WriteLine("[CLIENT] Redirection to different host or scheme, not re-sending Authorization: " + location);
+            }
+        }
+
+        // Loguear status y headers
+        Console.WriteLine("[CLIENT] Status: " + (int)response.StatusCode + " " + response.StatusCode);
+        Console.WriteLine("[CLIENT] Content-Type: " + response.Content.Headers.ContentType?.ToString());
+
+        // Leer body como string para depuración
+        var body = await response.Content.ReadAsStringAsync();
+        Console.WriteLine("[CLIENT] Body preview: " + (body?.Length > 2000 ? body.Substring(0, 2000) + "..." : body));
+
+        // Manejar respuestas no exitosas
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new HttpRequestException($"HTTP {(int)response.StatusCode} {response.StatusCode}. Body: {(string.IsNullOrEmpty(body) ? "<empty>" : body.Substring(0, Math.Min(body.Length, 500)))}");
+        }
+
+        // Intentar deserializar manualmente
+        try
+        {
+            var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var result = System.Text.Json.JsonSerializer.Deserialize<List<CivitasSummaryDto>>(body, options);
+            return result ?? new List<CivitasSummaryDto>();
+        }
+        catch (System.Text.Json.JsonException jex)
+        {
+            Console.WriteLine("[CLIENT] JSON parse error: " + jex.Message);
+            throw new HttpRequestException($"HTTP {(int)response.StatusCode} {response.StatusCode}. Body not valid JSON.", jex);
+        }
 
     }
 
@@ -353,6 +441,8 @@ public class CorpusLegisApiClient
         var request = new HttpRequestMessage(HttpMethod.Get, $"/civitas");
         request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _tokenProvider.AccessToken);
 
+        Console.WriteLine("[CLIENT] Authorization header preview: " + (request.Headers.Authorization?.ToString() ?? "<null>"));
+
         var response = await _httpClient.SendAsync(request);
         await HandleNonSuccessResponseAsync(response);
 
@@ -382,6 +472,9 @@ public class CorpusLegisApiClient
         }
         var request = new HttpRequestMessage(HttpMethod.Get, $"/civitas/civis/{idCivis}");
         request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _tokenProvider.AccessToken);
+
+        Console.WriteLine("[CLIENT] Authorization header preview: " + (request.Headers.Authorization?.ToString() ?? "<null>"));
+
         var response = await _httpClient.SendAsync(request);
         await HandleNonSuccessResponseAsync(response);
         return await response.Content.ReadFromJsonAsync<List<CivitasSummaryDto>>() ?? new List<CivitasSummaryDto>();
@@ -405,6 +498,9 @@ public class CorpusLegisApiClient
         }
         var request = new HttpRequestMessage(HttpMethod.Post, $"/civitas/{idCivitas}/members/me");
         request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _tokenProvider.AccessToken);
+
+        Console.WriteLine("[CLIENT] Authorization header preview: " + (request.Headers.Authorization?.ToString() ?? "<null>"));
+
         var response = await _httpClient.SendAsync(request);
         await HandleNonSuccessResponseAsync(response);
     }
