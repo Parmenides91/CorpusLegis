@@ -28,7 +28,7 @@ public static class DatabaseSeeder
 
         var defaultCivitates = new List<Civitas>
         {
-            new Civitas { Id = defaultCivitasIds[0], Name = "Roma" },
+            new Civitas { Id = defaultCivitasIds[0], Name = "Roma", FoundedAt = DateTime.UtcNow },
             new Civitas { Id = defaultCivitasIds[1], Name = "Cartago" },
             new Civitas { Id = defaultCivitasIds[2], Name = "Esparta" },
             new Civitas { Id = defaultCivitasIds[3], Name = "Corinto" },

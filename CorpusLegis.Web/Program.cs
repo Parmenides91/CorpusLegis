@@ -67,13 +67,15 @@ builder.Services.AddAuthorization();
 // Se registra el handler de la autentificación.
 builder.Services.AddScoped<CorpusLegis.Web.State.TokenProvider>();
 
+builder.Services.AddTransient<AccessTokenDelegatingHandler>(); // el que se encarga de añadir el token a las peticiones HTTP hacia la API (debe ser transient).
+
 // Se le indica dónde está la API.
 builder.Services.AddHttpClient<CorpusLegisApiClient>(client =>
 {
     client.BaseAddress = new Uri("http://api-corpuslegis");
 })
     //.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false })
-    //.AddHttpMessageHandler<AccessTokenDelegatingHandler>() // se inyecta el nuevo handler.
+    .AddHttpMessageHandler<AccessTokenDelegatingHandler>() // se inyecta el nuevo handler.
     ;
 
 // Add services to the container.

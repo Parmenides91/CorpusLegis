@@ -42,12 +42,6 @@ public class CorpusLegisApiClient
         var response = await _httpClient.GetAsync($"/rogatio/{id}");
         await HandleNonSuccessResponseAsync(response);
         return await response.Content.ReadFromJsonAsync<RogatioDetailsDto>();
-
-        //var request = new HttpRequestMessage(HttpMethod.Get, $"/rogatio/{id}");
-        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
-        //var response = await _httpClient.SendAsync(request);
-        //await HandleNonSuccessResponseAsync(response);
-        //return await response.Content.ReadFromJsonAsync<RogatioDetailsDto>();
     }
 
     // Método para obtener la lista de rogationes.
@@ -57,22 +51,6 @@ public class CorpusLegisApiClient
         var response = await _httpClient.GetAsync("/rogatio");
         await HandleNonSuccessResponseAsync(response);
         return await response.Content.ReadFromJsonAsync<List<RogatioSummaryDto>>() ?? new List<RogatioSummaryDto>();
-
-        //var request = new HttpRequestMessage(HttpMethod.Get, $"/rogatio");
-        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
-        //var response = await _httpClient.SendAsync(request);
-        //await HandleNonSuccessResponseAsync(response);
-        //return await response.Content.ReadFromJsonAsync<List<RogatioSummaryDto>>() ?? new List<RogatioSummaryDto>();
-
-        //if (string.IsNullOrEmpty(_tokenProvider.AccessToken))
-        //{
-        //    throw new InvalidOperationException("[CRÍTICO] El AccessToken es nulo o está vacío en el momento de la petición HTTP. El ciclo de vida de Blazor no está persistiendo el estado o la sesión ha expirado.");
-        //}
-        //var request = new HttpRequestMessage(HttpMethod.Get, $"/rogatio");
-        //request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _tokenProvider.AccessToken);
-        //var response = await _httpClient.SendAsync(request);
-        //await HandleNonSuccessResponseAsync(response);
-        //return await response.Content.ReadFromJsonAsync<List<RogatioSummaryDto>>() ?? new List<RogatioSummaryDto>();
     }
 
     // Método para crear un nuevo rogatio.
@@ -81,13 +59,6 @@ public class CorpusLegisApiClient
         var response = await _httpClient.PostAsJsonAsync("/rogatio", dto);
         await HandleNonSuccessResponseAsync(response);
         return await response.Content.ReadFromJsonAsync<RogatioDetailsDto>();
-
-        //var request = new HttpRequestMessage(HttpMethod.Post, $"/rogatio");
-        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
-        //request.Content = JsonContent.Create(dto);
-        //var response = await _httpClient.SendAsync(request);
-        //await HandleNonSuccessResponseAsync(response);
-        //return await response.Content.ReadFromJsonAsync<RogatioDetailsDto>();
     }
 
     // Método para actualizar un rogatio existente.
@@ -96,13 +67,6 @@ public class CorpusLegisApiClient
         var response = await _httpClient.PutAsJsonAsync($"/rogatio/{id}", dto);
         await HandleNonSuccessResponseAsync(response);
         return await response.Content.ReadFromJsonAsync<RogatioDetailsDto>();
-
-        //var request = new HttpRequestMessage(HttpMethod.Put, $"/rogatio/{id}"); 
-        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
-        //request.Content = JsonContent.Create(dto);
-        //var response = await _httpClient.SendAsync(request);
-        //await HandleNonSuccessResponseAsync(response);
-        //return await response.Content.ReadFromJsonAsync<RogatioDetailsDto>();
     }
 
     // Método para eliminar un rogatio por su ID.
@@ -111,12 +75,6 @@ public class CorpusLegisApiClient
         var response = await _httpClient.DeleteAsync($"/rogatio/{id}");
         await HandleNonSuccessResponseAsync(response);
         return true;
-
-        //var request = new HttpRequestMessage(HttpMethod.Delete, $"/rogatio/{id}");
-        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
-        //var response = await _httpClient.SendAsync(request);
-        //await HandleNonSuccessResponseAsync(response);
-        //return true;
     }
 
     // Método para cambiar el estado de un rogatio (workflow).
@@ -125,13 +83,6 @@ public class CorpusLegisApiClient
         var response = await _httpClient.PutAsJsonAsync($"/rogatio/{id}/status", dto);
         await HandleNonSuccessResponseAsync(response);
         return await response.Content.ReadFromJsonAsync<RogatioDetailsDto>();
-
-        //var request = new HttpRequestMessage(HttpMethod.Put, $"/rogatio/{id}/status");
-        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
-        //request.Content = JsonContent.Create(dto);
-        //var response = await _httpClient.SendAsync(request);
-        //await HandleNonSuccessResponseAsync(response);
-        //return await response.Content.ReadFromJsonAsync<RogatioDetailsDto>();
     }
 
     // Método para evaluar una rogatio.
@@ -140,13 +91,6 @@ public class CorpusLegisApiClient
         var response = await _httpClient.PutAsJsonAsync($"/rogatio/{id}/evaluation", dto);
         await HandleNonSuccessResponseAsync(response);
         return await response.Content.ReadFromJsonAsync<RogatioDetailsDto>();
-
-        //var request = new HttpRequestMessage(HttpMethod.Put, $"/rogatio/{id}/evaluation");
-        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
-        //request.Content = JsonContent.Create(dto);
-        //var response = await _httpClient.SendAsync(request);
-        //await HandleNonSuccessResponseAsync(response);
-        //return await response.Content.ReadFromJsonAsync<RogatioDetailsDto>();
     }
     #endregion
 
@@ -158,51 +102,25 @@ public class CorpusLegisApiClient
         var response = await _httpClient.PostAsJsonAsync($"/rogatio/{idRogatio}/vote", dto);
         await HandleNonSuccessResponseAsync(response);
         return await response.Content.ReadFromJsonAsync<SuffragiumDetailsDto>();
-
-        //var request = new HttpRequestMessage(HttpMethod.Post, $"/rogatio/{idRogatio}/vote");
-        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
-        //request.Content = JsonContent.Create(dto);
-        //var response = await _httpClient.SendAsync(request);
-        //await HandleNonSuccessResponseAsync(response);
-        //return await response.Content.ReadFromJsonAsync<SuffragiumDetailsDto>();
     }
     #endregion
-
 
 
     #region Lex
     // Método para obtener una lex por su ID.
     public async Task<LexDetailsDto?> GetLexByIdAsync(Guid id)
     {
-        //var response = await _httpClient.GetFromJsonAsync<LexDetailsDto>($"/lex/{id}");
-        //return response;
-
         var response = await _httpClient.GetAsync($"/lex/{id}");
         await HandleNonSuccessResponseAsync(response);
         return await response.Content.ReadFromJsonAsync<LexDetailsDto>();
-
-        //var request = new HttpRequestMessage(HttpMethod.Get, $"/lex/{id}");
-        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
-        //var response = await _httpClient.SendAsync(request);
-        //await HandleNonSuccessResponseAsync(response);
-        //return await response.Content.ReadFromJsonAsync<LexDetailsDto>();
     }
 
     // Método para obtener la lista de leges.
     public async Task<List<LexSummaryDto>> GetLegesAsync()
     {
-        //var response = await _httpClient.GetFromJsonAsync<List<LexSummaryDto>>("/lex");
-        //return response ?? new List<LexSummaryDto>();
-
         var response = await _httpClient.GetAsync("/lex");
         await HandleNonSuccessResponseAsync(response);
         return await response.Content.ReadFromJsonAsync<List<LexSummaryDto>>() ?? new List<LexSummaryDto>();
-
-        //var request = new HttpRequestMessage(HttpMethod.Get, $"/lex");
-        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
-        //var response = await _httpClient.SendAsync(request);
-        //await HandleNonSuccessResponseAsync(response);
-        //return await response.Content.ReadFromJsonAsync<List<LexSummaryDto>>() ?? new List<LexSummaryDto>();
     }
 
     // Método para obtener la lista de leges a las que pertenece el Civis actual.
@@ -211,12 +129,6 @@ public class CorpusLegisApiClient
         var response = await _httpClient.GetAsync("/lex/civis/me");
         await HandleNonSuccessResponseAsync(response);
         return await response.Content.ReadFromJsonAsync<List<LexSummaryDto>>() ?? new List<LexSummaryDto>();
-
-        //var request = new HttpRequestMessage(HttpMethod.Get, $"/lex/civis/me");
-        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
-        //var response = await _httpClient.SendAsync(request);
-        //await HandleNonSuccessResponseAsync(response);
-        //return await response.Content.ReadFromJsonAsync<List<LexSummaryDto>>() ?? new List<LexSummaryDto>();
     }
 
     // Método para obtener las leges a las que pertenece un Civis.
@@ -225,41 +137,15 @@ public class CorpusLegisApiClient
         var response = await _httpClient.GetAsync($"/lex/civis/{civisId}");
         await HandleNonSuccessResponseAsync(response);
         return await response.Content.ReadFromJsonAsync<List<LexSummaryDto>>() ?? new List<LexSummaryDto>();
-
-        //var request = new HttpRequestMessage(HttpMethod.Get, $"/lex/civis/{civisId}");
-        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
-        //var response = await _httpClient.SendAsync(request);
-        //await HandleNonSuccessResponseAsync(response);
-        //return await response.Content.ReadFromJsonAsync<List<LexSummaryDto>>() ?? new List<LexSummaryDto>();
     }
     #endregion
-
 
 
     #region Civitas
     // Método para obtener una civitas por su ID.
     public async Task<CivitasDetailsDto?> GetCivitasByIdAsync(Guid id)
     {
-        //var response = await _httpClient.GetFromJsonAsync<CivitasDetailsDto>($"/civitas/{id}");
-        //return response;
-
-        // ESTE ES EL CORRECTO (SIN USUARIOS)
-        //var response = await _httpClient.GetAsync($"/civitas/{id}");
-        //await HandleNonSuccessResponseAsync(response);
-        //return await response.Content.ReadFromJsonAsync<CivitasDetailsDto>();
-
-        //var request = new HttpRequestMessage(HttpMethod.Get, $"/civitas/{id}");
-        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
-        //var response = await _httpClient.SendAsync(request);
-        //await HandleNonSuccessResponseAsync(response);
-        //return await response.Content.ReadFromJsonAsync<CivitasDetailsDto>();
-
-        if (string.IsNullOrEmpty(_tokenProvider.AccessToken))
-        {
-            throw new InvalidOperationException("[CRÍTICO] El AccessToken es nulo o está vacío en el momento de la petición HTTP. El ciclo de vida de Blazor no está persistiendo el estado o la sesión ha expirado.");
-        }
         var request = new HttpRequestMessage(HttpMethod.Get, $"/civitas/{id}");
-        request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _tokenProvider.AccessToken);
         var response = await _httpClient.SendAsync(request);
         await HandleNonSuccessResponseAsync(response);
         return await response.Content.ReadFromJsonAsync<CivitasDetailsDto>();
@@ -268,32 +154,11 @@ public class CorpusLegisApiClient
     // Método para obtener la lista de Civitates.
     public async Task<List<CivitasSummaryDto>> GetCivitatesAsync()
     {
-        // MÉTODO 001: MÉTODO CORRECTO - SIN USUARIOS
-        //var response = await _httpClient.GetFromJsonAsync<List<CivitasSummaryDto>>("/civitas");
-        //return response ?? new List<CivitasSummaryDto>();
-
-        // MÉTODO 002: MÉTODO CORRECTO - SIN USUARIOS - CON MANEJO DE ERRORES
-        //var response = await _httpClient.GetAsync("/civitas");
-        //await HandleNonSuccessResponseAsync(response);
-        //return await response.Content.ReadFromJsonAsync<List<CivitasSummaryDto>>() ?? new List<CivitasSummaryDto>();
-
-        // MÉTODO 003: MÉTODO CORRECTO - CON USUARIOS MOCKEADOS
-        //var request = new HttpRequestMessage(HttpMethod.Get, $"/civitas");
-        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
-        //var response = await _httpClient.SendAsync(request);
-        //await HandleNonSuccessResponseAsync(response);
-        //return await response.Content.ReadFromJsonAsync<List<CivitasSummaryDto>>() ?? new List<CivitasSummaryDto>();
-
         // MÉTODO 004: MÉTODO CORRECTO - CON USUARIOS REALES (TOKEN) - CON MANEJO DE ERRORES [este es el que debemos hacer funcionar]
-        //if (string.IsNullOrWhiteSpace(_tokenProvider.AccessToken) || string.IsNullOrEmpty(_tokenProvider.AccessToken))
-        //{
-        //    throw new InvalidOperationException("[CRÍTICO] El AccessToken es nulo o está vacío en el momento de la petición HTTP. El ciclo de vida de Blazor no está persistiendo el estado o la sesión ha expirado.");
-        //}
-        //var request = new HttpRequestMessage(HttpMethod.Get, $"/civitas");
-        //request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _tokenProvider.AccessToken);
-        //var response = await _httpClient.SendAsync(request);
-        //await HandleNonSuccessResponseAsync(response);
-        //return await response.Content.ReadFromJsonAsync<List<CivitasSummaryDto>>() ?? new List<CivitasSummaryDto>();
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/civitas");
+        var response = await _httpClient.SendAsync(request);
+        await HandleNonSuccessResponseAsync(response);
+        return await response.Content.ReadFromJsonAsync<List<CivitasSummaryDto>>() ?? new List<CivitasSummaryDto>();
 
 
         // MÉTODO 005: MÉTODO CORRECTO - CON USUARIOS REALES (TOKEN) - CON MANEJO DE ERRORES - CON TRAZAS DE DEPURACIÓN [no sé qué le pasa a este método]
@@ -405,123 +270,60 @@ public class CorpusLegisApiClient
         //}
 
         // MÉTODO 007: COMPROBAR EL JSON:
-        if (string.IsNullOrWhiteSpace(_tokenProvider.AccessToken))
-        {
-            throw new InvalidOperationException("[CRÍTICO] El AccessToken es nulo o está vacío en el momento de la petición HTTP.");
-        }
+        //if (string.IsNullOrWhiteSpace(_tokenProvider.AccessToken))
+        //{
+        //    throw new InvalidOperationException("[CRÍTICO] El AccessToken es nulo o está vacío en el momento de la petición HTTP.");
+        //}
 
-        var request = new HttpRequestMessage(HttpMethod.Get, "/civitas");
-        request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _tokenProvider.AccessToken);
+        //var request = new HttpRequestMessage(HttpMethod.Get, "/civitas");
+        //request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _tokenProvider.AccessToken);
 
-        // Explicitamente pedimos JSON para evitar que la API devuelva HTML/XML por defecto
-        request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+        //// Explicitamente pedimos JSON para evitar que la API devuelva HTML/XML por defecto
+        //request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
 
-        var response = await _httpClient.SendAsync(request);
+        //var response = await _httpClient.SendAsync(request);
 
-        // Si no es 200-299, procesamos el error como siempre
-        await HandleNonSuccessResponseAsync(response);
+        //// Si no es 200-299, procesamos el error como siempre
+        //await HandleNonSuccessResponseAsync(response);
 
-        // AUDITORÍA ESTRICTA: Leemos el contenido como texto plano primero
-        var rawBody = await response.Content.ReadAsStringAsync();
+        //// AUDITORÍA ESTRICTA: Leemos el contenido como texto plano primero
+        //var rawBody = await response.Content.ReadAsStringAsync();
 
-        // Mostramos los primeros 500 caracteres del cuerpo real que recibimos
-        Console.WriteLine($"[AUDITORÍA CLIENTE] Tipo de contenido: {response.Content.Headers.ContentType}");
-        Console.WriteLine($"[AUDITORÍA CLIENTE] Cuerpo bruto recibido (Primeros 500 chars):\n{(rawBody.Length > 500 ? rawBody.Substring(0, 500) : rawBody)}");
+        //// Mostramos los primeros 500 caracteres del cuerpo real que recibimos
+        //Console.WriteLine($"[AUDITORÍA CLIENTE] Tipo de contenido: {response.Content.Headers.ContentType}");
+        //Console.WriteLine($"[AUDITORÍA CLIENTE] Cuerpo bruto recibido (Primeros 500 chars):\n{(rawBody.Length > 500 ? rawBody.Substring(0, 500) : rawBody)}");
 
-        try
-        {
-            // Intentamos la deserialización con opciones permisivas
-            var options = new System.Text.Json.JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            };
-            var result = System.Text.Json.JsonSerializer.Deserialize<List<CivitasSummaryDto>>(rawBody, options);
-            return result ?? new List<CivitasSummaryDto>();
-        }
-        catch (System.Text.Json.JsonException jex)
-        {
-            Console.WriteLine($"[AUDITORÍA CLIENTE CRÍTICO] Fallo de serialización JSON. Razón: {jex.Message}");
-            throw new HttpRequestException($"HTTP 200 OK pero el cuerpo no es JSON válido para List<CivitasSummaryDto>.", jex);
-        }
+        //try
+        //{
+        //    // Intentamos la deserialización con opciones permisivas
+        //    var options = new System.Text.Json.JsonSerializerOptions
+        //    {
+        //        PropertyNameCaseInsensitive = true
+        //    };
+        //    var result = System.Text.Json.JsonSerializer.Deserialize<List<CivitasSummaryDto>>(rawBody, options);
+        //    return result ?? new List<CivitasSummaryDto>();
+        //}
+        //catch (System.Text.Json.JsonException jex)
+        //{
+        //    Console.WriteLine($"[AUDITORÍA CLIENTE CRÍTICO] Fallo de serialización JSON. Razón: {jex.Message}");
+        //    throw new HttpRequestException($"HTTP 200 OK pero el cuerpo no es JSON válido para List<CivitasSummaryDto>.", jex);
+        //}
 
     }
 
     // Método para obtener la lista de Civitates a las que pertenece el Civis actual.
     public async Task<List<CivitasSummaryDto>> GetUserCivitatesAsync()
     {
-        //var response = await _httpClient.GetFromJsonAsync<List<CivitasSummaryDto>>("/civitas/civis/me");
-        //return response ?? new List<CivitasSummaryDto>();
-
-        // ESTE ES EL CORRECTO (SIN USUARIOS)
-        //var response = await _httpClient.GetAsync("/civitas/me");
-        //await HandleNonSuccessResponseAsync(response);
-        //return await response.Content.ReadFromJsonAsync<List<CivitasSummaryDto>>() ?? new List<CivitasSummaryDto>();
-
-        //var request = new HttpRequestMessage(HttpMethod.Get, $"/civitas/me");
-        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
-        //var response = await _httpClient.SendAsync(request);
-        //await HandleNonSuccessResponseAsync(response);
-        //return await response.Content.ReadFromJsonAsync<List<CivitasSummaryDto>>() ?? new List<CivitasSummaryDto>();
-
-        // este es el que debe funcionar con usuarios
-        //if (string.IsNullOrEmpty(_tokenProvider.AccessToken))
-        //{
-        //    throw new InvalidOperationException("[CRÍTICO] El AccessToken es nulo o está vacío en el momento de la petición HTTP. El ciclo de vida de Blazor no está persistiendo el estado o la sesión ha expirado.");
-        //}
-        //var request = new HttpRequestMessage(HttpMethod.Get, $"/civitas/civis/me");
-        //request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _tokenProvider.AccessToken);
-        //var response = await _httpClient.SendAsync(request);
-        //await HandleNonSuccessResponseAsync(response);
-        //return await response.Content.ReadFromJsonAsync<List<CivitasSummaryDto>>() ?? new List<CivitasSummaryDto>();
-
-        if (string.IsNullOrEmpty(_tokenProvider.AccessToken))
-        {
-            throw new InvalidOperationException("[CRÍTICO] El AccessToken es nulo.");
-        }
-
-        // Comprobación de rigor: Un JWT debe tener tres partes separadas por puntos.
-        if (!_tokenProvider.AccessToken.Contains('.'))
-        {
-            throw new InvalidOperationException($"[CRÍTICO] El token obtenido de Keycloak no es un JWT válido. Valor recibido: {_tokenProvider.AccessToken}");
-        }
-
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/civitas");
-        request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _tokenProvider.AccessToken);
-
-        Console.WriteLine("[CLIENT] Authorization header preview: " + (request.Headers.Authorization?.ToString() ?? "<null>"));
-
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/civitas/civis/me");
         var response = await _httpClient.SendAsync(request);
         await HandleNonSuccessResponseAsync(response);
-
         return await response.Content.ReadFromJsonAsync<List<CivitasSummaryDto>>() ?? new List<CivitasSummaryDto>();
     }
 
-    // Método para obtener las Civitates a las que pertenece un Civis.
+    // Método para obtener las Civitates a las que pertenece un Civis. [NO TIENE UNA VISUALIZACIÓN EN LA WEB]
     public async Task<List<CivitasSummaryDto>> GetCivitatesByCivisIdAsync(Guid idCivis)
     {
-        //var response = await _httpClient.GetFromJsonAsync<List<CivitasSummaryDto>>($"/civitas/civis/{idCivis}");
-        //return response ?? new List<CivitasSummaryDto>();
-
-        // ESTE ES EL CORRECTO (SIN USUARIOS)
-        //var response = await _httpClient.GetAsync($"/civitas/civis/{idCivis}");
-        //await HandleNonSuccessResponseAsync(response);
-        //return await response.Content.ReadFromJsonAsync<List<CivitasSummaryDto>>() ?? new List<CivitasSummaryDto>();
-
-        //var request = new HttpRequestMessage(HttpMethod.Get, $"/civitas/civis/{idCivis}");
-        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
-        //var response = await _httpClient.SendAsync(request);
-        //await HandleNonSuccessResponseAsync(response);
-        //return await response.Content.ReadFromJsonAsync<List<CivitasSummaryDto>>() ?? new List<CivitasSummaryDto>();
-
-        if (string.IsNullOrEmpty(_tokenProvider.AccessToken))
-        {
-            throw new InvalidOperationException("[CRÍTICO] El AccessToken es nulo o está vacío en el momento de la petición HTTP. El ciclo de vida de Blazor no está persistiendo el estado o la sesión ha expirado.");
-        }
         var request = new HttpRequestMessage(HttpMethod.Get, $"/civitas/civis/{idCivis}");
-        request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _tokenProvider.AccessToken);
-
-        Console.WriteLine("[CLIENT] Authorization header preview: " + (request.Headers.Authorization?.ToString() ?? "<null>"));
-
         var response = await _httpClient.SendAsync(request);
         await HandleNonSuccessResponseAsync(response);
         return await response.Content.ReadFromJsonAsync<List<CivitasSummaryDto>>() ?? new List<CivitasSummaryDto>();
@@ -530,24 +332,7 @@ public class CorpusLegisApiClient
     // Método para agregar el Civis actual al Civitas.
     public async Task JoinCurrentCivisToCivitasAsync(Guid idCivitas)
     {
-        // ESTE ES EL CORRECTO (SIN USUARIOS)
-        //var response = await _httpClient.PostAsync($"/civitas/{idCivitas}/members/me", null);
-        //await HandleNonSuccessResponseAsync(response);
-
-        //var request = new HttpRequestMessage(HttpMethod.Post, $"/civitas/{idCivitas}/members/me");
-        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
-        //var response = await _httpClient.SendAsync(request);
-        //await HandleNonSuccessResponseAsync(response);
-
-        if (string.IsNullOrEmpty(_tokenProvider.AccessToken))
-        {
-            throw new InvalidOperationException("[CRÍTICO] El AccessToken es nulo o está vacío en el momento de la petición HTTP. El ciclo de vida de Blazor no está persistiendo el estado o la sesión ha expirado.");
-        }
         var request = new HttpRequestMessage(HttpMethod.Post, $"/civitas/{idCivitas}/members/me");
-        request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _tokenProvider.AccessToken);
-
-        Console.WriteLine("[CLIENT] Authorization header preview: " + (request.Headers.Authorization?.ToString() ?? "<null>"));
-
         var response = await _httpClient.SendAsync(request);
         await HandleNonSuccessResponseAsync(response);
     }
@@ -557,11 +342,6 @@ public class CorpusLegisApiClient
     {
         var response = await _httpClient.PostAsync($"/civitas/{idCivitas}/members/{idCivis}", null);
         await HandleNonSuccessResponseAsync(response);
-
-        //var request = new HttpRequestMessage(HttpMethod.Post, $"/civitas/{idCivitas}/members/{idCivis}");
-        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
-        //var response = await _httpClient.SendAsync(request);
-        //await HandleNonSuccessResponseAsync(response);
     }
 
     // Método para eliminar el Civis actual del Civitas.
@@ -569,11 +349,6 @@ public class CorpusLegisApiClient
     {
         var response = await _httpClient.DeleteAsync($"/civitas/{idCivitas}/members/me");
         await HandleNonSuccessResponseAsync(response);
-
-        //var request = new HttpRequestMessage(HttpMethod.Delete, $"/civitas/{idCivitas}/members/me");
-        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
-        //var response = await _httpClient.SendAsync(request);
-        //await HandleNonSuccessResponseAsync(response);
     }
 
     // Método para eliminar un Civis de un Civitas.
@@ -581,11 +356,6 @@ public class CorpusLegisApiClient
     {
         var response = await _httpClient.DeleteAsync($"/civitas/{idCivitas}/members/{idCivis}");
         await HandleNonSuccessResponseAsync(response);
-
-        //var request = new HttpRequestMessage(HttpMethod.Delete, $"/civitas/{idCivitas}/members/{idCivis}");
-        //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
-        //var response = await _httpClient.SendAsync(request);
-        //await HandleNonSuccessResponseAsync(response);
     }
     #endregion
 
@@ -598,36 +368,6 @@ public class CorpusLegisApiClient
         {
             return;
         }
-
-        //var content = await response.Content.ReadAsStringAsync();
-
-        //// TODO: ¿estos casos no pueden ir dentro de mis Excepciones?
-        //if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-        //{
-        //    throw new UnauthorizedAccessException("El acceso a este recurso requiere estar autentificado.");
-        //}
-
-        //if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
-        //{
-        //    throw new UnauthorizedAccessException("No tienes permisos suficientes para realizar esta acción.");
-        //}
-
-
-        //try
-        //{
-        //    var problemDetails = JsonSerializer.Deserialize<ProblemDetails>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true } );
-
-        //    if (problemDetails != null && !string.IsNullOrEmpty(problemDetails.Detail))
-        //    {
-        //        throw new ApplicationException(problemDetails.Detail);
-        //    }
-        //}
-        //catch (JsonException)
-        //{
-        //    throw;
-        //}
-
-        //throw new ApplicationException($"Error HTTP {response.StatusCode}.");
 
         var status = (int)response.StatusCode;
         var body = response.Content == null ? null : await response.Content.ReadAsStringAsync();
@@ -652,26 +392,6 @@ public class CorpusLegisApiClient
         {
             throw new UnauthorizedAccessException("No tienes permisos suficientes para realizar esta acción.");
         }
-
-        //if (string.IsNullOrWhiteSpace(body))
-        //    throw new HttpRequestException($"HTTP {status} {response.ReasonPhrase} (empty body)");
-
-        //var contentType = response.Content?.Headers.ContentType?.MediaType;
-        //if (contentType != null && contentType.Contains("json", StringComparison.OrdinalIgnoreCase))
-        //{
-        //    try
-        //    {
-        //        var pd = JsonSerializer.Deserialize<ProblemDetails>(body, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-        //        if (pd?.Detail != null) throw new HttpRequestException(pd.Detail);
-        //    }
-        //    catch (JsonException je)
-        //    {
-        //        Console.WriteLine("DEBUG: JSON parse failed: " + je.Message);
-        //        throw new HttpRequestException($"HTTP {status} {response.ReasonPhrase}. Body not valid JSON.");
-        //    }
-        //}
-
-        //throw new HttpRequestException($"HTTP {status} {response.ReasonPhrase}. Body: {body}");
 
         var contentType = response.Content?.Headers.ContentType?.MediaType;
 

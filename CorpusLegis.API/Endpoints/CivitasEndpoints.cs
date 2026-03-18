@@ -15,8 +15,9 @@ public static class CivitasEndpoints
         group.MapGet("/", GetAllCivitates);
         group.MapGet("/{id:guid}", GetCivitasById);
 
-        group.MapGet("/me", GetCivitatesForCurrentUser); // TODO: cambia user por civis.
-        group.MapGet("/civis/{id:guid}", GetCivitatesForUser); // TODO: cambia user por civis.
+
+        group.MapGet("/civis/me", GetCivitatesForCurrentCivis);
+        group.MapGet("/civis/{id:guid}", GetCivitatesForCivis);
 
         group.MapPost("/{civitasId:guid}/members/me", JoinCurrentCivisToCivitas);
         group.MapPost("/{civitasId:guid}/members/{civisId:guid}", JoinCivisToCivitas);
@@ -43,13 +44,13 @@ public static class CivitasEndpoints
 
 
 
-    private static async Task<IResult> GetCivitatesForCurrentUser(ICivitasService service)
+    private static async Task<IResult> GetCivitatesForCurrentCivis(ICivitasService service)
     {
         var civitates = await service.GetCivitatesForCurrentUserAsync();
         return Results.Ok(civitates);
     }
 
-    private static async Task<IResult> GetCivitatesForUser(Guid id, ICivitasService service)
+    private static async Task<IResult> GetCivitatesForCivis(Guid id, ICivitasService service)
     {
         var civitates = await service.GetCivitatesForUserAsync(id);
         return Results.Ok(civitates);
