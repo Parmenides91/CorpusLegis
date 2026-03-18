@@ -20,13 +20,30 @@
     </div>
 
     <main>
-        <div class="top-row px-4">
-            <div class="d-flex align-items-center">
+@*         <div class="top-row px-4">
+            <div class="d-flex align-items-center"> *@
 
                 @* Añadimos los enlaces para Login y Logout *@
-                <a href="/login" class="ms-3">Login</a>
-                <a href="/logout" class="ms-3">Logout</a>
+        @*<a href="/login" class="ms-3">Login</a>
+                <a href="/logout" class="ms-3">Logout</a>*@
                 @* Logged in as @context.User.Claims.Aggregate("", (s, claim) => s += ";\n" + claim ) *@
+        @*</div>
+            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+</div> *@
+        <div class="top-row px-4">
+            <div class="d-flex align-items-center">
+                <AuthorizeView>
+                    <Authorized>
+                        <span class="ms-3 me-3">Salve, @context.User.Identity?.Name</span>
+                        <form action="/logout" method="post">
+                            <AntiforgeryToken />
+                            <button type="submit" class="btn btn-link text-decoration-none">Logout</button>
+                        </form>
+                    </Authorized>
+                    <NotAuthorized>
+                        <a href="/login" class="ms-3">Login</a>
+                    </NotAuthorized>
+                </AuthorizeView>
             </div>
             <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
         </div>

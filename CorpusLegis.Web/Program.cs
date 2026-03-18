@@ -1,5 +1,6 @@
 using CorpusLegis.Web.Clients;
 using CorpusLegis.Web.Components;
+using CorpusLegis.Web.Endpoints;
 using CorpusLegis.Web.State;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -8,6 +9,10 @@ using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
+
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.SetMinimumLevel(LogLevel.Debug);
 
 var keycloakAuthority = builder.Configuration["Keycloak:Authority"];
 if (string.IsNullOrEmpty(keycloakAuthority))
@@ -67,8 +72,9 @@ builder.Services.AddHttpClient<CorpusLegisApiClient>(client =>
 {
     client.BaseAddress = new Uri("http://api-corpuslegis");
 })
-    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
-    //.AddHttpMessageHandler<AccessTokenDelegatingHandler>(); // se inyecta el nuevo handler.
+    //.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false })
+    //.AddHttpMessageHandler<AccessTokenDelegatingHandler>() // se inyecta el nuevo handler.
+    ;
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -78,21 +84,20 @@ var app = builder.Build();
 
 app.MapDefaultEndpoints();
 
-// Se definen los endpoints de control de sesión
-app.MapGet("/login", (string? returnUrl, HttpContext context) =>
-{
-    return TypedResults.Challenge(
-        new Microsoft.AspNetCore.Authentication.AuthenticationProperties
-        {
-            RedirectUri = string.IsNullOrEmpty(returnUrl) ? "/" : returnUrl
-        });
-});
-app.MapPost("/logout", (HttpContext context) =>
-{
-    return TypedResults.SignOut(
-        new Microsoft.AspNetCore.Authentication.AuthenticationProperties { RedirectUri = "/" },
-        [CookieAuthenticationDefaults.AuthenticationScheme, OpenIdConnectDefaults.AuthenticationScheme]);
-});
+//app.MapGet("/login", (string? returnUrl, HttpContext context) =>
+//{
+//    return TypedResults.Challenge(
+//        new Microsoft.AspNetCore.Authentication.AuthenticationProperties
+//        {
+//            RedirectUri = string.IsNullOrEmpty(returnUrl) ? "/" : returnUrl
+//        });
+//});
+//app.MapPost("/logout", (HttpContext context) =>
+//{
+//    return TypedResults.SignOut(
+//        new Microsoft.AspNetCore.Authentication.AuthenticationProperties { RedirectUri = "/" },
+//        [CookieAuthenticationDefaults.AuthenticationScheme, OpenIdConnectDefaults.AuthenticationScheme]);
+//});
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -102,19 +107,21 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
-//app.UseHttpsRedirection();
+app.UseHttpsRedirection();
 
 app.UseRouting(); // recomendado antes de Auth.
 
-app.Use(async (ctx, next) =>
-{
-    var logger = ctx.RequestServices.GetRequiredService<ILogger<Program>>();
-    logger.LogInformation("Incoming Authorization WEB: {Auth}", ctx.Request.Headers["Authorization"].ToString());
-    await next();
-});
+//app.Use(async (ctx, next) =>
+//{
+//    var logger = ctx.RequestServices.GetRequiredService<ILogger<Program>>();
+//    logger.LogInformation("Incoming Authorization WEB: {Auth}", ctx.Request.Headers["Authorization"].ToString());
+//    await next();
+//});
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapAuthEndpoints(); // Rutas de autentificación
 
 app.UseAntiforgery();
 

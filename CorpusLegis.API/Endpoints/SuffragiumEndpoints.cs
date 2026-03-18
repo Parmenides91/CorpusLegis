@@ -11,7 +11,7 @@ public static class SuffragiumEndpoints
     {
         var group = app.MapGroup("/rogatio")
             .WithTags("Rogatio")
-            //.RequireAuthorization()
+            .RequireAuthorization()
             ;
 
         // Se enlazan las rutas a métodos locales

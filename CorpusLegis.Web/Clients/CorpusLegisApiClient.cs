@@ -6,18 +6,20 @@ using CorpusLegis.Shared.Validators;
 using CorpusLegis.Web.State;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using System.Net.Mime;
 using System.Text.Json;
 
 namespace CorpusLegis.Web.Clients;
 
 public class CorpusLegisApiClient
 {
-
+    private readonly ILogger<CorpusLegisApiClient> _logger;
     private readonly HttpClient _httpClient;
     private readonly TokenProvider _tokenProvider;
 
-    public CorpusLegisApiClient(HttpClient httpClient, TokenProvider tokenProvider)
+    public CorpusLegisApiClient(HttpClient httpClient, TokenProvider tokenProvider, ILogger<CorpusLegisApiClient> logger)
     {
+        _logger = logger;
         _httpClient = httpClient;
         _tokenProvider = tokenProvider;
 
@@ -26,6 +28,7 @@ public class CorpusLegisApiClient
             _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokenProvider.AccessToken);
         }
 
+        
     }
 
 
@@ -265,22 +268,24 @@ public class CorpusLegisApiClient
     // Método para obtener la lista de Civitates.
     public async Task<List<CivitasSummaryDto>> GetCivitatesAsync()
     {
+        // MÉTODO 001: MÉTODO CORRECTO - SIN USUARIOS
         //var response = await _httpClient.GetFromJsonAsync<List<CivitasSummaryDto>>("/civitas");
         //return response ?? new List<CivitasSummaryDto>();
 
-        // ESTE ES EL CORRECTO (SIN USUARIOS)
+        // MÉTODO 002: MÉTODO CORRECTO - SIN USUARIOS - CON MANEJO DE ERRORES
         //var response = await _httpClient.GetAsync("/civitas");
         //await HandleNonSuccessResponseAsync(response);
         //return await response.Content.ReadFromJsonAsync<List<CivitasSummaryDto>>() ?? new List<CivitasSummaryDto>();
 
+        // MÉTODO 003: MÉTODO CORRECTO - CON USUARIOS MOCKEADOS
         //var request = new HttpRequestMessage(HttpMethod.Get, $"/civitas");
         //request.Headers.Add("X-Civis-Id", _civisState.CurrentCivisId.ToString());
         //var response = await _httpClient.SendAsync(request);
         //await HandleNonSuccessResponseAsync(response);
         //return await response.Content.ReadFromJsonAsync<List<CivitasSummaryDto>>() ?? new List<CivitasSummaryDto>();
 
-        // este es el que debe funcionar con usuarios
-        //if (string.IsNullOrEmpty(_tokenProvider.AccessToken))
+        // MÉTODO 004: MÉTODO CORRECTO - CON USUARIOS REALES (TOKEN) - CON MANEJO DE ERRORES [este es el que debemos hacer funcionar]
+        //if (string.IsNullOrWhiteSpace(_tokenProvider.AccessToken) || string.IsNullOrEmpty(_tokenProvider.AccessToken))
         //{
         //    throw new InvalidOperationException("[CRÍTICO] El AccessToken es nulo o está vacío en el momento de la petición HTTP. El ciclo de vida de Blazor no está persistiendo el estado o la sesión ha expirado.");
         //}
@@ -291,6 +296,7 @@ public class CorpusLegisApiClient
         //return await response.Content.ReadFromJsonAsync<List<CivitasSummaryDto>>() ?? new List<CivitasSummaryDto>();
 
 
+        // MÉTODO 005: MÉTODO CORRECTO - CON USUARIOS REALES (TOKEN) - CON MANEJO DE ERRORES - CON TRAZAS DE DEPURACIÓN [no sé qué le pasa a este método]
         // INICIO MÉTODO NORMAL - este método es el normal con trazas de debug
         //if (string.IsNullOrEmpty(_tokenProvider.AccessToken))
         //{
@@ -335,66 +341,107 @@ public class CorpusLegisApiClient
 
 
 
+        // MÉTODO 006: MÉTODO GUARRADA - CON USUARIOS REALES (TOKEN) [funciona pero es una guarrada]
         //Método para el debug:
-        if (string.IsNullOrEmpty(_tokenProvider.AccessToken))
-            throw new InvalidOperationException("[CRÍTICO] El AccessToken es nulo.");
+        //if (string.IsNullOrEmpty(_tokenProvider.AccessToken))
+        //    throw new InvalidOperationException("[CRÍTICO] El AccessToken es nulo.");
 
-        if (!_tokenProvider.AccessToken.Contains('.'))
-            throw new InvalidOperationException($"[CRÍTICO] El token obtenido de Keycloak no es un JWT válido. Valor recibido: {_tokenProvider.AccessToken}");
+        //if (!_tokenProvider.AccessToken.Contains('.'))
+        //    throw new InvalidOperationException($"[CRÍTICO] El token obtenido de Keycloak no es un JWT válido. Valor recibido: {_tokenProvider.AccessToken}");
+
+        //var request = new HttpRequestMessage(HttpMethod.Get, "/civitas");
+        //request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _tokenProvider.AccessToken);
+
+        //// Pedimos explícitamente JSON
+        //request.Headers.Accept.Clear();
+        //request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+
+        //Console.WriteLine("[CLIENT] Authorization header preview: " + (request.Headers.Authorization?.ToString() ?? "<null>"));
+
+        //var response = await _httpClient.SendAsync(request);
+
+        //// Manejo de redirecciones manual (ya lo tenías)
+        //if ((int)response.StatusCode >= 300 && (int)response.StatusCode < 400 && response.Headers.Location != null)
+        //{
+        //    var location = response.Headers.Location;
+        //    if (location.IsAbsoluteUri && location.Scheme == _httpClient.BaseAddress.Scheme && location.Host == _httpClient.BaseAddress.Host)
+        //    {
+        //        var newReq = new HttpRequestMessage(HttpMethod.Get, location);
+        //        newReq.Headers.Authorization = request.Headers.Authorization;
+        //        newReq.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+        //        response = await _httpClient.SendAsync(newReq);
+        //    }
+        //    else
+        //    {
+        //        Console.WriteLine("[CLIENT] Redirection to different host or scheme, not re-sending Authorization: " + location);
+        //    }
+        //}
+
+        //// Loguear status y headers
+        //Console.WriteLine("[CLIENT] Status: " + (int)response.StatusCode + " " + response.StatusCode);
+        //Console.WriteLine("[CLIENT] Content-Type: " + response.Content.Headers.ContentType?.ToString());
+
+        //// Leer body como string para depuración
+        //var body = await response.Content.ReadAsStringAsync();
+        //Console.WriteLine("[CLIENT] Body preview: " + (body?.Length > 2000 ? body.Substring(0, 2000) + "..." : body));
+
+        //// Manejar respuestas no exitosas
+        //if (!response.IsSuccessStatusCode)
+        //{
+        //    throw new HttpRequestException($"HTTP {(int)response.StatusCode} {response.StatusCode}. Body: {(string.IsNullOrEmpty(body) ? "<empty>" : body.Substring(0, Math.Min(body.Length, 500)))}");
+        //}
+
+        //// Intentar deserializar manualmente
+        //try
+        //{
+        //    var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        //    var result = System.Text.Json.JsonSerializer.Deserialize<List<CivitasSummaryDto>>(body, options);
+        //    return result ?? new List<CivitasSummaryDto>();
+        //}
+        //catch (System.Text.Json.JsonException jex)
+        //{
+        //    Console.WriteLine("[CLIENT] JSON parse error: " + jex.Message);
+        //    throw new HttpRequestException($"HTTP {(int)response.StatusCode} {response.StatusCode}. Body not valid JSON.", jex);
+        //}
+
+        // MÉTODO 007: COMPROBAR EL JSON:
+        if (string.IsNullOrWhiteSpace(_tokenProvider.AccessToken))
+        {
+            throw new InvalidOperationException("[CRÍTICO] El AccessToken es nulo o está vacío en el momento de la petición HTTP.");
+        }
 
         var request = new HttpRequestMessage(HttpMethod.Get, "/civitas");
         request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _tokenProvider.AccessToken);
 
-        // Pedimos explícitamente JSON
-        request.Headers.Accept.Clear();
+        // Explicitamente pedimos JSON para evitar que la API devuelva HTML/XML por defecto
         request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-
-        Console.WriteLine("[CLIENT] Authorization header preview: " + (request.Headers.Authorization?.ToString() ?? "<null>"));
 
         var response = await _httpClient.SendAsync(request);
 
-        // Manejo de redirecciones manual (ya lo tenías)
-        if ((int)response.StatusCode >= 300 && (int)response.StatusCode < 400 && response.Headers.Location != null)
-        {
-            var location = response.Headers.Location;
-            if (location.IsAbsoluteUri && location.Scheme == _httpClient.BaseAddress.Scheme && location.Host == _httpClient.BaseAddress.Host)
-            {
-                var newReq = new HttpRequestMessage(HttpMethod.Get, location);
-                newReq.Headers.Authorization = request.Headers.Authorization;
-                newReq.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-                response = await _httpClient.SendAsync(newReq);
-            }
-            else
-            {
-                Console.WriteLine("[CLIENT] Redirection to different host or scheme, not re-sending Authorization: " + location);
-            }
-        }
+        // Si no es 200-299, procesamos el error como siempre
+        await HandleNonSuccessResponseAsync(response);
 
-        // Loguear status y headers
-        Console.WriteLine("[CLIENT] Status: " + (int)response.StatusCode + " " + response.StatusCode);
-        Console.WriteLine("[CLIENT] Content-Type: " + response.Content.Headers.ContentType?.ToString());
+        // AUDITORÍA ESTRICTA: Leemos el contenido como texto plano primero
+        var rawBody = await response.Content.ReadAsStringAsync();
 
-        // Leer body como string para depuración
-        var body = await response.Content.ReadAsStringAsync();
-        Console.WriteLine("[CLIENT] Body preview: " + (body?.Length > 2000 ? body.Substring(0, 2000) + "..." : body));
+        // Mostramos los primeros 500 caracteres del cuerpo real que recibimos
+        Console.WriteLine($"[AUDITORÍA CLIENTE] Tipo de contenido: {response.Content.Headers.ContentType}");
+        Console.WriteLine($"[AUDITORÍA CLIENTE] Cuerpo bruto recibido (Primeros 500 chars):\n{(rawBody.Length > 500 ? rawBody.Substring(0, 500) : rawBody)}");
 
-        // Manejar respuestas no exitosas
-        if (!response.IsSuccessStatusCode)
-        {
-            throw new HttpRequestException($"HTTP {(int)response.StatusCode} {response.StatusCode}. Body: {(string.IsNullOrEmpty(body) ? "<empty>" : body.Substring(0, Math.Min(body.Length, 500)))}");
-        }
-
-        // Intentar deserializar manualmente
         try
         {
-            var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            var result = System.Text.Json.JsonSerializer.Deserialize<List<CivitasSummaryDto>>(body, options);
+            // Intentamos la deserialización con opciones permisivas
+            var options = new System.Text.Json.JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+            var result = System.Text.Json.JsonSerializer.Deserialize<List<CivitasSummaryDto>>(rawBody, options);
             return result ?? new List<CivitasSummaryDto>();
         }
         catch (System.Text.Json.JsonException jex)
         {
-            Console.WriteLine("[CLIENT] JSON parse error: " + jex.Message);
-            throw new HttpRequestException($"HTTP {(int)response.StatusCode} {response.StatusCode}. Body not valid JSON.", jex);
+            Console.WriteLine($"[AUDITORÍA CLIENTE CRÍTICO] Fallo de serialización JSON. Razón: {jex.Message}");
+            throw new HttpRequestException($"HTTP 200 OK pero el cuerpo no es JSON válido para List<CivitasSummaryDto>.", jex);
         }
 
     }
@@ -547,10 +594,10 @@ public class CorpusLegisApiClient
     #region Excepciones
     private async Task HandleNonSuccessResponseAsync(HttpResponseMessage response)
     {
-        //if (response.IsSuccessStatusCode)
-        //{
-        //    return;
-        //}
+        if (response.IsSuccessStatusCode)
+        {
+            return;
+        }
 
         //var content = await response.Content.ReadAsStringAsync();
 
@@ -591,28 +638,65 @@ public class CorpusLegisApiClient
         Console.WriteLine("DEBUG: Body length: " + (body?.Length ?? 0));
         Console.WriteLine("DEBUG: Body preview: " + (string.IsNullOrEmpty(body) ? "<empty>" : body.Substring(0, Math.Min(400, body.Length))));
 
-        if (status == 401)
-            throw new UnauthorizedAccessException("El acceso a este recurso requiere estar autenticado.");
+        _logger.LogDebug($"DEBUG: API response {status} {response.ReasonPhrase}");
+        _logger.LogDebug("DEBUG: Content-Type: " + (response.Content?.Headers.ContentType?.ToString() ?? "<none>"));
+        _logger.LogDebug("DEBUG: WWW-Authenticate: " + string.Join(";", response.Headers.WwwAuthenticate.Select(h => h.ToString())));
+        _logger.LogDebug("DEBUG: Body length: " + (body?.Length ?? 0));
+        _logger.LogDebug("DEBUG: Body preview: " + (string.IsNullOrEmpty(body) ? "<empty>" : body.Substring(0, Math.Min(400, body.Length))));
 
-        if (string.IsNullOrWhiteSpace(body))
-            throw new HttpRequestException($"HTTP {status} {response.ReasonPhrase} (empty body)");
+        if (status == 401)
+        {
+            throw new UnauthorizedAccessException("La sesión ha expirado o no estás autentificado. Por favor, inicia sesión de nuevo.");
+        }
+        if (status == 403)
+        {
+            throw new UnauthorizedAccessException("No tienes permisos suficientes para realizar esta acción.");
+        }
+
+        //if (string.IsNullOrWhiteSpace(body))
+        //    throw new HttpRequestException($"HTTP {status} {response.ReasonPhrase} (empty body)");
+
+        //var contentType = response.Content?.Headers.ContentType?.MediaType;
+        //if (contentType != null && contentType.Contains("json", StringComparison.OrdinalIgnoreCase))
+        //{
+        //    try
+        //    {
+        //        var pd = JsonSerializer.Deserialize<ProblemDetails>(body, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        //        if (pd?.Detail != null) throw new HttpRequestException(pd.Detail);
+        //    }
+        //    catch (JsonException je)
+        //    {
+        //        Console.WriteLine("DEBUG: JSON parse failed: " + je.Message);
+        //        throw new HttpRequestException($"HTTP {status} {response.ReasonPhrase}. Body not valid JSON.");
+        //    }
+        //}
+
+        //throw new HttpRequestException($"HTTP {status} {response.ReasonPhrase}. Body: {body}");
 
         var contentType = response.Content?.Headers.ContentType?.MediaType;
-        if (contentType != null && contentType.Contains("json", StringComparison.OrdinalIgnoreCase))
+
+        if (!string.IsNullOrWhiteSpace(body) && contentType != null && contentType.Contains("json", StringComparison.OrdinalIgnoreCase))
         {
             try
             {
-                var pd = JsonSerializer.Deserialize<ProblemDetails>(body, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                if (pd?.Detail != null) throw new HttpRequestException(pd.Detail);
+                var problemDetails = System.Text.Json.JsonSerializer.Deserialize<Microsoft.AspNetCore.Mvc.ProblemDetails>(
+                    body,
+                    new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                if (problemDetails != null && !string.IsNullOrWhiteSpace(problemDetails.Detail))
+                {
+                    // Aquí lanzamos el error de negocio exacto que la API nos mandó
+                    throw new HttpRequestException($"[API Error {status}] {problemDetails.Detail}");
+                }
             }
-            catch (JsonException je)
+            catch (System.Text.Json.JsonException)
             {
-                Console.WriteLine("DEBUG: JSON parse failed: " + je.Message);
-                throw new HttpRequestException($"HTTP {status} {response.ReasonPhrase}. Body not valid JSON.");
+                // Ignoramos el fallo de parseo y caemos al error genérico
             }
         }
 
-        throw new HttpRequestException($"HTTP {status} {response.ReasonPhrase}. Body: {body}");
+        // Fallback genérico si la API devolvió HTML (ej. un error de IIS/Kestrel) o un JSON no estándar
+        throw new HttpRequestException($"HTTP {status} {response.ReasonPhrase}. {(string.IsNullOrWhiteSpace(body) ? "Sin detalles adicionales." : body)}");
 
     }
     #endregion

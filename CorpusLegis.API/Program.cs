@@ -63,17 +63,22 @@ if (string.IsNullOrEmpty(keycloakAuthority))
 }
 var tokenValidationParameters = new TokenValidationParameters
 {
-    ValidateIssuer = false,
+    ValidateIssuer = true,
     ValidIssuers = new[]
             {
                 keycloakAuthority,
                 "http://localhost:8080/realms/CorpusLegis"
             },
     ValidateAudience = false, // Habrá que ajustarlo en PRO.
-    ValidateLifetime = false,
-    ValidateIssuerSigningKey = false,
-    RequireSignedTokens = false,
-    ClockSkew = TimeSpan.FromMinutes(30),
+    ValidAudiences = new[]
+    {
+        "account", // para aceptar el token de acceso que Keycloak emite para su propia consola de administración, lo cual es útil para pruebas.
+        "corpuslegis-api" // el nombre del cliente que hay en Keycloak para esta API.
+    },
+    ValidateLifetime = true,
+    ValidateIssuerSigningKey = true,
+    RequireSignedTokens = true,
+    ClockSkew = TimeSpan.FromMinutes(30), // TODO: este valor debe ser menor.
     NameClaimType = "preferred_username"//, // Para que el nombre de usuario sea el que viene del token de Keycloak.
     //RoleClaimType = "realm_access.roles" // Para que los roles sean los que vienen del token de Keycloak.
 };
@@ -91,26 +96,9 @@ builder.Services.AddAuthentication( options =>
         options.RequireHttpsMetadata = false; // en PRO esto tendrá que ser true.
 
         options.MapInboundClaims = false; // para que no me cambie los nombres de los claims (por ejemplo, "preferred_username" a "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name").
-        options.IncludeErrorDetails = true; // para que me incluya detalles de los errores de validación del token en las respuestas 401, lo cual es útil para depurar problemas de autenticación.
+        options.IncludeErrorDetails = true;
 
         options.MetadataAddress = $"{keycloakAuthority}/.well-known/openid-configuration";
-
-        //options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
-        //{
-        //    ValidateIssuer = false,
-        //    // Se acepta tanto la ruta interna (Aspire), como la externa (navegador/localhost).
-        //    ValidIssuers = new[]
-        //    {
-        //        keycloakAuthority,
-        //        "http://localhost:8080/realms/CorpusLegis"
-        //    },
-
-        //    ValidateAudience = false, // Habrá que ajustarlo en PRO.
-        //    ValidateLifetime = false,
-        //    ValidateIssuerSigningKey = false,
-        //    NameClaimType = "preferred_username"//,
-        //    //RoleClaimType = "realm_access.roles"
-        //};
         options.TokenValidationParameters = tokenValidationParameters;
 
         options.Events = new JwtBearerEvents
@@ -129,21 +117,20 @@ builder.Services.AddAuthentication( options =>
                     // Solo imprimimos los primeros 10 caracteres para verificar que es un JWT (debería empezar por "Bearer ey...")
                     var preview = authHeader.Length > 17 ? authHeader.Substring(0, 17) : "Inválido";
                     logger.LogInformation("[API SEGURIDAD] Cabecera Authorization recibida. Formato: {Preview}...", preview);
-
                     logger.LogInformation("[API SEGURIDAD] Authorization header preview: {Preview}", authHeader.Length > 50 ? authHeader.Substring(0, 50) : authHeader);
 
                     // Validación manual para depuración
-                    var token = authHeader.StartsWith("Bearer ") ? authHeader.Substring(7) : authHeader;
-                    var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
-                    try
-                    {
-                        var principal = handler.ValidateToken(token, tokenValidationParameters, out var validatedToken);
-                        logger.LogInformation("[API DEBUG] Manual ValidateToken OK. Subject: {sub}", principal?.Identity?.Name);
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.LogError(ex, "[API DEBUG] Manual ValidateToken error: {Message}", ex.Message);
-                    }
+                    //var token = authHeader.StartsWith("Bearer ") ? authHeader.Substring(7) : authHeader;
+                    //var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+                    //try
+                    //{
+                    //    var principal = handler.ValidateToken(token, tokenValidationParameters, out var validatedToken);
+                    //    logger.LogInformation("[API DEBUG] Manual ValidateToken OK. Subject: {sub}", principal?.Identity?.Name);
+                    //}
+                    //catch (Exception ex)
+                    //{
+                    //    logger.LogError(ex, "[API DEBUG] Manual ValidateToken error: {Message}", ex.Message);
+                    //}
                 }
                 return Task.CompletedTask;
             },
@@ -167,15 +154,6 @@ builder.Services.AddAuthentication( options =>
                 return Task.CompletedTask;
             }
         };
-        //options.Events = new OpenIdConnectEvents
-        //{
-        //    OnRedirectToIdentityProvider = context =>
-        //    {
-        //        var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
-        //        logger.LogInformation("OIDC RedirectUri: {uri}", context.ProtocolMessage.RedirectUri);
-        //        return Task.CompletedTask;
-        //    }
-        //};
     });
 builder.Services.AddAuthorization();
 
@@ -210,7 +188,7 @@ builder.Services.AddProblemDetails();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateRogatioDtoValidator>();
 
 // se agrega la transformación de Claims.
-builder.Services.AddTransient<IClaimsTransformation, KeycloakRolesClaimsTransformation>();
+builder.Services.AddTransient<IClaimsTransformation, KeycloakRolesClaimsTransformation>(); // para la Autorización Basada en Roles (RBAC)
 
 var app = builder.Build();
 
@@ -219,20 +197,20 @@ var app = builder.Build();
 app.UseExceptionHandler();
 if (!app.Environment.IsDevelopment())
 {
-    //app.UseHttpsRedirection();
+    app.UseHttpsRedirection();
 }
 else
 {
     //app.UseDeveloperExceptionPage();
-    //app.UseHttpsRedirection();
+    //app.UseHttpsRedirection(); // NO EN DESARROLLO (SÍ LO TENDREMOS EN CUALQUIER OTRO ENTORNO)
 }
 
-app.Use(async (ctx, next) =>
-{
-    var logger = ctx.RequestServices.GetRequiredService<ILogger<Program>>();
-    logger.LogInformation("Incoming Authorization API: {Auth}", ctx.Request.Headers["Authorization"].ToString());
-    await next();
-});
+//app.Use(async (ctx, next) =>
+//{
+//    var logger = ctx.RequestServices.GetRequiredService<ILogger<Program>>();
+//    logger.LogInformation("Incoming Authorization API: {Auth}", ctx.Request.Headers["Authorization"].ToString());
+//    await next();
+//});
 
 /* Autentificación y autorización (middle pipeline) */
 // Se habilita la autenticación y autorización.
@@ -245,11 +223,11 @@ app.MapRogatioEndpoints(); // Se mapean los endpoints de Rogatio.
 app.MapSuffragiumEndpoints(); // Se mapean los endpoints de Suffragium.
 app.MapLexEndpoints(); // Se mapean los endpoints de Lex.
 app.MapCivitasEndpoints(); // Se mapean los endpoints de Civitas.
-app.MapGet("/auth/token", async (HttpContext ctx) =>
-{
-    var token = await ctx.GetTokenAsync("access_token");
-    return token is null ? Results.Unauthorized() : Results.Ok(new { access_token = token });
-}).RequireAuthorization();
+//app.MapGet("/auth/token", async (HttpContext ctx) =>
+//{
+//    var token = await ctx.GetTokenAsync("access_token");
+//    return token is null ? Results.Unauthorized() : Results.Ok(new { access_token = token });
+//}).RequireAuthorization();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

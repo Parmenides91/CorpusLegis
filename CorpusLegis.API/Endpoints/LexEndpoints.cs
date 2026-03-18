@@ -9,7 +9,7 @@ public static class LexEndpoints
     {
         var group = app.MapGroup("/lex")
             .WithTags("Lex")
-            //.RequireAuthorization()
+            .RequireAuthorization()
             ;
 
         group.MapGet("/", GetAllLeges);
