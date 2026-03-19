@@ -22,7 +22,7 @@ public class AccessTokenDelegatingHandler : DelegatingHandler
         {
             Console.WriteLine("TokenProvider length: " + (_tokenProvider.AccessToken?.Length ?? 0));
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _tokenProvider.AccessToken);
-            request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+            //request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json")); // Esto ha ido al Program.cs
         }
 
         return await base.SendAsync(request, cancellationToken);

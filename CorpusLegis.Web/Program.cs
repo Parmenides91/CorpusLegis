@@ -1,6 +1,11 @@
 using CorpusLegis.Web.Clients;
+using CorpusLegis.Web.Clients.Civitas;
+using CorpusLegis.Web.Clients.Lex;
+using CorpusLegis.Web.Clients.Rogatio;
+using CorpusLegis.Web.Clients.Suffragium;
 using CorpusLegis.Web.Components;
 using CorpusLegis.Web.Endpoints;
+using CorpusLegis.Web.Extensions;
 using CorpusLegis.Web.State;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -46,6 +51,10 @@ builder.Services.AddAuthentication(options =>
         options.Scope.Add("openid");
         options.Scope.Add("profile");
 
+        // TODO: implementar un mecanismo de refresco de tokens para evitar que el usuario tenga que volver a loguearse cada vez que expire el Access Token.
+        options.Scope.Add("offline_access"); // para obtener refresh token.
+        options.SaveTokens = true; // para guardar el refresh token también.
+
         options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
         {
             NameClaimType = "preferred_username",
@@ -67,16 +76,51 @@ builder.Services.AddAuthorization();
 // Se registra el handler de la autentificación.
 builder.Services.AddScoped<CorpusLegis.Web.State.TokenProvider>();
 
-builder.Services.AddTransient<AccessTokenDelegatingHandler>(); // el que se encarga de añadir el token a las peticiones HTTP hacia la API (debe ser transient).
+//builder.Services.AddTransient<AccessTokenDelegatingHandler>(); // el que se encarga de añadir el token a las peticiones HTTP hacia la API (debe ser transient).
 
 // Se le indica dónde está la API.
-builder.Services.AddHttpClient<CorpusLegisApiClient>(client =>
-{
-    client.BaseAddress = new Uri("http://api-corpuslegis");
-})
-    //.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false })
-    .AddHttpMessageHandler<AccessTokenDelegatingHandler>() // se inyecta el nuevo handler.
-    ;
+//builder.Services.AddHttpClient<CorpusLegisApiClient>(client =>
+//{
+//    client.BaseAddress = new Uri("http://api-corpuslegis");
+//})
+//    //.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false })
+//    .AddHttpMessageHandler<AccessTokenDelegatingHandler>() // se inyecta el nuevo handler.
+//    ;
+
+// Se registran los Clients de la API para la Web.
+//builder.Services.AddHttpClient<ICivitasClient, CivitasClient>("civitas-client", client =>
+//{
+//    client.BaseAddress = new Uri("http://api-corpuslegis");
+//    client.DefaultRequestHeaders.Accept.Clear();
+//    client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+//})
+//    //.AddHttpMessageHandler<AccessTokenDelegatingHandler>() // inyección del handler para añadir el token a las peticiones HTTP hacia la API.
+//    ;
+//builder.Services.AddHttpClient<IRogatioClient, RogatioClient>("rogatio-client", client =>
+//{
+//    client.BaseAddress = new Uri("http://api-corpuslegis");
+//    client.DefaultRequestHeaders.Accept.Clear();
+//    client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+//})
+//    //.AddHttpMessageHandler<AccessTokenDelegatingHandler>() // inyección del handler para añadir el token a las peticiones HTTP hacia la API.
+//    ;
+//builder.Services.AddHttpClient<ISuffragiumClient, SuffragiumClient>("suffragium-client", client =>
+//{
+//    client.BaseAddress = new Uri("http://api-corpuslegis");
+//    client.DefaultRequestHeaders.Accept.Clear();
+//    client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+//})
+//    //.AddHttpMessageHandler<AccessTokenDelegatingHandler>() // inyección del handler para añadir el token a las peticiones HTTP hacia la API.
+//    ;
+//builder.Services.AddHttpClient<ILexClient, LexClient>("lex-client", client =>
+//{
+//    client.BaseAddress = new Uri("http://api-corpuslegis");
+//    client.DefaultRequestHeaders.Accept.Clear();
+//    client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+//})
+//    //.AddHttpMessageHandler<AccessTokenDelegatingHandler>() // inyección del handler para añadir el token a las peticiones HTTP hacia la API.
+//    ;
+builder.Services.AddCorpusLegisApiClients("http://api-corpuslegis");
 
 // Add services to the container.
 builder.Services.AddRazorComponents()

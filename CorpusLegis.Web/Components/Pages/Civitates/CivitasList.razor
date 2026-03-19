@@ -1,13 +1,16 @@
 ﻿@page "/civitas"
 @rendermode InteractiveServer
+@attribute [Authorize]
 
 @using CorpusLegis.Shared.Dtos.Civitas
 @* @using CorpusLegis.Web.State *@
 @using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authorization
 
 @* @implements IDisposable *@
 
-@inject Clients.CorpusLegisApiClient ApiClient
+@* @inject Clients.CorpusLegisApiClient ApiClient *@
+@inject Clients.Civitas.ICivitasClient ApiClient
 @* @inject CorpusLegis.Web.State.CivisState CivisState *@
 
 
@@ -105,7 +108,7 @@ else
         catch (Exception ex)
         {
             Console.WriteLine($"Error inesperado: {ex.Message}");
-            errorMessage = $"Ha ocurrido un error inesperado al intentar cargar los datos: {ex.Message}";
+            errorMessage = $"Ha ocurrido un error inesperado al intentar cargar los Civitates: {ex.Message}";
         }
     }
 
@@ -183,32 +186,5 @@ else
 
     }
 
-
-
-    // private async void OnCivisChanged()
-    // {
-    //     if (disposed)
-    //     {
-    //         return;
-    //     }
-
-    //     // await LoadDataAsync(); // si cambia el usuario, se vuelven a pedir los datos a la API.
-
-    //     // await InvokeAsync(StateHasChanged); // forzar el repintado.
-
-    //     await InvokeAsync(async () =>
-    //     {
-    //         await LoadDataAsync();
-    //         StateHasChanged();
-    //     }
-    //     );
-    // }
-
-    // public void Dispose()
-    // {
-    //     disposed = true;
-
-    //     CivisState.OnChange -= OnCivisChanged;
-    // }
 
 }

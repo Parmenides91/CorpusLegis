@@ -1,15 +1,19 @@
 ﻿@page "/rogatio/{Id:guid}"
 @rendermode InteractiveServer
+@attribute [Authorize]
 
 @using CorpusLegis.Shared.Dtos
 @using CorpusLegis.Shared.Dtos.Suffragium
 @using CorpusLegis.Shared.Enums
 @using CorpusLegis.Web.Components.Pages.Suffragium
+@using Microsoft.AspNetCore.Authorization
 @* @using CorpusLegis.Web.State *@
 
 @* @implements IDisposable *@
 
-@inject Clients.CorpusLegisApiClient ApiClient
+@* @inject Clients.CorpusLegisApiClient ApiClient *@
+@inject Clients.Rogatio.IRogatioClient RogatioApiClient
+@inject Clients.Suffragium.ISuffragiumClient SuffragiumApiClient
 @* @inject CorpusLegis.Web.State.CivisState CivisState *@
 @inject NavigationManager NavigationManager
 
@@ -171,9 +175,9 @@ else
                 Votum = votum
             };
 
-            var result = await ApiClient.CreateSuffragiumAsync(Id, dto);
+            var result = await SuffragiumApiClient.CreateSuffragiumAsync(Id, dto);
 
-            rogatio = await ApiClient.GetRogatioByIdAsync(Id);
+            rogatio = await RogatioApiClient.GetRogatioByIdAsync(Id);
 
             StateHasChanged(); // se fuerza el renderizado.
         }
@@ -200,9 +204,9 @@ else
                 Status = nuevoEstado
             };
 
-            await ApiClient.ChangeRogatioStatusAsync(Id, dto);
+            await RogatioApiClient.ChangeRogatioStatusAsync(Id, dto);
 
-            rogatio = await ApiClient.GetRogatioByIdAsync(Id);
+            rogatio = await RogatioApiClient.GetRogatioByIdAsync(Id);
 
             NavigationManager.NavigateTo($"/rogatio/{Id}");
         }
@@ -223,8 +227,8 @@ else
                 Id = Id,
                 Status = estadoActual
             };
-            await ApiClient.EvaluateRogatioAsync(Id, dto);
-            rogatio = await ApiClient.GetRogatioByIdAsync(Id);
+            await RogatioApiClient.EvaluateRogatioAsync(Id, dto);
+            rogatio = await RogatioApiClient.GetRogatioByIdAsync(Id);
             NavigationManager.NavigateTo($"/rogatio/{Id}");
         }
         catch (HttpRequestException ex)
@@ -239,7 +243,7 @@ else
     {
         try
         {
-            rogatio = await ApiClient.GetRogatioByIdAsync(Id);
+            rogatio = await RogatioApiClient.GetRogatioByIdAsync(Id);
 
             if (rogatio == null)
             {

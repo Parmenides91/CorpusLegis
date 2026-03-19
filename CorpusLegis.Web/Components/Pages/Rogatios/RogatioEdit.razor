@@ -1,9 +1,12 @@
 ﻿@page "/rogatio/edit/{Id:guid}"
 @rendermode InteractiveServer
+@attribute [Authorize]
 
 @using CorpusLegis.Shared.Dtos
+@using Microsoft.AspNetCore.Authorization
 
-@inject Clients.CorpusLegisApiClient ApiClient
+@* @inject Clients.CorpusLegisApiClient ApiClient *@
+@inject Clients.Rogatio.IRogatioClient ApiClient
 @inject NavigationManager NavigationManager
 
 

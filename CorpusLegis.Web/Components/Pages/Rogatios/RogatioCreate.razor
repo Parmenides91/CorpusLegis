@@ -1,12 +1,17 @@
 ﻿@page "/rogatio/nueva"
 @rendermode InteractiveServer
+@attribute [Authorize]
 
 @using CorpusLegis.Shared.Dtos
 @using CorpusLegis.Shared.Dtos.Civitas
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
 
 @* @implements IDisposable *@
 
-@inject Clients.CorpusLegisApiClient ApiClient
+@* @inject Clients.CorpusLegisApiClient ApiClient *@
+@inject Clients.Rogatio.IRogatioClient RogatioApiClient
+@inject Clients.Civitas.ICivitasClient CivitasApiClient
 @* @inject CorpusLegis.Web.State.CivisState CivisState *@
 @inject NavigationManager NavigationManager
 
@@ -76,12 +81,28 @@
     {
         try
         {
-            civitas = await ApiClient.GetUserCivitatesAsync();
+            civitas = await CivitasApiClient.GetUserCivitatesAsync();
         }
         catch (ApplicationException ex)
         {
             Console.WriteLine($"Error al cargar datos: {ex.Message}");
             errorMessage = $"Error al cargar datos: {ex.Message}";
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            Console.WriteLine($"Error de autorización: {ex.Message}");
+            errorMessage = "Tu sesión ha expirado o necesitas iniciar sesión para ver esta información.";
+            //NavigationManager.NavigateTo("/login");
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"Error al cargar el formulario de creación de Rogationes: {ex.Message}");
+            errorMessage = $"Error al cargar el formulario de creación de Rogationes: {ex.Message}";
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error inesperado: {ex.Message}");
+            errorMessage = $"Ha ocurrido un error inesperado al intentar cargar el formulario de creación de Rogationes: {ex.Message}";
         }
         
     }
@@ -92,7 +113,7 @@
         {
             errorMessage = null; // Limpiar cualquier mensaje de error previo
 
-            var createdRogatio = await ApiClient.CreateRogatioAsync(newRogatio); // Llamar al API para crear el nuevo Rogatio
+            var createdRogatio = await RogatioApiClient.CreateRogatioAsync(newRogatio); // Llamar al API para crear el nuevo Rogatio
 
             NavigationManager.NavigateTo("/rogatio"); // Redireccionar al listado de Rogatio después de crear uno nuevo
         }
