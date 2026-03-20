@@ -35,6 +35,9 @@ builder.Logging.AddFilter("Microsoft.IdentityModel.Tokens", LogLevel.Debug);
 
 // Add services to the container.
 
+builder.Services.AddMemoryCache(); // necesario para el servicio de aprovisionamiento de usuarios (UserProvisioningService) que usa IMemoryCache.
+builder.Services.AddScoped<IUserProvisioningService, UserProvisioningService>(); // se registra el servicio de aprovisionamiento de Civis.
+
 // Se configura MassTransit para usar RabbitMQ como Message Broker.
 builder.Services.AddMassTransit(x =>
 {
@@ -176,9 +179,8 @@ builder.Services.AddScoped<ILexService, LexService>();
 // Se registra el servicio de Civitas.
 builder.Services.AddScoped<ICivitasService, CivitasService>();
 
-// Se registra el servicio del mockeo de usuarios que estamos haciendo.
 builder.Services.AddHttpContextAccessor(); // Necesario para que CurrentUserService pueda acceder al contexto HTTP.
-builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>(); // Servicio para obtener el usuario actual (Civis) a partir del contexto HTTP
 
 // Se registra el servicio de Excepciones.
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
@@ -216,6 +218,8 @@ else
 // Se habilita la autenticación y autorización.
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseMiddleware<UserProvisioningMiddleware>(); // Middleware personalizado para aprovisionar el Civis en la base de datos si el usuario autenticado no existe aún.
 
 /* Mapeo de endpoints (late pipeline) */
 app.MapDefaultEndpoints();
