@@ -1,5 +1,9 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
+// Redis chaché
+var redis_corpuslegis = builder.AddRedis("redis-corpuslegis")
+                                .WithRedisInsight(containerName: "redis-insight-corpuslegis");
+
 // Message Broker
 var rabbitmq_corpuslegis = builder.AddRabbitMQ("rabbitmq-corpuslegis"); // Nombre del CONTENEDOR/RECURSO: nombre interno con el que Aspire identifica al contenedor de RabbitMQ en el Dashboard
 
@@ -29,7 +33,9 @@ var api_corpuslegis = builder.AddProject<Projects.CorpusLegis_API>("api-corpusle
                             //.WithEnvironment("ConnectionStrings__keycloak-corpuslegis", keycloak_corpuslegis.GetEndpoint("http").Property(EndpointProperty.Url))
                             //.WithReference(keycloak_corpuslegis) // se inyecta Keycloak.
                             //.WithEnvironment("Keycloak__Url", keycloak_corpuslegis.GetEndpoint("http"))
-                            .WaitFor(keycloak_corpuslegis);
+                            .WaitFor(keycloak_corpuslegis)
+                            .WithReference(redis_corpuslegis) // se inyecta la configuración de Redis para caché
+                            ;
                             
 
 // Se agrega el proyecto del WebApp

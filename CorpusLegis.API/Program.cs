@@ -35,7 +35,8 @@ builder.Logging.AddFilter("Microsoft.IdentityModel.Tokens", LogLevel.Debug);
 
 // Add services to the container.
 
-builder.Services.AddMemoryCache(); // necesario para el servicio de aprovisionamiento de usuarios (UserProvisioningService) que usa IMemoryCache.
+//builder.Services.AddMemoryCache(); // necesario para el servicio de aprovisionamiento de usuarios (UserProvisioningService) que usa IMemoryCache.
+builder.AddRedisDistributedCache("redis-corpuslegis"); // necesario para el servicio de aprovisionamiento de usuarios (UserProvisioningService) que usa DDD.
 builder.Services.AddScoped<IUserProvisioningService, UserProvisioningService>(); // se registra el servicio de aprovisionamiento de Civis.
 
 // Se configura MassTransit para usar RabbitMQ como Message Broker.
