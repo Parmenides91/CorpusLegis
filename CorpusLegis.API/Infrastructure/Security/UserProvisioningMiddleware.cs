@@ -16,16 +16,22 @@ public class UserProvisioningMiddleware
     {
         if (context.User?.Identity?.IsAuthenticated == true)
         {
-            try
+            var isMachine = context.User.HasClaim(c => c.Type == "clientId" || c.Type == "client_id");
+
+            if (!isMachine)
             {
-                await provisioningService.ProvisionUserAsync(context.User, context.RequestAborted);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error durante el aprovisionamiento del Civis.");
-                // No se detiene la solicitud, se continúa aunque falle el aprovisionamiento.
+                try
+                {
+                    await provisioningService.ProvisionUserAsync(context.User, context.RequestAborted);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Error durante el aprovisionamiento del Civis.");
+                    // No se detiene la solicitud, se continúa aunque falle el aprovisionamiento.
+                }
             }
         }
+
         await _next(context);
     }
 

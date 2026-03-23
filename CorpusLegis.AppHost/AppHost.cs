@@ -50,11 +50,23 @@ builder.AddProject<Projects.CorpusLegis_Web>("web-blazor-corpuslegis")
         .WaitFor(api_corpuslegis);
 
 // se agrega el proyecto del Worker para la creación de PDFs
-//builder.AddProject<Projects.CorpusLegis_PdfWorker>("pdfworker-corpuslegis")
-//    .WithReference(rabbitmq_corpuslegis);
+var keycloakPdfWorkerClientSecretParam = builder.AddParameter("Keycloak-PdfWorker-ClientSecret", secret: true, value: "s5rqoXEZE7z7EA80ATMpuedxzzmC0H1T");
+//var keycloakPdfWorkerClientSecretParam = builder.AddParameter("Keycloak-PdfWorker-ClientSecret", secret: true); // de esta manera no arrancará hasta que no le pongas el Secret desde el panel de Aspire.
+builder.AddProject<Projects.CorpusLegis_PdfWorker>("pdfworker-corpuslegis")
+    .WithReference(rabbitmq_corpuslegis)
+    .WithEnvironment("Keycloak__Authority", keycloakAuthority)
+    .WithEnvironment("Keycloak-PdfWorker-ClientSecret", keycloakPdfWorkerClientSecretParam)
+    .WaitFor(keycloak_corpuslegis)
+    .WaitFor(api_corpuslegis);
 
 // se agrega el proyecto del Worker para la evaluación de las Rogationes.
-//builder.AddProject<Projects.CorpusLegis_EscrutinioWorker>("escrutinioworker-corpuslegis")
-//    .WithReference(api_corpuslegis);
+var keycloakEscrutinioWorkerClientSecretParam = builder.AddParameter("Keycloak-EscrutinioWorker-ClientSecret", secret: true, value: "tN7FxsI1QloNMnIrdkQAzs6RAhIazXIO");
+//var keycloakEscrutinioWorkerClientSecretParam = builder.AddParameter("Keycloak-EscrutinioWorker-ClientSecret", secret: true); // de esta manera no arrancará hasta que no le pongas el Secret desde el panel de Aspire.
+builder.AddProject<Projects.CorpusLegis_EscrutinioWorker>("escrutinioworker-corpuslegis")
+    .WithReference(api_corpuslegis)
+    .WithEnvironment("Keycloak__Authority", keycloakAuthority)
+    .WithEnvironment("Keycloak__EscrutinioWorker__ClientSecret", keycloakEscrutinioWorkerClientSecretParam)
+    .WaitFor(keycloak_corpuslegis)
+    .WaitFor(api_corpuslegis);
 
 builder.Build().Run();
