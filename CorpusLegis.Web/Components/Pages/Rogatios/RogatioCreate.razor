@@ -1,13 +1,18 @@
 ﻿@page "/rogatio/nueva"
 @rendermode InteractiveServer
+@attribute [Authorize]
 
 @using CorpusLegis.Shared.Dtos
 @using CorpusLegis.Shared.Dtos.Civitas
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
 
-@implements IDisposable
+@* @implements IDisposable *@
 
-@inject Clients.CorpusLegisApiClient ApiClient
-@inject CorpusLegis.Web.State.CivisState CivisState
+@* @inject Clients.CorpusLegisApiClient ApiClient *@
+@inject Clients.Rogatio.IRogatioClient RogatioApiClient
+@inject Clients.Civitas.ICivitasClient CivitasApiClient
+@* @inject CorpusLegis.Web.State.CivisState CivisState *@
 @inject NavigationManager NavigationManager
 
 
@@ -63,25 +68,41 @@
     private CreateRogatioDto newRogatio = new();
     private List<CivitasSummaryDto> civitas = new();
     private string? errorMessage;
-    private bool disposed;
+    // private bool disposed;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadDataAsync();
 
-        CivisState.OnChange += OnCivisChanged;
+        // CivisState.OnChange += OnCivisChanged;
     }
 
     private async Task LoadDataAsync()
     {
         try
         {
-            civitas = await ApiClient.GetUserCivitatesAsync();
+            civitas = await CivitasApiClient.GetUserCivitatesAsync();
         }
         catch (ApplicationException ex)
         {
             Console.WriteLine($"Error al cargar datos: {ex.Message}");
             errorMessage = $"Error al cargar datos: {ex.Message}";
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            Console.WriteLine($"Error de autorización: {ex.Message}");
+            errorMessage = "Tu sesión ha expirado o necesitas iniciar sesión para ver esta información.";
+            //NavigationManager.NavigateTo("/login");
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"Error al cargar el formulario de creación de Rogationes: {ex.Message}");
+            errorMessage = $"Error al cargar el formulario de creación de Rogationes: {ex.Message}";
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error inesperado: {ex.Message}");
+            errorMessage = $"Ha ocurrido un error inesperado al intentar cargar el formulario de creación de Rogationes: {ex.Message}";
         }
         
     }
@@ -92,7 +113,7 @@
         {
             errorMessage = null; // Limpiar cualquier mensaje de error previo
 
-            var createdRogatio = await ApiClient.CreateRogatioAsync(newRogatio); // Llamar al API para crear el nuevo Rogatio
+            var createdRogatio = await RogatioApiClient.CreateRogatioAsync(newRogatio); // Llamar al API para crear el nuevo Rogatio
 
             NavigationManager.NavigateTo("/rogatio"); // Redireccionar al listado de Rogatio después de crear uno nuevo
         }
@@ -110,31 +131,31 @@
     }
 
 
-    private async void OnCivisChanged()
-    {
-        if (disposed)
-        {
-            return;
-        }
+    // private async void OnCivisChanged()
+    // {
+    //     if (disposed)
+    //     {
+    //         return;
+    //     }
 
-        // await LoadDataAsync(); // si cambia el usuario, se vuelven a pedir los datos a la API.
+    //     // await LoadDataAsync(); // si cambia el usuario, se vuelven a pedir los datos a la API.
 
-        // await InvokeAsync(StateHasChanged); // forzar el repintado.
+    //     // await InvokeAsync(StateHasChanged); // forzar el repintado.
 
-        await InvokeAsync(async () =>
-        {
-            await LoadDataAsync();
-            StateHasChanged();
-        }
-        );
-    }
+    //     await InvokeAsync(async () =>
+    //     {
+    //         await LoadDataAsync();
+    //         StateHasChanged();
+    //     }
+    //     );
+    // }
 
-    public void Dispose()
-    {
-        disposed = true;
+    // public void Dispose()
+    // {
+    //     disposed = true;
 
-        CivisState.OnChange -= OnCivisChanged;
-    }
+    //     CivisState.OnChange -= OnCivisChanged;
+    // }
 
 
 }

@@ -1,15 +1,15 @@
 ﻿@page "/rogatio"
 @rendermode InteractiveServer
+@attribute [Authorize]
 
 @using CorpusLegis.Shared.Dtos
-@using CorpusLegis.Web.State
-@* @using Microsoft.AspNetCore.Components.Authorization *@
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
 
-@implements IDisposable
-
-@inject Clients.CorpusLegisApiClient ApiClient
-@inject CorpusLegis.Web.State.CivisState CivisState
-
+@* @inject Clients.CorpusLegisApiClient ApiClient *@
+@inject Clients.Rogatio.IRogatioClient ApiClient
+@inject NavigationManager NavigationManager
 
 
 <h3>Rogationes actuales (todas? usuario?)</h3>
@@ -52,11 +52,11 @@ else
                     <td>@rogatio.CreatedAt</td>
                     <td>
                         <a class="btn btn-sm btn-outline-primary" href="rogatio/@rogatio.Id">Ver detalles</a>
-                        @if (rogatio.Status == Shared.Enums.RogatioStatus.Inchoatus && rogatio.CivisId == CivisState.CurrentCivisId)
-                        {
+                        @* @if (rogatio.Status == Shared.Enums.RogatioStatus.Inchoatus && rogatio.CivisId == CivisState.CurrentCivisId)
+                        { *@
                             <a class="btn btn-sm btn-outline-secondary" href="rogatio/edit/@rogatio.Id">Editar</a>
                             <a class="btn btn-sm btn-outline-warning" href="rogatio/delete/@rogatio.Id">¿Eliminar?</a>
-                        }
+                        @* } *@
                     </td>
                 </tr>
             }
@@ -67,13 +67,11 @@ else
 @code {
     private List<RogatioSummaryDto>? rogationes;
     private string? errorMessage;
-    private bool disposed;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadDataAsync();
 
-        CivisState.OnChange += OnCivisChanged;
     }
 
     private async Task LoadDataAsync()
@@ -84,36 +82,21 @@ else
 
             rogationes = await ApiClient.GetRogationesAsync();
         }
+        catch (UnauthorizedAccessException ex)
+        {
+            Console.WriteLine($"Error de autorización: {ex.Message}");
+            errorMessage = "Tu sesión ha expirado o necesitas iniciar sesión para ver esta información.";
+            //NavigationManager.NavigateTo("/login");
+        }
         catch (HttpRequestException ex)
         {
             Console.WriteLine($"Error al cargar los Rogationes: {ex.Message}");
             errorMessage = $"Error al cargar los Rogationes: {ex.Message}";
         }
-    }
-
-    private async void OnCivisChanged()
-    {
-        if (disposed)
+        catch (Exception ex)
         {
-            return;
+            Console.WriteLine($"Error inesperado: {ex.Message}");
+            errorMessage = "Ha ocurrido un error inesperado al intentar cargar los datos.";
         }
-
-        // await LoadDataAsync(); // si cambia el usuario, se vuelven a pedir los datos a la API.
-
-        // await InvokeAsync(StateHasChanged); // forzar el repintado.
-
-        await InvokeAsync(async () =>
-        {
-            await LoadDataAsync();
-            StateHasChanged();
-        }
-        );
-    }
-
-    public void Dispose()
-    {
-        disposed = true;
-
-        CivisState.OnChange -= OnCivisChanged;
     }
 }

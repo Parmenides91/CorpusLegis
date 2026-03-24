@@ -7,7 +7,10 @@ public static class LexEndpoints
 {
     public static void MapLexEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/lex").WithTags("Lex");
+        var group = app.MapGroup("/lex")
+            .WithTags("Lex")
+            .RequireAuthorization()
+            ;
 
         group.MapGet("/", GetAllLeges);
         group.MapGet("/{id:guid}", GetLexById);

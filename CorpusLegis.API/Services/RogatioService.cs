@@ -21,17 +21,18 @@ public class RogatioService : IRogatioService
 
     private readonly IPublishEndpoint _publishEndpoint;
 
-    //private readonly ILogger _logger;
+    private readonly ILogger<RogatioService> _logger;
 
     //Guid CivisDefaultGuid = Guid.Parse("0f8fad5b-d9cb-469f-a165-70867728950e"); // Sempronio
     Guid CivitasDefaultGuid = Guid.Parse("7c9e6679-7425-40de-944b-e07fc1f90ae7"); // Solfamidas
 
-    public RogatioService(CorpusLegisContext db, ICurrentUserService currentUser, IValidator<CreateRogatioDto> createValidator, IPublishEndpoint publishEndpoint)
+    public RogatioService(CorpusLegisContext db, ICurrentUserService currentUser, IValidator<CreateRogatioDto> createValidator, IPublishEndpoint publishEndpoint, ILogger<RogatioService> logger)
     {
         _db = db;
         _currentUser = currentUser;
         _createValidator = createValidator;
         _publishEndpoint = publishEndpoint;
+        _logger = logger;
     }
 
 
@@ -423,7 +424,7 @@ public class RogatioService : IRogatioService
 
         var requiredQuorumCount = (int)Math.Ceiling(escrutinioData.PoblacionCivitas * (double)rogatio.RequiredQuorum);
 
-        if (escrutinioData.VotosTotales > requiredQuorumCount) // no ha habido cuórum.
+        if (escrutinioData.VotosTotales < requiredQuorumCount) // no ha habido cuórum.
         {
             rogatio.Status = RogatioStatus.Reprobata;
             await _db.SaveChangesAsync();
@@ -487,6 +488,7 @@ public class RogatioService : IRogatioService
             {
                 // TODO: integrar ILogger<RogatioService> cuando lo tenga.
                 Console.WriteLine($"Error al evaluar la Rogatio con ID {rogatioId}: {ex.Message}");
+                _logger.LogError(ex, "Error al evaluar la Rogatio {RogatioId}", rogatioId);
             }
         }
 

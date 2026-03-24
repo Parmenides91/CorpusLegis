@@ -10,6 +10,8 @@ public class LexService : ILexService
     private readonly CorpusLegisContext _db;
     private readonly ICurrentUserService _currentUser;
 
+    // private readonly ILogger<LexService> _logger; // TODO: incluir este ILogger
+
     public LexService(CorpusLegisContext db, ICurrentUserService currentUser)
     {
         _db = db;

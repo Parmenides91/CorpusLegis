@@ -44,7 +44,7 @@ public class EscrutinioBatchWorker : BackgroundService
             //var response = await _httpClient.PostAsync("/rogatio/evaluate-pending", null, stoppingToken);
 
             var client = _httpClientFactory.CreateClient("CorpuesLegisApiClient");
-            client.DefaultRequestHeaders.Add("X-Civis-Id", "0f8fad5b-d9cb-469f-a165-70867728950e"); // TODO: corregir cuando tengamos autenticación real --> esto se resuelve mediante el patrón Machine-to-Machine (M2M) utilizando el flujo Client Credentials de OAuth2. El Worker solicitará un token JWT al servidor de identidad (Keycloak) identificándose como un servicio, no como un usuario. La API tendrá endpoints divididos
+            //client.DefaultRequestHeaders.Add("X-Civis-Id", "0f8fad5b-d9cb-469f-a165-70867728950e"); // TODO: corregir cuando tengamos autenticación real --> esto se resuelve mediante el patrón Machine-to-Machine (M2M) utilizando el flujo Client Credentials de OAuth2. El Worker solicitará un token JWT al servidor de identidad (Keycloak) identificándose como un servicio, no como un usuario. La API tendrá endpoints divididos
             var response = await client.PostAsync("/rogatio/evaluate-pending", null, stoppingToken);
 
             if (response.IsSuccessStatusCode)
