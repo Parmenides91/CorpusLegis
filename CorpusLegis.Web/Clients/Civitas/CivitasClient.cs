@@ -1,150 +1,36 @@
-﻿using CorpusLegis.Shared.Dtos;
-using CorpusLegis.Shared.Dtos.Civitas;
-using CorpusLegis.Shared.Dtos.Lex;
-using CorpusLegis.Shared.Dtos.Suffragium;
-using CorpusLegis.Shared.Validators;
+﻿using CorpusLegis.Shared.Dtos.Civitas;
 using CorpusLegis.Web.State;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using System.Net.Mime;
-using System.Text.Json;
 
-namespace CorpusLegis.Web.Clients;
+namespace CorpusLegis.Web.Clients.Civitas;
 
-public class CorpusLegisApiClient
+public class CivitasClient : CorpusLegisApiClientBase, ICivitasClient
 {
-    private readonly ILogger<CorpusLegisApiClient> _logger;
-    private readonly HttpClient _httpClient;
-    private readonly TokenProvider _tokenProvider;
+    //private readonly ILogger<CivitasClient> _logger;
+    //private readonly HttpClient _httpClient;
+    //private readonly TokenProvider _tokenProvider;
 
-    public CorpusLegisApiClient(HttpClient httpClient, TokenProvider tokenProvider, ILogger<CorpusLegisApiClient> logger)
+    public CivitasClient(ILogger<CivitasClient> logger, HttpClient httpClient, TokenProvider tokenProvider)
+        : base(logger, httpClient, tokenProvider)
     {
-        _logger = logger;
-        _httpClient = httpClient;
-        _tokenProvider = tokenProvider;
+        //_logger = logger;
+        //_httpClient = httpClient;
+        //_tokenProvider = tokenProvider;
 
-        if (!string.IsNullOrEmpty(tokenProvider.AccessToken))
-        {
-            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokenProvider.AccessToken);
-        }
+        //if (!string.IsNullOrEmpty(tokenProvider.AccessToken))
+        //{
+        //    httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokenProvider.AccessToken);
+        //}
     }
 
-
-    // Aquí irán los métodos para interactuar con la API de CorpusLegis. Se pueden agregar métodos para obtener datos, enviar datos, etc.
-
-
-    #region Rogatio
-    // Método para obtener un rogatio por su ID.
-    public async Task<RogatioDetailsDto?> GetRogatioByIdAsync(Guid id)
-    {
-        var response = await _httpClient.GetAsync($"/rogatio/{id}");
-        await HandleNonSuccessResponseAsync(response);
-        return await response.Content.ReadFromJsonAsync<RogatioDetailsDto>();
-    }
-
-    // Método para obtener la lista de rogationes.
-    public async Task<List<RogatioSummaryDto>> GetRogationesAsync()
-    {
-        //ESTE ES EL CORRECTO(SIN USUARIOS)
-        var response = await _httpClient.GetAsync("/rogatio");
-        await HandleNonSuccessResponseAsync(response);
-        return await response.Content.ReadFromJsonAsync<List<RogatioSummaryDto>>() ?? new List<RogatioSummaryDto>();
-    }
-
-    // Método para crear un nuevo rogatio.
-    public async Task<RogatioDetailsDto?> CreateRogatioAsync(CreateRogatioDto dto)
-    {
-        var response = await _httpClient.PostAsJsonAsync("/rogatio", dto);
-        await HandleNonSuccessResponseAsync(response);
-        return await response.Content.ReadFromJsonAsync<RogatioDetailsDto>();
-    }
-
-    // Método para actualizar un rogatio existente.
-    public async Task<RogatioDetailsDto?> UpdateRogatioAsync(Guid id, UpdateRogatioDto dto)
-    {
-        var response = await _httpClient.PutAsJsonAsync($"/rogatio/{id}", dto);
-        await HandleNonSuccessResponseAsync(response);
-        return await response.Content.ReadFromJsonAsync<RogatioDetailsDto>();
-    }
-
-    // Método para eliminar un rogatio por su ID.
-    public async Task<bool> DeleteRogatioAsync(Guid id)
-    {
-        var response = await _httpClient.DeleteAsync($"/rogatio/{id}");
-        await HandleNonSuccessResponseAsync(response);
-        return true;
-    }
-
-    // Método para cambiar el estado de un rogatio (workflow).
-    public async Task<RogatioDetailsDto?> ChangeRogatioStatusAsync(Guid id, WorkflowRogatioDto dto)
-    {
-        var response = await _httpClient.PutAsJsonAsync($"/rogatio/{id}/status", dto);
-        await HandleNonSuccessResponseAsync(response);
-        return await response.Content.ReadFromJsonAsync<RogatioDetailsDto>();
-    }
-
-    // Método para evaluar una rogatio.
-    public async Task<RogatioDetailsDto?> EvaluateRogatioAsync(Guid id, WorkflowRogatioDto dto)
-    {
-        var response = await _httpClient.PutAsJsonAsync($"/rogatio/{id}/evaluation", dto);
-        await HandleNonSuccessResponseAsync(response);
-        return await response.Content.ReadFromJsonAsync<RogatioDetailsDto>();
-    }
-    #endregion
-
-
-    #region Suffragium
-    // Método para emitir un voto (suffragium) a un rogatio.
-    public async Task<SuffragiumDetailsDto?> CreateSuffragiumAsync(Guid idRogatio, CreateSuffragiumDto dto)
-    {
-        var response = await _httpClient.PostAsJsonAsync($"/rogatio/{idRogatio}/vote", dto);
-        await HandleNonSuccessResponseAsync(response);
-        return await response.Content.ReadFromJsonAsync<SuffragiumDetailsDto>();
-    }
-    #endregion
-
-
-    #region Lex
-    // Método para obtener una lex por su ID.
-    public async Task<LexDetailsDto?> GetLexByIdAsync(Guid id)
-    {
-        var response = await _httpClient.GetAsync($"/lex/{id}");
-        await HandleNonSuccessResponseAsync(response);
-        return await response.Content.ReadFromJsonAsync<LexDetailsDto>();
-    }
-
-    // Método para obtener la lista de leges.
-    public async Task<List<LexSummaryDto>> GetLegesAsync()
-    {
-        var response = await _httpClient.GetAsync("/lex");
-        await HandleNonSuccessResponseAsync(response);
-        return await response.Content.ReadFromJsonAsync<List<LexSummaryDto>>() ?? new List<LexSummaryDto>();
-    }
-
-    // Método para obtener la lista de leges a las que pertenece el Civis actual.
-    public async Task<List<LexSummaryDto>> GetLegesByCurrentCivisAsync()
-    {
-        var response = await _httpClient.GetAsync("/lex/civis/me");
-        await HandleNonSuccessResponseAsync(response);
-        return await response.Content.ReadFromJsonAsync<List<LexSummaryDto>>() ?? new List<LexSummaryDto>();
-    }
-
-    // Método para obtener las leges a las que pertenece un Civis.
-    public async Task<List<LexSummaryDto>> GetLegesByCivisIdAsync(Guid civisId)
-    {
-        var response = await _httpClient.GetAsync($"/lex/civis/{civisId}");
-        await HandleNonSuccessResponseAsync(response);
-        return await response.Content.ReadFromJsonAsync<List<LexSummaryDto>>() ?? new List<LexSummaryDto>();
-    }
-    #endregion
 
 
     #region Civitas
     // Método para obtener una civitas por su ID.
     public async Task<CivitasDetailsDto?> GetCivitasByIdAsync(Guid id)
     {
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/civitas/{id}");
-        var response = await _httpClient.SendAsync(request);
+        //var request = new HttpRequestMessage(HttpMethod.Get, $"/civitas/{id}");
+        //var response = await _httpClient.SendAsync(request);
+        var response = await _httpClient.GetAsync($"/civitas/{id}");
         await HandleNonSuccessResponseAsync(response);
         return await response.Content.ReadFromJsonAsync<CivitasDetailsDto>();
     }
@@ -153,8 +39,9 @@ public class CorpusLegisApiClient
     public async Task<List<CivitasSummaryDto>> GetCivitatesAsync()
     {
         // MÉTODO 004: MÉTODO CORRECTO - CON USUARIOS REALES (TOKEN) - CON MANEJO DE ERRORES [este es el que debemos hacer funcionar]
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/civitas");
-        var response = await _httpClient.SendAsync(request);
+        //var request = new HttpRequestMessage(HttpMethod.Get, $"/civitas");
+        //var response = await _httpClient.SendAsync(request);
+        var response = await _httpClient.GetAsync("/civitas");
         await HandleNonSuccessResponseAsync(response);
         return await response.Content.ReadFromJsonAsync<List<CivitasSummaryDto>>() ?? new List<CivitasSummaryDto>();
 
@@ -312,8 +199,9 @@ public class CorpusLegisApiClient
     // Método para obtener la lista de Civitates a las que pertenece el Civis actual.
     public async Task<List<CivitasSummaryDto>> GetUserCivitatesAsync()
     {
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/civitas/civis/me");
-        var response = await _httpClient.SendAsync(request);
+        //var request = new HttpRequestMessage(HttpMethod.Get, $"/civitas/civis/me");
+        //var response = await _httpClient.SendAsync(request);
+        var response = await _httpClient.GetAsync("/civitas/civis/me");
         await HandleNonSuccessResponseAsync(response);
         return await response.Content.ReadFromJsonAsync<List<CivitasSummaryDto>>() ?? new List<CivitasSummaryDto>();
     }
@@ -321,8 +209,9 @@ public class CorpusLegisApiClient
     // Método para obtener las Civitates a las que pertenece un Civis. [NO TIENE UNA VISUALIZACIÓN EN LA WEB]
     public async Task<List<CivitasSummaryDto>> GetCivitatesByCivisIdAsync(Guid idCivis)
     {
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/civitas/civis/{idCivis}");
-        var response = await _httpClient.SendAsync(request);
+        //var request = new HttpRequestMessage(HttpMethod.Get, $"/civitas/civis/{idCivis}");
+        //var response = await _httpClient.SendAsync(request);
+        var response = await _httpClient.GetAsync($"/civitas/civis/{idCivis}");
         await HandleNonSuccessResponseAsync(response);
         return await response.Content.ReadFromJsonAsync<List<CivitasSummaryDto>>() ?? new List<CivitasSummaryDto>();
     }
@@ -330,8 +219,9 @@ public class CorpusLegisApiClient
     // Método para agregar el Civis actual al Civitas.
     public async Task JoinCurrentCivisToCivitasAsync(Guid idCivitas)
     {
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/civitas/{idCivitas}/members/me");
-        var response = await _httpClient.SendAsync(request);
+        //var request = new HttpRequestMessage(HttpMethod.Post, $"/civitas/{idCivitas}/members/me");
+        //var response = await _httpClient.SendAsync(request);
+        var response = await _httpClient.PostAsync($"/civitas/{idCivitas}/members/me", null);
         await HandleNonSuccessResponseAsync(response);
     }
 
@@ -357,67 +247,6 @@ public class CorpusLegisApiClient
     }
     #endregion
 
-
-
-    #region Excepciones
-    private async Task HandleNonSuccessResponseAsync(HttpResponseMessage response)
-    {
-        if (response.IsSuccessStatusCode)
-        {
-            return;
-        }
-
-        var status = (int)response.StatusCode;
-        var body = response.Content == null ? null : await response.Content.ReadAsStringAsync();
-
-        Console.WriteLine($"DEBUG: API response {status} {response.ReasonPhrase}");
-        Console.WriteLine("DEBUG: Content-Type: " + (response.Content?.Headers.ContentType?.ToString() ?? "<none>"));
-        Console.WriteLine("DEBUG: WWW-Authenticate: " + string.Join(";", response.Headers.WwwAuthenticate.Select(h => h.ToString())));
-        Console.WriteLine("DEBUG: Body length: " + (body?.Length ?? 0));
-        Console.WriteLine("DEBUG: Body preview: " + (string.IsNullOrEmpty(body) ? "<empty>" : body.Substring(0, Math.Min(400, body.Length))));
-
-        _logger.LogDebug($"DEBUG: API response {status} {response.ReasonPhrase}");
-        _logger.LogDebug("DEBUG: Content-Type: " + (response.Content?.Headers.ContentType?.ToString() ?? "<none>"));
-        _logger.LogDebug("DEBUG: WWW-Authenticate: " + string.Join(";", response.Headers.WwwAuthenticate.Select(h => h.ToString())));
-        _logger.LogDebug("DEBUG: Body length: " + (body?.Length ?? 0));
-        _logger.LogDebug("DEBUG: Body preview: " + (string.IsNullOrEmpty(body) ? "<empty>" : body.Substring(0, Math.Min(400, body.Length))));
-
-        if (status == 401)
-        {
-            throw new UnauthorizedAccessException("La sesión ha expirado o no estás autentificado. Por favor, inicia sesión de nuevo.");
-        }
-        if (status == 403)
-        {
-            throw new UnauthorizedAccessException("No tienes permisos suficientes para realizar esta acción.");
-        }
-
-        var contentType = response.Content?.Headers.ContentType?.MediaType;
-
-        if (!string.IsNullOrWhiteSpace(body) && contentType != null && contentType.Contains("json", StringComparison.OrdinalIgnoreCase))
-        {
-            try
-            {
-                var problemDetails = System.Text.Json.JsonSerializer.Deserialize<Microsoft.AspNetCore.Mvc.ProblemDetails>(
-                    body,
-                    new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-                if (problemDetails != null && !string.IsNullOrWhiteSpace(problemDetails.Detail))
-                {
-                    // Aquí lanzamos el error de negocio exacto que la API nos mandó
-                    throw new HttpRequestException($"[API Error {status}] {problemDetails.Detail}");
-                }
-            }
-            catch (System.Text.Json.JsonException)
-            {
-                // Ignoramos el fallo de parseo y caemos al error genérico
-            }
-        }
-
-        // Fallback genérico si la API devolvió HTML (ej. un error de IIS/Kestrel) o un JSON no estándar
-        throw new HttpRequestException($"HTTP {status} {response.ReasonPhrase}. {(string.IsNullOrWhiteSpace(body) ? "Sin detalles adicionales." : body)}");
-
-    }
-    #endregion
 
 
 }

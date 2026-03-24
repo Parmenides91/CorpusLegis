@@ -1,16 +1,20 @@
 ﻿@page "/rogatio/{Id:guid}"
 @rendermode InteractiveServer
+@attribute [Authorize]
 
 @using CorpusLegis.Shared.Dtos
 @using CorpusLegis.Shared.Dtos.Suffragium
 @using CorpusLegis.Shared.Enums
 @using CorpusLegis.Web.Components.Pages.Suffragium
-@using CorpusLegis.Web.State
+@using Microsoft.AspNetCore.Authorization
+@* @using CorpusLegis.Web.State *@
 
-@implements IDisposable
+@* @implements IDisposable *@
 
-@inject Clients.CorpusLegisApiClient ApiClient
-@inject CorpusLegis.Web.State.CivisState CivisState
+@* @inject Clients.CorpusLegisApiClient ApiClient *@
+@inject Clients.Rogatio.IRogatioClient RogatioApiClient
+@inject Clients.Suffragium.ISuffragiumClient SuffragiumApiClient
+@* @inject CorpusLegis.Web.State.CivisState CivisState *@
 @inject NavigationManager NavigationManager
 
 
@@ -114,14 +118,14 @@ else
         <div class="card-body">
             <div class="d-flex justify-content-start gap-3 mt-3 mb-3">
                 <p>Transiciones disponibles:</p>
-                @if (rogatio.CivisId == CivisState.CurrentCivisId)
-                {
+                @* @if (rogatio.CivisId == CivisState.CurrentCivisId)
+                { *@
                     <button type="button" class="btn btn-sm btn-outline-info" @onclick="() => CambiarEstado(RogatioStatus.Inchoatus)">A borrador</button>
                     <button type="button" class="btn btn-sm btn-outline-info" @onclick="() => CambiarEstado(RogatioStatus.Proposita)">Presentar</button>
                     <button type="button" class="btn btn-sm btn-outline-info" @onclick="() => CambiarEstado(RogatioStatus.InSuffragium)">A votar</button>
                     <button type="button" class="btn btn-sm btn-outline-info" @onclick="() => CambiarEstado(RogatioStatus.Approbata)">Aprobar</button>
                     <button type="button" class="btn btn-sm btn-outline-info" @onclick="() => CambiarEstado(RogatioStatus.Reprobata)">Rechazar</button>
-                }
+                @* } *@
                 <button type="button" class=" btn btn-sm btn-outline-warning" @onclick="() => EvaluarRogatio(RogatioStatus.InSuffragium)">Evaluar</button>
             </div>
         </div>
@@ -141,7 +145,7 @@ else
 
     private RogatioDetailsDto? rogatio;
     private string? errorMessage;
-    private bool disposed;
+    // private bool disposed;
     private bool loading = true;
 
     private bool voting;
@@ -150,7 +154,7 @@ else
     {
         await LoadDataAsync();
         loading = false;
-        CivisState.OnChange += OnCivisChanged; // nos subscribimos a los cambios de la identidad.
+        // CivisState.OnChange += OnCivisChanged; // nos subscribimos a los cambios de la identidad.
     }
 
 
@@ -171,9 +175,9 @@ else
                 Votum = votum
             };
 
-            var result = await ApiClient.CreateSuffragiumAsync(Id, dto);
+            var result = await SuffragiumApiClient.CreateSuffragiumAsync(Id, dto);
 
-            rogatio = await ApiClient.GetRogatioByIdAsync(Id);
+            rogatio = await RogatioApiClient.GetRogatioByIdAsync(Id);
 
             StateHasChanged(); // se fuerza el renderizado.
         }
@@ -200,9 +204,9 @@ else
                 Status = nuevoEstado
             };
 
-            await ApiClient.ChangeRogatioStatusAsync(Id, dto);
+            await RogatioApiClient.ChangeRogatioStatusAsync(Id, dto);
 
-            rogatio = await ApiClient.GetRogatioByIdAsync(Id);
+            rogatio = await RogatioApiClient.GetRogatioByIdAsync(Id);
 
             NavigationManager.NavigateTo($"/rogatio/{Id}");
         }
@@ -223,8 +227,8 @@ else
                 Id = Id,
                 Status = estadoActual
             };
-            await ApiClient.EvaluateRogatioAsync(Id, dto);
-            rogatio = await ApiClient.GetRogatioByIdAsync(Id);
+            await RogatioApiClient.EvaluateRogatioAsync(Id, dto);
+            rogatio = await RogatioApiClient.GetRogatioByIdAsync(Id);
             NavigationManager.NavigateTo($"/rogatio/{Id}");
         }
         catch (HttpRequestException ex)
@@ -239,7 +243,7 @@ else
     {
         try
         {
-            rogatio = await ApiClient.GetRogatioByIdAsync(Id);
+            rogatio = await RogatioApiClient.GetRogatioByIdAsync(Id);
 
             if (rogatio == null)
             {
@@ -259,30 +263,30 @@ else
     }
 
 
-    private async void OnCivisChanged()
-    {
-        if (disposed)
-        {
-            return;
-        }
+    // private async void OnCivisChanged()
+    // {
+    //     if (disposed)
+    //     {
+    //         return;
+    //     }
 
-        // await LoadDataAsync(); // si cambia el usuario, se vuelven a pedir los datos a la API.
+    //     // await LoadDataAsync(); // si cambia el usuario, se vuelven a pedir los datos a la API.
 
-        // await InvokeAsync(StateHasChanged); // forzar el repintado.
+    //     // await InvokeAsync(StateHasChanged); // forzar el repintado.
 
-        await InvokeAsync(async () =>
-        {
-            await LoadDataAsync();
-            StateHasChanged();
-        }
-        );
-    }
+    //     await InvokeAsync(async () =>
+    //     {
+    //         await LoadDataAsync();
+    //         StateHasChanged();
+    //     }
+    //     );
+    // }
 
-    public void Dispose()
-    {
-        disposed = true;
+    // public void Dispose()
+    // {
+    //     disposed = true;
 
-        CivisState.OnChange -= OnCivisChanged;
-    }
+    //     CivisState.OnChange -= OnCivisChanged;
+    // }
 
 }

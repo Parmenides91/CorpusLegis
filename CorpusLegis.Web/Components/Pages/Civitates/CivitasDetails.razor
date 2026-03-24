@@ -1,9 +1,12 @@
 ﻿@page "/civitas/{Id:guid}"
 @rendermode InteractiveServer
+@attribute [Authorize]
 
 @using CorpusLegis.Shared.Dtos.Civitas
+@using Microsoft.AspNetCore.Authorization
 
-@inject Clients.CorpusLegisApiClient ApiClient
+@* @inject Clients.CorpusLegisApiClient ApiClient *@
+@inject Clients.Civitas.ICivitasClient ApiClient
 
 
 <h3>Detalles de la Civitas [ID: CCC]</h3>

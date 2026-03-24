@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\CorpusLegis.ServiceDefaults\CorpusLegis.ServiceDefaults.csproj" />
     <ProjectReference Include="..\CorpusLegis.Shared\CorpusLegis.Shared.csproj" />
   </ItemGroup>

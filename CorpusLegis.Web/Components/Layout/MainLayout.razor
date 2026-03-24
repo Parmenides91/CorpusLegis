@@ -2,7 +2,17 @@
 
 @inherits LayoutComponentBase
 
-@inject CorpusLegis.Web.State.CivisState CivisState
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Components.Authorization
+
+@inject CorpusLegis.Web.State.TokenProvider TokenProvider
+@inject PersistentComponentState ApplicationState
+
+
+@inject HttpClient Http
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IConfiguration Configuration
+
 
 
 <div class="page">
@@ -11,26 +21,44 @@
     </div>
 
     <main>
+@*         <div class="top-row px-4">
+            <div class="d-flex align-items-center"> *@
+
+                @* Añadimos los enlaces para Login y Logout *@
+        @*<a href="/login" class="ms-3">Login</a>
+                <a href="/logout" class="ms-3">Logout</a>*@
+                @* Logged in as @context.User.Claims.Aggregate("", (s, claim) => s += ";\n" + claim ) *@
+        @*</div>
+            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+</div> *@
         <div class="top-row px-4">
             <div class="d-flex align-items-center">
-                <span class="me-2 fw-bold text-muted">Actuando como: </span>
-
-                @* <select class="form-select form-select-sm" @onchange="OnCivisChanged">
-                    <option value="0f8fad5b-d9cb-469f-a165-70867728950e" selected>Sempronio</option>
-                    <option value="11111111-1111-1111-1111-111111111111">Tulio</option>
-                </select> *@
-
-                <select class="form-select form-select-sm" @bind="CurrentCivisId">
-                    <option value="0f8fad5b-d9cb-469f-a165-70867728950e" selected>Sempronio</option>
-                    <option value="11111111-1111-1111-1111-111111111111">Tulio</option>
-                </select>
-
+                <AuthorizeView>
+                    <Authorized>
+                        <span class="ms-3 me-3">Salve, @context.User.Identity?.Name</span>
+                        <a href="@($"{Configuration["Keycloak:Authority"]}/account/")" target="_blank" class="btn btn-link text-decoration-none">Mi Perfil</a>
+                        <form action="/logout" method="post">
+                            <AntiforgeryToken />
+                            <button type="submit" class="btn btn-link text-decoration-none">Logout</button>
+                        </form>
+                    </Authorized>
+                    <NotAuthorized>
+                        <a href="/login" class="ms-3">Login</a>
+                    </NotAuthorized>
+                </AuthorizeView>
             </div>
             <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
         </div>
 
         <article class="content px-4">
-            @Body
+            @if (_isStateLoaded)
+            {
+                @Body
+            }
+            else
+            {
+                <p>Inicializando sesión y estado de la aplicación...</p>
+            }
         </article>
     </main>
 </div>
@@ -44,30 +72,51 @@
 
 
 @code {
-    // private void OnCivisChanged(ChangeEventArgs e)
-    // {
-    //     if (Guid.TryParse(e.Value?.ToString(), out var newCivisId))
-    //     {
-    //         CivisState.SetCivis(newCivisId);
-    //     }
-    // }
+    [CascadingParameter]
+    private HttpContext? HttpContext { get; set; }
+    private PersistingComponentStateSubscription _subscription;
+    private bool _isStateLoaded = false;
 
-    // Propiedad intermedia que enlaza la UI con mi State.
-    private Guid CurrentCivisId
+    protected override async Task OnInitializedAsync()
     {
-        get => CivisState.CurrentCivisId;
-        set => CivisState.SetCivis(value);
+        Console.WriteLine("TokenProvider length: " + (TokenProvider.AccessToken?.Length ?? 0)); // TODO: eliminar este debug.
+
+        // se registra el evento de persistencia para el paso de SSR a SignalR.
+        _subscription = ApplicationState.RegisterOnPersisting(PersistToken);
+
+        // se trata de recuperar el token si estamos en la fase de SignalR.
+        if (!ApplicationState.TryTakeFromJson<string>("AccessToken", out var restoredToken))
+        {
+            // fase SSR: se extrae el HttpContext
+            if (HttpContext is not null)
+            {
+                var token = await HttpContext.GetTokenAsync("access_token");
+                if (!string.IsNullOrEmpty(token))
+                {
+                    Console.WriteLine("TokenProvider length: " + (TokenProvider.AccessToken?.Length ?? 0)); // TODO: eliminar este debug.
+                    TokenProvider.AccessToken = token;
+                }
+            }
+        }
+        else
+        {
+            // fase SignalR: se restaura el token.
+            TokenProvider.AccessToken = restoredToken;
+        }
+
+        _isStateLoaded = true;
     }
 
-    protected override void OnInitialized()
+    private Task PersistToken()
     {
-        // Nos suscribimos a los cambios de estado para repintar la UI si hace falta
-        CivisState.OnChange += StateHasChanged;
+        ApplicationState.PersistAsJson("AccessToken", TokenProvider.AccessToken);
+        return Task.CompletedTask;
     }
 
     public void Dispose()
     {
-        CivisState.OnChange -= StateHasChanged;
+        _subscription.Dispose();
     }
+
 
 }

@@ -1,9 +1,12 @@
 ﻿@page "/lex"
 @rendermode InteractiveServer
+@attribute [Authorize]
 
 @using CorpusLegis.Shared.Dtos.Lex
+@using Microsoft.AspNetCore.Authorization
 
-@inject Clients.CorpusLegisApiClient ApiClient
+@* @inject Clients.CorpusLegisApiClient ApiClient *@
+@inject Clients.Lex.ILexClient ApiClient
 
 
 <h3>Leges actuales</h3>
@@ -70,12 +73,29 @@ else
 
         try
         {
-            leges = await ApiClient.GetLegesAsync();
+            // leges = await ApiClient.GetLegesAsync(); // Todas las Leges.
+            leges = await ApiClient.GetLegesByCurrentCivisAsync(); // Sólo las Leges de las Civitates a las que pertenezca el Civis.
         }
         catch (ApplicationException ex)
         {
             Console.WriteLine($"Error al cargar las Leges: {ex.Message}");
             errorMessage = $"Error al cargar las Leges: {ex.Message}";
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            Console.WriteLine($"Error de autorización: {ex.Message}");
+            errorMessage = "Tu sesión ha expirado o necesitas iniciar sesión para ver esta información.";
+            //NavigationManager.NavigateTo("/login");
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"Error al cargar las Leges: {ex.Message}");
+            errorMessage = $"Error al cargar las Leges: {ex.Message}";
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error inesperado: {ex.Message}");
+            errorMessage = $"Ha ocurrido un error inesperado al intentar cargar las Leges: {ex.Message}";
         }
     }
 

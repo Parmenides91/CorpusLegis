@@ -10,7 +10,10 @@ public static class RogatioEndpoints
 
     public static void MapRogatioEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/rogatio").WithTags("Rogatio");
+        var group = app.MapGroup("/rogatio")
+            .WithTags("Rogatio")
+            .RequireAuthorization()
+            ;
 
         // Se enlazan las rutas a métodos locales
         group.MapGet("/", GetAllRogationes);
