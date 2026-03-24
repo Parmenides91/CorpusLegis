@@ -16,20 +16,22 @@ public class UserProvisioningMiddleware
     {
         if (context.User?.Identity?.IsAuthenticated == true)
         {
-            var isMachine = context.User.HasClaim(c => c.Type == "clientId" || c.Type == "client_id");
+            var isMachine = context.User.HasClaim(c => c.Type == "clientId" || c.Type == "client_id"); // TODO: ¿cómo viene en mi context desde keycloak? averiguar leyendo un token en jwt.io y ajustar (es uno de estos dos, porque funcionar, funciona).
 
-            if (!isMachine)
-            {
-                try
-                {
-                    await provisioningService.ProvisionUserAsync(context.User, context.RequestAborted);
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Error durante el aprovisionamiento del Civis.");
-                    // No se detiene la solicitud, se continúa aunque falle el aprovisionamiento.
-                }
-            }
+            //if (!isMachine)
+            //{
+            //    try
+            //    {
+            //        await provisioningService.ProvisionUserAsync(context.User, context.RequestAborted);
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        logger.LogError(ex, "Error durante el aprovisionamiento del Civis.");
+            //        // No se detiene la solicitud, se continúa aunque falle el aprovisionamiento.
+            //    }
+            //}
+
+            await provisioningService.ProvisionUserAsync(context.User, context.RequestAborted);
         }
 
         await _next(context);

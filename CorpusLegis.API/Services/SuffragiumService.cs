@@ -12,6 +12,8 @@ public class SuffragiumService : ISuffragiumService
     private readonly CorpusLegisContext _db;
     private readonly ICurrentUserService _currentUser;
 
+    // private readonly ILogger<SuffragiumService> _logger; // TODO: incluir este ILogger
+
     public SuffragiumService(CorpusLegisContext db, ICurrentUserService currentUser)
     {
         _db = db;

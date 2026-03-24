@@ -10,6 +10,8 @@ public class CivitasService : ICivitasService
     private readonly CorpusLegisContext _db;
     private readonly ICurrentUserService _currentUser;
 
+    // private readonly ILogger<CivitasService> _logger; // TODO: incluir este ILogger
+
     public CivitasService(CorpusLegisContext db, ICurrentUserService currentUser)
     {
         _db = db;
