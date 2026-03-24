@@ -1,0 +1,80 @@
+﻿@page "/civitas/delete/{Id:guid}"
+@rendermode InteractiveServer
+@attribute [Authorize]
+
+@using CorpusLegis.Shared.Dtos.Civitas
+@using Microsoft.AspNetCore.Authorization
+
+@inject Clients.Civitas.ICivitasClient CivitasApiClient
+@inject NavigationManager NavigationManager
+
+
+<h3>Eliminar Civitas</h3>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">
+        <strong>Error: </strong>@errorMessage
+    </div>
+}
+
+@if (loading)
+{
+    <p>Cargando</p>
+}
+else if (civitas == null)
+{
+    <div class="alert alert-danger">Civitas no encontrada.</div>
+}
+else
+{
+    <div class="alert alert-warning">
+        <p>Pretendes eliminar la Civitas:</p>
+        
+        <div class="alert alert-danger">
+            <strong>@civitas.Name</strong>
+        </div>
+
+        <small>Esta acción es irreversible.</small>
+        <p>¿Estás seguro de que quieres eliminar esta Civitas?</p>
+        <button class="btn btn-danger mt-3" @onclick="DeleteCivitas">Sí, eliminar</button>
+        <button class="btn btn-secondary mt-3 ms-2" @onclick="CancelDelete">No, cancelar</button>
+
+    </div>
+}
+
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private string? errorMessage;
+    private bool loading = true;
+    private CivitasDetailsDto? civitas;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            civitas = await CivitasApiClient.GetCivitasByIdAsync(Id);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error al cargar el Rogatio: {ex.Message}";
+        }
+
+        loading = false;
+    }
+
+    async Task DeleteCivitas()
+    {
+        var ok = await CivitasApiClient.DeleteCivitasAsync(Id);
+        NavigationManager.NavigateTo("/civitas");
+    }
+
+    void CancelDelete()
+    {
+        NavigationManager.NavigateTo($"/civitas/{Id}");
+    }
+
+}

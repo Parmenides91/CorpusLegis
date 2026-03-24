@@ -61,6 +61,7 @@ builder.Services.AddMassTransit(x =>
 
 
 var keycloakAuthority = builder.Configuration["Keycloak:Authority"];
+//var keycloakAuthority = "http://localhost:8080/realms/CorpusLegis";
 if (string.IsNullOrEmpty(keycloakAuthority))
 {
     throw new InvalidOperationException("La variable de entorno 'Keycloak:Authority' no se ha inyectado correctamente desde el AppHost.");

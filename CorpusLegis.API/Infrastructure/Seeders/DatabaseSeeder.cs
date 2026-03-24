@@ -1,5 +1,6 @@
 ﻿using CorpusLegis.API.Data;
 using CorpusLegis.API.Domain;
+using CorpusLegis.Shared.Enums;
 
 namespace CorpusLegis.API.Infrastructure.Seeders;
 
@@ -36,24 +37,76 @@ public static class DatabaseSeeder
             new Civitas { Id = defaultCivitasIds[5], Name = "Alejandria" }
         };
 
-        defaultCives[0].Civitates.Add(defaultCivitates[0]);
-        defaultCives[1].Civitates.Add(defaultCivitates[1]);
-        //defaultCivitates[2].Cives.Add(defaultCives[2]);
-        //defaultCivitates[3].Cives.Add(defaultCives[2]);
-        //defaultCivitates[4].Cives.Add(defaultCives[2]);
-        //defaultCives[3].Civitates.Add(defaultCivitates[5]);
+        //defaultCives[0].Civitates.Add(defaultCivitates[0]);
+        //defaultCives[1].Civitates.Add(defaultCivitates[1]);
+        ////defaultCivitates[2].Cives.Add(defaultCives[2]);
+        ////defaultCivitates[3].Cives.Add(defaultCives[2]);
+        ////defaultCivitates[4].Cives.Add(defaultCives[2]);
+        ////defaultCives[3].Civitates.Add(defaultCivitates[5]);
 
-        //defaultCives[0].Civitates.Add(defaultCivitates[3]);
-        //defaultCives[0].Civitates.Add(defaultCivitates[4]);
-        //defaultCives[0].Civitates.Add(defaultCivitates[5]);
-        //defaultCivitates[3].Cives.Add(defaultCives[0]);
-        //defaultCivitates[4].Cives.Add(defaultCives[0]);
-        //defaultCivitates[5].Cives.Add(defaultCives[0]);
+        ////defaultCives[0].Civitates.Add(defaultCivitates[3]);
+        ////defaultCives[0].Civitates.Add(defaultCivitates[4]);
+        ////defaultCives[0].Civitates.Add(defaultCivitates[5]);
+        ////defaultCivitates[3].Cives.Add(defaultCives[0]);
+        ////defaultCivitates[4].Cives.Add(defaultCives[0]);
+        ////defaultCivitates[5].Cives.Add(defaultCives[0]);
 
-        defaultCives[5].Civitates.Add(defaultCivitates[0]);
-        defaultCives[5].Civitates.Add(defaultCivitates[1]);
-        defaultCives[5].Civitates.Add(defaultCivitates[2]);
-        defaultCives[5].Civitates.Add(defaultCivitates[3]);
+        //defaultCives[5].Civitates.Add(defaultCivitates[0]);
+        //defaultCives[5].Civitates.Add(defaultCivitates[1]);
+        //defaultCives[5].Civitates.Add(defaultCivitates[2]);
+        //defaultCives[5].Civitates.Add(defaultCivitates[3]);
+
+        // Crear membresías explícitas
+        var membresias = new List<CivitasSodalis>
+        {
+            // Sempronio es Rector de Roma
+            new CivitasSodalis
+            {
+                CivitasId = defaultCivitasIds[0],
+                CivisId = defaultCivisIds[0],
+                Role = Munus.Rector,
+                JoinedAt = DateTime.UtcNow
+            },
+
+            // Tulio es Rector de Cartago
+            new CivitasSodalis
+            {
+                CivitasId = defaultCivitasIds[1],
+                CivisId = defaultCivisIds[1],
+                Role = Munus.Rector,
+                JoinedAt = DateTime.UtcNow
+            },
+
+            // Craso pertenece a varias civitates como Plebeius
+            new CivitasSodalis
+            {
+                CivitasId = defaultCivitasIds[0],
+                CivisId = defaultCivisIds[5],
+                Role = Munus.Plebeius,
+                JoinedAt = DateTime.UtcNow
+            },
+            new CivitasSodalis
+            {
+                CivitasId = defaultCivitasIds[1],
+                CivisId = defaultCivisIds[5],
+                Role = Munus.Plebeius,
+                JoinedAt = DateTime.UtcNow
+            },
+            new CivitasSodalis
+            {
+                CivitasId = defaultCivitasIds[2],
+                CivisId = defaultCivisIds[5],
+                Role = Munus.Plebeius,
+                JoinedAt = DateTime.UtcNow
+            },
+            new CivitasSodalis
+            {
+                CivitasId = defaultCivitasIds[3],
+                CivisId = defaultCivisIds[5],
+                Role = Munus.Plebeius,
+                JoinedAt = DateTime.UtcNow
+            }
+        };
 
 
         var rogatio = new Rogatio
@@ -68,6 +121,7 @@ public static class DatabaseSeeder
 
         db.Cives.AddRange(defaultCives);
         db.Civitates.AddRange(defaultCivitates);
+        db.CivitasSodales.AddRange(membresias);
         db.Rogationes.Add(rogatio);
 
         db.SaveChanges();

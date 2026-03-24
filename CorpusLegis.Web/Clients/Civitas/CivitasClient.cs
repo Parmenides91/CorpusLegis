@@ -196,6 +196,30 @@ public class CivitasClient : CorpusLegisApiClientBase, ICivitasClient
 
     }
 
+    // Método para crear una nueva Civitas.
+    public async Task<CivitasDetailsDto?> CreateCivitasAsync(CreateCivitasDto dto)
+    {
+        var response = await _httpClient.PostAsJsonAsync("/civitas", dto);
+        await HandleNonSuccessResponseAsync(response);
+        return await response.Content.ReadFromJsonAsync<CivitasDetailsDto>();
+    }
+
+    // Método para editar una Civitas.
+    public async Task<CivitasDetailsDto?> UpdateCivitasAsync(Guid id, UpdateCivitasDto dto)
+    {
+        var response = await _httpClient.PutAsJsonAsync($"/civitas/{id}", dto);
+        await HandleNonSuccessResponseAsync(response);
+        return await response.Content.ReadFromJsonAsync<CivitasDetailsDto>();
+    }
+
+    // Método para eliminar una Civitas.
+    public async Task<bool> DeleteCivitasAsync(Guid id)
+    {
+        var response = await _httpClient.DeleteAsync($"/civitas/{id}");
+        await HandleNonSuccessResponseAsync(response);
+        return true;
+    }
+
     // Método para obtener la lista de Civitates a las que pertenece el Civis actual.
     public async Task<List<CivitasSummaryDto>> GetUserCivitatesAsync()
     {

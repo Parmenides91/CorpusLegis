@@ -1,0 +1,128 @@
+﻿@page "/civitas/edit/{Id:guid}"
+@rendermode InteractiveServer
+@attribute [Authorize]
+
+@using CorpusLegis.Shared.Dtos.Civitas
+@using CorpusLegis.Shared.Enums
+@using Microsoft.AspNetCore.Authorization
+
+@inject Clients.Civitas.ICivitasClient CivitasApiClient
+@inject NavigationManager NavigationManager
+
+
+<h3>Edición de la Civitas</h3>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">
+        <strong>Error: </strong>@errorMessage
+    </div>
+}
+
+@if (loading)
+{
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">. . . Cargando . . .</span>
+    </div>
+}
+else if (editModel != null)
+{
+    <EditForm Model="editModel" OnValidSubmit="HandleSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary /> @* No sé si esto va a funcionar *@
+
+        <div class="mb-3">
+            <label for="name" class="form-label">Nombre</label>
+            <InputText id="name" class="form-control" @bind-Value="editModel.Name" />
+            <ValidationMessage For="@(() => editModel.Name)" />
+        </div>
+
+        <div class="mb-3">
+            <label for="description" class="form-label">Contenido</label>
+            <InputTextArea id="description" class="form-control" @bind-Value="editModel.Description" />
+            <ValidationMessage For="@(() => editModel.Description)" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Visibilidad de la Civitas</label>
+            <div class="mt-2">
+                <InputRadioGroup TValue="Visibilitas" @bind-Value="editModel.Visibility">
+                    @foreach (Visibilitas option in Enum.GetValues<Visibilitas>())
+                    {
+                        var optionId = $"vis-{option}";
+                        <div class="form-check form-check-inline">
+                            <InputRadio id="@optionId" class="form-check-input" Value="@(option)" />
+                            <label class="form-check-label" for="optionId">@GetEnumDisplayName(option)</label>
+                        </div>
+                    }
+                </InputRadioGroup>
+            </div>
+        </div>
+
+        <button class="btn btn-primary" type="submit" disabled="@saving">
+            @(saving ? "Guardando..." : "Guardar")
+        </button>
+        <button class="btn btn-secondary ms-2" type="button" @onclick="CancelEdit">Cancelar</button>
+
+    </EditForm>
+}
+
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private string? errorMessage;
+    private bool loading = true;
+    private bool saving = false;
+    private UpdateCivitasDto? editModel;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var dto = await CivitasApiClient.GetCivitasByIdAsync(Id);
+
+        if (dto != null)
+        {
+            editModel = new UpdateCivitasDto
+            {
+                Name = dto.Name,
+                Description = dto.Description,
+                Visibility = dto.Visibility
+            };
+        }
+
+        loading = false;
+
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (editModel == null)
+        {
+            Console.WriteLine($"No se ha podido cargar la Civitas para editar.");
+            errorMessage = "No se ha podido cargar la Civitas para editar.";
+            return;
+        }
+
+        saving = true;
+
+        await CivitasApiClient.UpdateCivitasAsync(Id, editModel);
+
+        NavigationManager.NavigateTo($"/civitas/{Id}");
+    }
+
+    private void CancelEdit()
+    {
+        NavigationManager.NavigateTo($"/civitas");
+    }
+
+    private static string GetEnumDisplayName(Enum value)
+    {
+        var member = value.GetType().GetMember(value.ToString()).FirstOrDefault();
+        if (member == null) return value.ToString();
+        var display = member.GetCustomAttributes(typeof(System.ComponentModel.DataAnnotations.DisplayAttribute), false)
+                            .Cast<System.ComponentModel.DataAnnotations.DisplayAttribute>()
+                            .FirstOrDefault();
+        return display?.GetName() ?? value.ToString();
+    }
+
+}

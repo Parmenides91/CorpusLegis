@@ -1,4 +1,6 @@
 ﻿using CorpusLegis.API.Services;
+using CorpusLegis.Shared.Dtos.Civitas;
+using MiniValidation;
 
 namespace CorpusLegis.API.Endpoints;
 
@@ -14,6 +16,9 @@ public static class CivitasEndpoints
 
         group.MapGet("/", GetAllCivitates);
         group.MapGet("/{id:guid}", GetCivitasById);
+        group.MapPost("/", CreateCivitas);
+        group.MapPut("/{id:guid}", UpdateCivitas);
+        group.MapDelete("/{id:guid}", DeleteCivitas);
 
 
         group.MapGet("/civis/me", GetCivitatesForCurrentCivis);
@@ -40,6 +45,37 @@ public static class CivitasEndpoints
         var civitas = await service.GetByIdAsync(id);
 
         return civitas is not null ? Results.Ok(civitas) : Results.NotFound();
+    }
+
+    private static async Task<IResult> CreateCivitas(CreateCivitasDto dto, ICivitasService service)
+    {
+        if (!MiniValidator.TryValidate(dto, out var errors))
+        {
+            return Results.ValidationProblem(errors);
+        }
+
+        var result = await service.CreateAsync(dto);
+
+        return Results.Created($"/civitas/{result.Id}", result); // si ha ido bien, será un código 201 + el objeto (DTO) creado.
+    }
+
+    private static async Task<IResult> UpdateCivitas(Guid id, UpdateCivitasDto dto, ICivitasService service)
+    {
+        if (!MiniValidator.TryValidate(dto, out var errors))
+        {
+            return Results.ValidationProblem(errors);
+        }
+
+        var updated = await service.UpdateAsync(id, dto);
+
+        return updated is not null ? Results.Ok(updated) : Results.NotFound(); // si va bien, será un código 200 + el objeto (DTO) actualizado.
+    }
+
+    private static async Task<IResult> DeleteCivitas(Guid id, ICivitasService service)
+    {
+        var deleted = await service.DeleteAsync(id);
+
+        return deleted ? Results.NoContent() : Results.NotFound();
     }
 
 
