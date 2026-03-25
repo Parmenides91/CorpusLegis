@@ -31,25 +31,60 @@ public class CivitasService : ICivitasService
     {
         var currentCivisId = _currentUser.CivisId;
 
-        // TODO: Sólo listar las Civitas públicas o aquellas a las que el usuario actual pertenece o aquellas de las que es el creador.
+        //return await _db.Civitates
+        //    .AsNoTracking()
+        //    .Select(c => new CivitasSummaryDto (
+        //        c.Id,
+        //        c.Name,
+        //        c.FoundedAt,
+        //        c.Cives.Any(u => u.Id == currentCivisId)
+        //        ))
+        //    .ToListAsync();
+
+        // Opción 01: mediante el skip navigation de Cives en Civitas.
         return await _db.Civitates
             .AsNoTracking()
-            .Select(c => new CivitasSummaryDto (
+            .Where(c => c.Visibility == Visibilitas.Publica || c.Cives.Any(u => u.Id == currentCivisId))
+            .Select(c => new CivitasSummaryDto(
                 c.Id,
                 c.Name,
                 c.FoundedAt,
                 c.Cives.Any(u => u.Id == currentCivisId)
                 ))
             .ToListAsync();
+
+        // Opción 02: mediante la relación explícita de Civis y Civitas.
+        return await _db.Civitates
+            .AsNoTracking()
+            .Where(c => c.Visibility == Visibilitas.Publica || c.Sodales.Any(cs => cs.CivisId == currentCivisId))
+            .Select(c => new CivitasSummaryDto(
+                c.Id,
+                c.Name,
+                c.FoundedAt,
+                c.Sodales.Any(cs => cs.CivisId == currentCivisId)
+                ))
+            .ToListAsync();
     }
 
     public async Task<CivitasDetailsDto?> GetByIdAsync(Guid id)
     {
-        // TODO: Sólo permitir acceder a la información detallada de las Civitas públicas o aquellas a las que el usuario actual pertenece o aquellas de las que es el creador.
+        //var dto = await _db.Civitates
+        //    .AsNoTracking()
+        //    .Where(c => c.Id == id)
+        //    .Select(c => new CivitasDetailsDto (
+        //        c.Id,
+        //        c.Name,
+        //        c.Description,
+        //        c.Visibility,
+        //        c.FoundedAt
+        //        ))
+        //    .FirstOrDefaultAsync();
+
+        // Opción 01: mediante el skip navigation de Cives en Civitas.
         var dto = await _db.Civitates
             .AsNoTracking()
-            .Where(c => c.Id == id)
-            .Select(c => new CivitasDetailsDto (
+            .Where(c => c.Id == id && (c.Visibility == Visibilitas.Publica || c.Cives.Any(u => u.Id == _currentUser.CivisId)))
+            .Select(c => new CivitasDetailsDto(
                 c.Id,
                 c.Name,
                 c.Description,
@@ -57,6 +92,19 @@ public class CivitasService : ICivitasService
                 c.FoundedAt
                 ))
             .FirstOrDefaultAsync();
+
+        // Opción 02: mediante la relación explícita de Civis y Civitas.
+        //var dto = await _db.Civitates
+        //    .AsNoTracking()
+        //    .Where(c => c.Id == id && (c.Visibility == Visibilitas.Publica || c.Sodales.Any(cs => cs.CivisId == _currentUser.CivisId)))
+        //    .Select(c => new CivitasDetailsDto(
+        //        c.Id,
+        //        c.Name,
+        //        c.Description,
+        //        c.Visibility,
+        //        c.FoundedAt
+        //        ))
+        //    .FirstOrDefaultAsync();
 
         if (dto == null)
         {
