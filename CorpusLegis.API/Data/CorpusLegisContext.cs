@@ -154,6 +154,13 @@ public class CorpusLegisContext(DbContextOptions<CorpusLegisContext> options)
             .WithMany(c => c.InvitationesAcceptae)
             .HasForeignKey(i => i.InviteeId)
             .OnDelete(DeleteBehavior.Restrict); // No se puede borrar un Civis que haya sido invitado a una Civitas.
+
+
+
+        // Definición explícita del tamaño del token de las invitaciones a las Civitates.
+        modelBuilder.Entity<Invitatio>()
+            .Property(i => i.Token)
+            .HasMaxLength(43); // 32 bytes codificados en Base64 URL-safe generan un string de 43 caracteres.
     }
 
 }

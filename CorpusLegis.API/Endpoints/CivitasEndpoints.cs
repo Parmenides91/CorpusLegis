@@ -1,5 +1,7 @@
-﻿using CorpusLegis.API.Services;
+﻿using CorpusLegis.API.Exceptions;
+using CorpusLegis.API.Services;
 using CorpusLegis.Shared.Dtos.Civitas;
+using FluentValidation;
 using MiniValidation;
 
 namespace CorpusLegis.API.Endpoints;
@@ -47,11 +49,19 @@ public static class CivitasEndpoints
         return civitas is not null ? Results.Ok(civitas) : Results.NotFound();
     }
 
-    private static async Task<IResult> CreateCivitas(CreateCivitasDto dto, ICivitasService service)
+    private static async Task<IResult> CreateCivitas(CreateCivitasDto dto, IValidator<CreateCivitasDto> validator, ICivitasService service)
     {
+        // Ya no uso MiniValidation.
         if (!MiniValidator.TryValidate(dto, out var errors))
         {
             return Results.ValidationProblem(errors);
+        }
+        // Uso FluentValidation.
+        var validationResult = await validator.ValidateAsync(dto);
+        if (!validationResult.IsValid)
+        {
+            var _errors = string.Join(" | ", validationResult.Errors.Select(e => e.ErrorMessage));
+            throw new BusinessRuleValidationException($"Errores de validación en la creación de la Civitas: {_errors}");
         }
 
         var result = await service.CreateAsync(dto);

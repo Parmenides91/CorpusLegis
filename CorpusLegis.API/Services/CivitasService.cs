@@ -15,7 +15,7 @@ public class CivitasService : ICivitasService
 
     private readonly ILogger<CivitasService> _logger; // TODO: incluir este ILogger
 
-    private readonly IValidator<CreateCivitasDto> _createCivitasValidator;
+    private readonly IValidator<CreateCivitasDto> _createCivitasValidator; // TODO: esto se puede quitar.
 
     public CivitasService(CorpusLegisContext db, ICurrentUserService currentUser, IValidator<CreateCivitasDto> createCivitasValidator, ILogger<CivitasService> logger)
     {
@@ -123,13 +123,13 @@ public class CivitasService : ICivitasService
             throw new UnauthorizedDomainException("Usuario no identificado.");
         }
 
-        var validationResult = await _createCivitasValidator.ValidateAsync(newCivitas);
-
-        if (!validationResult.IsValid)
-        {
-            var errors = string.Join(" | ", validationResult.Errors.Select(e => e.ErrorMessage));
-            throw new BusinessRuleValidationException($"Errores de validación en la creación de la Civitas: {errors}");
-        }
+        // TODO: esto tiene que ir en el Endpoint.
+        //var validationResult = await _createCivitasValidator.ValidateAsync(newCivitas);
+        //if (!validationResult.IsValid)
+        //{
+        //    var errors = string.Join(" | ", validationResult.Errors.Select(e => e.ErrorMessage));
+        //    throw new BusinessRuleValidationException($"Errores de validación en la creación de la Civitas: {errors}");
+        //}
 
         //using var transaction = await _db.Database.BeginTransactionAsync();
 

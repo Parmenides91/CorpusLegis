@@ -94,15 +94,15 @@ public class RogatioService : IRogatioService
     {
         var civisId = _currentUser.CivisId;
 
-        var validationResult = await _createValidator.ValidateAsync(newRogatio);
-
-        if (!validationResult.IsValid)
-        {
-            // extraemos los mensajes y los unimos o los serializamos como JSON.
-            // para mantenerlo simple y compatible con el ExceptionHanlder que tenemos:
-            var errors = string.Join(" | ", validationResult.Errors.Select(e => e.ErrorMessage));
-            throw new BusinessRuleValidationException($"Errores de validación en la creación de la Rogatio: {errors}");
-        }
+        // TODO: esto tiene que ir en el endpoint, no en el service
+        //var validationResult = await _createValidator.ValidateAsync(newRogatio);
+        //if (!validationResult.IsValid)
+        //{
+        //    // extraemos los mensajes y los unimos o los serializamos como JSON.
+        //    // para mantenerlo simple y compatible con el ExceptionHanlder que tenemos:
+        //    var errors = string.Join(" | ", validationResult.Errors.Select(e => e.ErrorMessage));
+        //    throw new BusinessRuleValidationException($"Errores de validación en la creación de la Rogatio: {errors}");
+        //}
 
         //// ¿existe la Civitas?
         //var civitasExists = await _db.Civitates.AnyAsync(c => c.Id == newRogatio.CivitasId);

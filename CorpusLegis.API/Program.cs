@@ -60,8 +60,8 @@ builder.Services.AddMassTransit(x =>
 });
 
 
-var keycloakAuthority = builder.Configuration["Keycloak:Authority"];
-//var keycloakAuthority = "http://localhost:8080/realms/CorpusLegis";
+//var keycloakAuthority = builder.Configuration["Keycloak:Authority"];
+var keycloakAuthority = "http://localhost:8080/realms/CorpusLegis"; // si no hago esto, desde que puse Usuarios reales, no me van a funcionar las migraciones porque necesita resolver esta variable para la migración.
 if (string.IsNullOrEmpty(keycloakAuthority))
 {
     throw new InvalidOperationException("La variable de entorno 'Keycloak:Authority' no se ha inyectado correctamente desde el AppHost.");
@@ -184,12 +184,17 @@ builder.Services.AddScoped<ICivitasService, CivitasService>();
 builder.Services.AddHttpContextAccessor(); // Necesario para que CurrentUserService pueda acceder al contexto HTTP.
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>(); // Servicio para obtener el usuario actual (Civis) a partir del contexto HTTP
 
+// Se registra el servicio de Invitatio.
+builder.Services.AddScoped<IInvitatioService, InvitatioService>();
+
 // Se registra el servicio de Excepciones.
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
 // Se registra el servicio de validaciones.
 builder.Services.AddValidatorsFromAssemblyContaining<CreateRogatioDtoValidator>();
+//builder.Services.AddValidatorsFromAssemblyContaining<CreateCivitasDtoValidator>(); // si están en el mismo proyecto, con la primera línea ya los coge a todos, no hace falta repetirlo para cada DTO.
+//builder.Services.AddValidatorsFromAssemblyContaining<CreateInvitatioDtoValidator>(); // TODO: limpiar.
 
 // se agrega la transformación de Claims.
 builder.Services.AddTransient<IClaimsTransformation, KeycloakRolesClaimsTransformation>(); // para la Autorización Basada en Roles (RBAC)
