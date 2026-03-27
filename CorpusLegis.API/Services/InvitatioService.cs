@@ -38,6 +38,12 @@ public class InvitatioService : IInvitatioService
     #region emisores
     public async Task<InvitatioDetailsDto> SendAsync(CreateInvitatioDto dto)
     {
+        if (_currentUser.CivisId == null)
+        {
+            _logger.LogError("Intento de acceso a operaciones de Invitatio sin un CivisId en el contexto.");
+            throw new UnauthorizedDomainException("No se pudo identificar al usuario actual.");
+        }
+
         // ¿Esto va aquí o va mejor en el endpoint?
         var validationResult = await _createValidator.ValidateAsync(dto);
         if (!validationResult.IsValid)
@@ -121,6 +127,8 @@ public class InvitatioService : IInvitatioService
             invitatio.CivitasId,
             civitasName,
             inviterName,
+            invitee.Name,
+            invitee.Email,
             invitatio.IssuedAt,
             invitatio.Status
         );
@@ -167,6 +175,8 @@ public class InvitatioService : IInvitatioService
                 i.CivitasId,
                 i.Civitas.Name,
                 i.Inviter.Name,
+                i.Invitee.Name,
+                i.Invitee.Email,
                 i.IssuedAt,
                 i.Status)
             )
@@ -186,6 +196,8 @@ public class InvitatioService : IInvitatioService
                 i.CivitasId,
                 i.Civitas.Name,
                 i.Inviter.Name,
+                i.Invitee.Name,
+                i.Invitee.Email,
                 i.IssuedAt,
                 i.Status)
             )
@@ -204,6 +216,8 @@ public class InvitatioService : IInvitatioService
                 i.CivitasId,
                 i.Civitas.Name,
                 i.Inviter.Name,
+                i.Invitee.Name,
+                i.Invitee.Email,
                 i.IssuedAt,
                 i.Status)
             )

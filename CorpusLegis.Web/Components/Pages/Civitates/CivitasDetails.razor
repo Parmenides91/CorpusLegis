@@ -3,6 +3,7 @@
 @attribute [Authorize]
 
 @using CorpusLegis.Shared.Dtos.Civitas
+@using CorpusLegis.Web.Components.Pages.Invitatio
 @using Microsoft.AspNetCore.Authorization
 
 @* @inject Clients.CorpusLegisApiClient ApiClient *@
@@ -42,6 +43,8 @@
         </div>
 
     </div>
+
+    <CivitasInvitatioManager CivitasId="civitas.Id" />
 
 }
 

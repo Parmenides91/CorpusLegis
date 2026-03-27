@@ -1,0 +1,215 @@
+﻿@using CorpusLegis.Shared.Dtos.Invitatio
+@using Microsoft.Extensions.Logging
+
+@inject Clients.Invitatio.IInvitatioClient ApiInvitatioClient
+@inject ILogger<CivitasInvitatioManager> Logger
+
+
+
+<div class="civitas-invitatio-manager">
+    <h4 class="mb-3">Gestión de Invitationes</h4>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Emitir nueva invitación</h5>
+            <form @onsubmit="SendInvitatioAsync">
+                <div class="input-group mb-2">
+                    <input type="email" class="form-control" placeholder="Correo electrónico del Civis a invitar" @bind="_inviteeEmail" required disabled="@_isProcessing" />
+                    <button type="submit" class="btn btn-primary" disabled="@(_isProcessing || string.IsNullOrWhiteSpace(_inviteeEmail))">Enviar Invitatio</button>
+                </div>
+            </form>
+            @if (!string.IsNullOrEmpty(_formErrorMessage))
+            {
+                <div class="text-danger small">@_formErrorMessage</div>
+            }
+            @if (!string.IsNullOrEmpty(_formSuccessMessage))
+            {
+                <div class="text-success small">@_formSuccessMessage</div>
+            }
+        </div>
+    </div>
+
+    <h5 class="mb-3">Invitationes pendientes</h5>
+    @if (_isLoading)
+    {
+        <p class="text-muted"><em>Cargando registro de Invitationes...</em></p>
+    }
+    else if (!string.IsNullOrEmpty(_tableErrorMessage))
+    {
+        <div class="alert alert-danger">@_tableErrorMessage</div>
+    }
+    else if (!_invitationes.Any())
+    {
+        <p class="text-muted">No tienes Invitationes pendientes emitidas para esta Civitas.</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped table-sm align-middle">
+                <thead>
+                    <tr>
+                        <th>Invitado (email)</th>
+                        <th>Emitida por</th>
+                        <th>Fecha de emisión</th>
+                        <th class="text-end">Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var invitatio in _invitationes)
+                    {
+                        <tr>
+                            <td>
+                                @(string.IsNullOrEmpty(invitatio.InviteeName) ? "Desconocido" : invitatio.InviteeName)
+                                <br/>
+                                <small class="text-muted">@invitatio.InviteeEmail</small>
+                            </td>
+                            <td>@invitatio.InviterName</td>
+                            <td>@invitatio.IssuedAt.ToString("g")</td>
+                            <td class="text-end">
+                                <button class="btn btn-sm btn-outline-danger" @onclick="() => RevokeInvitatioAsync(invitatio.Id)" disabled="@_isProcessing">Revocar</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+</div>
+
+
+
+@code {
+    [Parameter]
+    public Guid CivitasId { get; set; }
+
+    private List<InvitatioDetailsDto> _invitationes = new();
+    private string _inviteeEmail = string.Empty;
+
+    private bool _isLoading = true;
+    private bool _isProcessing = false;
+
+    private string? _formErrorMessage;
+    private string? _formSuccessMessage;
+    private string? _tableErrorMessage;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (CivitasId == Guid.Empty)
+        {
+            _tableErrorMessage = "Identificador de Civitas no proporcionado.";
+            _isLoading = false;
+            return;
+        }
+
+        await LoadPendingInvitationesAsync();
+    }
+
+    private async Task LoadPendingInvitationesAsync()
+    {
+        try
+        {
+            _isLoading = true;
+            _tableErrorMessage = null;
+            _invitationes = await ApiInvitatioClient.GetPendingInvitationesForCivitasAsync(CivitasId);
+            // var response = await ApiInvitatioClient.GetPendingInvitationesByCivitasAsync(CivitasId);
+            // if (response.IsSuccessStatusCode)
+            // {
+            //     _invitationes = response.Content.ToList();
+            // }
+            // else
+            // {
+            //     _tableErrorMessage = $"Error al cargar las Invitationes: {response.ReasonPhrase}";
+            //     Logger.LogError("Error al cargar las Invitationes para Civitas {CivitasId}: {StatusCode} - {ReasonPhrase}", CivitasId, response.StatusCode, response.ReasonPhrase);
+            // }
+        }
+        catch (Exception ex)
+        {
+            _tableErrorMessage = $"Excepción al cargar las Invitationes para Civitas {CivitasId} : {ex}";
+            Logger.LogError(ex, "Excepción al cargar las Invitationes para Civitas {CivitasId}", CivitasId);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task SendInvitatioAsync()
+    {
+        if (_isProcessing || string.IsNullOrWhiteSpace(_inviteeEmail))
+        {
+            return;
+        }
+        try
+        {
+            _isProcessing = true;
+            _formErrorMessage = null;
+            _formSuccessMessage = null;
+
+            var dto = new CreateInvitatioDto(CivitasId, _inviteeEmail);
+            var result = await ApiInvitatioClient.SendInvitatioAsync(dto);
+
+            if (result != null)
+            {
+                _formSuccessMessage = $"Invitación enviada exitosamente a {_inviteeEmail}.";
+                _inviteeEmail = string.Empty;
+
+                // Opción 01: recargar toda la lista (costoso para la bbdd).
+                //await LoadPendingInvitationesAsync();
+                // Opción 02: agregar la invitación localmente.
+                _invitationes.Add(result);
+                _invitationes = _invitationes.OrderByDescending(i => i.IssuedAt).ToList();
+            }
+            else
+            {
+                _formErrorMessage = $"Error al enviar la Invitatio a {_inviteeEmail}.";
+                Logger.LogError("Error al enviar la Invitatio a {Email} para Civitas {CivitasId}", _inviteeEmail, CivitasId);
+            }
+        }
+        catch (Exception ex)
+        {
+            _formErrorMessage = $"Excepción al enviar la Invitatio a {_inviteeEmail}: {ex.Message}";
+            Logger.LogError(ex, "Excepción al enviar la Invitatio a {Email} para Civitas {CivitasId}", _inviteeEmail, CivitasId);
+        }
+        finally
+        {
+            _isProcessing = false;
+        }
+    }
+
+    private async Task RevokeInvitatioAsync(Guid invitatioId)
+    {
+        if (_isProcessing) return;
+
+        try
+        {
+            _isProcessing = true;
+            _tableErrorMessage = null;
+
+            var success = await ApiInvitatioClient.RevokeInvitatioAsync(invitatioId);
+            if (success)
+            {
+                // Opción 01: refrescar la lista (costoso para la bbdd).
+                //await LoadPendingInvitationesAsync();
+                // Opción 02: eliminar la invitación localmente.
+                _invitationes.RemoveAll(i => i.Id == invitatioId);
+            }
+            else
+            {
+                _tableErrorMessage = $"Error al rechazar la Invitatio.";
+                Logger.LogError("Error al rechazar la Invitatio {InvitatioId} para Civitas {CivitasId}", invitatioId, CivitasId);
+            }
+        }
+        catch (Exception ex)
+        {
+            _tableErrorMessage = $"Excepción al rechazar la Invitatio: {ex.Message}";
+            Logger.LogError(ex, "Excepción al revocar la Invitatio {InvitatioId} para Civitas {CivitasId}", invitatioId, CivitasId);
+        }
+        finally
+        {
+            _isProcessing = false;
+        }
+    }
+
+}

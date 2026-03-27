@@ -6,10 +6,12 @@ using System.Text;
 namespace CorpusLegis.Shared.Dtos.Invitatio;
 
 public record InvitatioDetailsDto(
-    Guid id,
+    Guid Id,
     Guid CivitasId,
     string CivitasName,
     string InviterName,
-    DateTime SentAt,
+    string? InviteeName,
+    string? InviteeEmail,
+    DateTime IssuedAt,
     InvitationisStatus Status
     );

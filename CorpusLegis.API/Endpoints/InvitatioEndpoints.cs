@@ -19,7 +19,7 @@ public static class InvitatioEndpoints
         group.MapGet("/civitas/{civitasId:guid}/pending", GetPendingForCivitas);
 
         group.MapGet("/civis/{civisId:guid}/pending", GetPendingForCivis);
-        group.MapGet("/civis/pending", GetPendingForCurrentCivis);
+        group.MapGet("/me/pending", GetPendingForCurrentCivis);
         group.MapPost("/{id:guid}/accept", AcceptInvitatio);
         group.MapPost("/{id:guid}/reject", RejectInvitatio);
     }
