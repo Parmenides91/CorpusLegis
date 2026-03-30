@@ -10,5 +10,7 @@ public record CivitasDetailsDto(
     string Name,
     string Description,
     Visibilitas Visibility,
-    DateTime FoundedAt
+    DateTime FoundedAt,
+    bool CanEdit,
+    bool CanDelete
     );

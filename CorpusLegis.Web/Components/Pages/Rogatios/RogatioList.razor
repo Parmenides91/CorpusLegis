@@ -52,11 +52,14 @@ else
                     <td>@rogatio.CreatedAt</td>
                     <td>
                         <a class="btn btn-sm btn-outline-primary" href="rogatio/@rogatio.Id">Ver detalles</a>
-                        @* @if (rogatio.Status == Shared.Enums.RogatioStatus.Inchoatus && rogatio.CivisId == CivisState.CurrentCivisId)
-                        { *@
+                        @if (rogatio.CanEdit)
+                        {
                             <a class="btn btn-sm btn-outline-secondary" href="rogatio/edit/@rogatio.Id">Editar</a>
+                        }
+                        @if (rogatio.CanDelete)
+                        {
                             <a class="btn btn-sm btn-outline-warning" href="rogatio/delete/@rogatio.Id">¿Eliminar?</a>
-                        @* } *@
+                        }
                     </td>
                 </tr>
             }

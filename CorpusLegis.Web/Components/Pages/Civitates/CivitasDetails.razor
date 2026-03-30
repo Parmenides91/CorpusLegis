@@ -29,8 +29,8 @@
                 <div class="col-sm-8">
                     <h4 class="mb-0">@civitas.Name</h4>
                 </div>
-                <div class="col-sm-2">Civis: @* @lex.CivisName *@</div>
-                <div class="col-sm-2">Civitas: @* @lex.CivitasName *@</div>
+                <div class="col-sm-2">Civis:</div>
+                <div class="col-sm-2">Civitas:</div>
             </div>
         </div>
 
@@ -44,7 +44,10 @@
 
     </div>
 
-    <CivitasInvitatioManager CivitasId="civitas.Id" />
+    @if (civitas.CanEdit)
+    {
+        <CivitasInvitatioManager CivitasId="civitas.Id" />
+    }
 
 }
 

@@ -12,6 +12,8 @@ public record RogatioSummaryDto(
     Guid CivisId,
     string CivitasName,
     DateTime CreatedAt,
-    RogatioStatus Status
+    RogatioStatus Status,
+    bool CanEdit,
+    bool CanDelete
     );
 

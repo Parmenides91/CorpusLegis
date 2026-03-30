@@ -49,7 +49,9 @@ public class CivitasService : ICivitasService
                 c.Id,
                 c.Name,
                 c.FoundedAt,
-                c.Cives.Any(u => u.Id == currentCivisId)
+                c.Cives.Any(u => u.Id == currentCivisId),
+                c.Sodales.Any(s => s.CivisId == currentCivisId && (s.Role == Munus.Rector || s.Role == Munus.Magistratus)),
+                c.Sodales.Any(s => s.CivisId == currentCivisId && s.Role == Munus.Rector)
                 ))
             .ToListAsync();
 
@@ -61,13 +63,17 @@ public class CivitasService : ICivitasService
                 c.Id,
                 c.Name,
                 c.FoundedAt,
-                c.Sodales.Any(cs => cs.CivisId == currentCivisId)
+                c.Sodales.Any(cs => cs.CivisId == currentCivisId),
+                c.Sodales.Any(s => s.CivisId == currentCivisId && (s.Role == Munus.Rector || s.Role == Munus.Magistratus)),
+                c.Sodales.Any(s => s.CivisId == currentCivisId && s.Role == Munus.Rector)
                 ))
             .ToListAsync();
     }
 
     public async Task<CivitasDetailsDto?> GetByIdAsync(Guid id)
     {
+        var civisId = _currentUser.CivisId;
+
         //var dto = await _db.Civitates
         //    .AsNoTracking()
         //    .Where(c => c.Id == id)
@@ -83,13 +89,15 @@ public class CivitasService : ICivitasService
         // Opción 01: mediante el skip navigation de Cives en Civitas.
         var dto = await _db.Civitates
             .AsNoTracking()
-            .Where(c => c.Id == id && (c.Visibility == Visibilitas.Publica || c.Cives.Any(u => u.Id == _currentUser.CivisId)))
+            .Where(c => c.Id == id && (c.Visibility == Visibilitas.Publica || c.Cives.Any(u => u.Id == civisId)))
             .Select(c => new CivitasDetailsDto(
                 c.Id,
                 c.Name,
                 c.Description,
                 c.Visibility,
-                c.FoundedAt
+                c.FoundedAt,
+                c.Sodales.Any(s => s.CivisId == civisId && (s.Role == Munus.Rector || s.Role == Munus.Magistratus)), // CanEdit si es Rector o Magistratus.
+                c.Sodales.Any(s => s.CivisId == civisId && s.Role == Munus.Rector) // CanDelete sólo si es Rector.
                 ))
             .FirstOrDefaultAsync();
 
@@ -253,20 +261,26 @@ public class CivitasService : ICivitasService
             .Select(c => new CivitasSummaryDto (
                 c.Id,
                 c.Name,
-                c.FoundedAt
+                c.FoundedAt,
+                c.Sodales.Any(cs => cs.CivisId == civisId),
+                c.Sodales.Any(s => s.CivisId == civisId && (s.Role == Munus.Rector || s.Role == Munus.Magistratus)),
+                c.Sodales.Any(s => s.CivisId == civisId && s.Role == Munus.Rector)
                 ))
             .ToListAsync();
     }
 
-    public async Task<List<CivitasSummaryDto>> GetCivitatesForUserAsync(Guid id)
+    public async Task<List<CivitasSummaryDto>> GetCivitatesForUserAsync(Guid civisId)
     {
         return await _db.Civitates
             .AsNoTracking()
-            .Where(civitas => civitas.Cives.Any(civis => civis.Id == id))
+            .Where(civitas => civitas.Cives.Any(civis => civis.Id == civisId))
             .Select(c => new CivitasSummaryDto(
                 c.Id,
                 c.Name,
-                c.FoundedAt
+                c.FoundedAt,
+                c.Sodales.Any(cs => cs.CivisId == civisId),
+                c.Sodales.Any(s => s.CivisId == civisId && (s.Role == Munus.Rector || s.Role == Munus.Magistratus)),
+                c.Sodales.Any(s => s.CivisId == civisId && s.Role == Munus.Rector)
                 ))
             .ToListAsync();
     }

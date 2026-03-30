@@ -39,7 +39,10 @@ public class RogatioService : IRogatioService
 
     public async Task<List<RogatioSummaryDto>> GetAllAsync()
     {
+        var civisId = _currentUser.CivisId;
+
         return await _db.Rogationes
+                .AsNoTracking()
                 .Select(r => new RogatioSummaryDto (
                     r.Id,
                     r.Title,
@@ -47,9 +50,10 @@ public class RogatioService : IRogatioService
                     r.CivisId,
                     r.Civitas.Name,
                     r.CreatedAt,
-                    r.Status
+                    r.Status,
+                    r.CivisId == civisId && r.Status == RogatioStatus.Inchoatus, // puede editar.
+                    r.CivisId == civisId && r.Status == RogatioStatus.Inchoatus // puede eliminar.
                     ))
-                .AsNoTracking()
                 .ToListAsync();
     }
 
