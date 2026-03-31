@@ -8,5 +8,7 @@ public record CivitasSummaryDto(
     Guid Id,
     string Name,
     DateTime FoundedAt,
-    bool IsMember = false
+    bool IsMember /*= false*/,
+    bool CanEdit,
+    bool CanDelete
     );

@@ -1,0 +1,150 @@
+﻿@using CorpusLegis.Shared.Dtos.Invitatio
+
+@inject Clients.Invitatio.IInvitatioClient ApiInvitatioClient
+@inject ILogger<InvitatioInbox> Logger
+
+
+<div class="invitatio-inbox-container">
+    <h3>Mis invitaciones pendientes</h3>
+
+    @if (_isLoading)
+    {
+        <p><em>Cargando Invitationes...</em></p>
+    }
+    else if (_errorMessage != null)
+    {
+        <div class="alert alert-danger">@_errorMessage</div>
+    }
+    else if (!_invitationes.Any())
+    {
+        <p>No tienes ninguna Invitatio pendiente en este momento.</p>
+    }
+    else
+    {
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Civitas</th>
+                    <th>Invitado por</th>
+                    <th>Fecha de emisión</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var invitatio in _invitationes)
+                {
+                    <tr>
+                        <td><strong>@invitatio.CivitasName</strong></td>
+                        <td>@invitatio.InviterName</td>
+                        <td>@invitatio.IssuedAt.ToString("g")</td>
+                        <td>
+                            <button class="btn btn-sm btn-success me-2" @onclick="() => ConfirmInvitatioAsync(invitatio.Id)" disabled="@_isProcessing">Aceptar</button>
+                            <button class="btn btn-sm btn-danger" @onclick="() => DeclineInvitatioAsync(invitatio.Id)" disabled="@_isProcessing">Rechazar</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+</div>
+
+@code {
+    private List<InvitatioDetailsDto> _invitationes = new();
+    private bool _isLoading = true;
+    private string? _errorMessage;
+    private bool _isProcessing = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPendingInvitationesAsync();
+    }
+
+
+    private async Task LoadPendingInvitationesAsync()
+    {
+        try
+        {
+            _isLoading = true;
+            _errorMessage = null;
+            _invitationes = await ApiInvitatioClient.GetMyPendingInvitationesAsync();
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Error al cargar las Invitationes: {ex.Message}";
+            Logger.LogError(ex, "Error al cargar las Invitationes.");
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task ConfirmInvitatioAsync(Guid invitatioId)
+    {
+        if (_isProcessing) return;
+
+        try
+        {
+            _isProcessing = true;
+            _errorMessage = null;
+
+            var success = await ApiInvitatioClient.AcceptInvitatioAsync(invitatioId);
+            if (success)
+            {
+                // Opción 01: refrescar la lista (costoso para la bbdd).
+                //await LoadPendingInvitationesAsync();
+                // Opción 02: eliminar la invitación localmente.
+                _invitationes.RemoveAll(i => i.Id == invitatioId);
+
+            }
+            else
+            {
+                _errorMessage = "No se ha podido aceptar la Invitatio.";
+                Logger.LogWarning("No se ha podido aceptar la Invitatio con ID {InvitatioId}.", invitatioId);
+            }
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Ha ocurrido un error a la hora de aceptar la Invitatio.";
+            Logger.LogError("Error al aceptar la Invitatio con ID {InvitatioId}.", invitatioId);
+        }
+        finally
+        {
+            _isProcessing = false;
+        }
+    }
+
+    private async Task DeclineInvitatioAsync(Guid invitatioId)
+    {
+        if (_isProcessing) return;
+        try
+        {
+            _isProcessing = true;
+            _errorMessage = null;
+            var success = await ApiInvitatioClient.RejectInvitatioAsync(invitatioId);
+            if (success)
+            {
+                // Opción 01: refrescar la lista (costoso para la bbdd).
+                //await LoadPendingInvitationesAsync();
+                // Opción 02: eliminar la invitación localmente.
+                _invitationes.RemoveAll(i => i.Id == invitatioId);
+            }
+            else
+            {
+                _errorMessage = "No se ha podido rechazar la Invitatio.";
+                Logger.LogWarning("No se ha podido rechazar la Invitatio con ID {InvitatioId}.", invitatioId);
+            }
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Ha ocurrido un error a la hora de rechazar la Invitatio.";
+            Logger.LogError("Error al rechazar la Invitatio con ID {InvitatioId}.", invitatioId);
+        }
+        finally
+        {
+            _isProcessing = false;
+        }
+    }
+
+}

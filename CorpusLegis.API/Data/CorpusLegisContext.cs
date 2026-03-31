@@ -12,6 +12,8 @@ public class CorpusLegisContext(DbContextOptions<CorpusLegisContext> options)
 
     public DbSet<Civis> Cives { get; set; }
 
+    public DbSet<CivitasSodalis> CivitasSodales { get; set; } // La defino explícitamente, aunque la matice luego en el OnModelCreating.
+
     public DbSet<Rogatio> Rogationes { get; set; } = null!;
 
     public DbSet<Lex> Leges { get; set; }
@@ -19,6 +21,8 @@ public class CorpusLegisContext(DbContextOptions<CorpusLegisContext> options)
     public DbSet<Sententia> Sententiae { get; set; }
 
     public DbSet<Suffragium> Suffragia { get; set; }
+
+    public DbSet<Invitatio> Invitationes { get; set; }
 
 
 
@@ -37,6 +41,14 @@ public class CorpusLegisContext(DbContextOptions<CorpusLegisContext> options)
             .Property(s => s.Votum)
             .HasConversion<string>();
 
+        modelBuilder.Entity<Civitas>()
+            .Property(c => c.Visibility)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<Invitatio>()
+            .Property(i => i.Status)
+            .HasConversion<string>();
+
 
 
         // Un Civis sólo puede votar una vez por Rogatio.
@@ -47,9 +59,31 @@ public class CorpusLegisContext(DbContextOptions<CorpusLegisContext> options)
 
 
         // Al borrar una Civitas no se borrarán sus Cives (sólo las relaciones establecidas en la tabla intermedia).
+        //modelBuilder.Entity<Civitas>()
+        //    .HasMany(c => c.Cives)
+        //    .WithMany(c => c.Civitates);
+        // TODO: borrar esta definición anterior, porque con lo posterior ya es suficiente.
+        // La relación entre Civitas y Civis se maneja a través de la tabla intermedia CivitasSodalis.
+        // Al borrar una Civitas no se borrarán sus Cives
         modelBuilder.Entity<Civitas>()
             .HasMany(c => c.Cives)
-            .WithMany(c => c.Civitates);
+            .WithMany(c => c.Civitates)
+            .UsingEntity<CivitasSodalis>(
+                j => j.HasOne(cs => cs.Civis)
+                .WithMany(c => c.CivitasSodales)
+                .HasForeignKey(cs => cs.CivisId)
+                .OnDelete(DeleteBehavior.Restrict), // No se puede borrar un Civis que sea miembro de una Civitas.
+                j => j.HasOne(cs => cs.Civitas)
+                .WithMany(c => c.Sodales)
+                .HasForeignKey(cs => cs.CivitasId)
+                .OnDelete(DeleteBehavior.Cascade), // Si se borra una Civitas, se eliminan sus relaciones con los Cives, pero no los Cives en sí mismos.
+                j =>
+                {
+                    j.HasKey(cs => new { cs.CivitasId, cs.CivisId }); // clave primaria compuesta por las dos claves foráneas.
+                    j.Property(cs => cs.Role).HasConversion<string>(); // el rol del Civis en la Civitas se guarda como string.
+                    j.ToTable("CivitasSodales"); // nombre explícito para la tabla intermedia.
+                }
+            );
 
 
 
@@ -99,6 +133,34 @@ public class CorpusLegisContext(DbContextOptions<CorpusLegisContext> options)
         modelBuilder.AddInboxStateEntity();
         modelBuilder.AddOutboxMessageEntity();
         modelBuilder.AddOutboxStateEntity();
+
+
+
+        // Configuración necesaria para Invitatio.
+        modelBuilder.Entity<Invitatio>()
+            .HasOne(i => i.Civitas)
+            .WithMany(c => c.Invitationes)
+            .HasForeignKey(i => i.CivitasId)
+            .OnDelete(DeleteBehavior.Cascade); // Si se borra una Civitas, se borran sus invitaciones.
+
+        modelBuilder.Entity<Invitatio>()
+            .HasOne(i => i.Inviter)
+            .WithMany(c => c.InvitationesEmissae)
+            .HasForeignKey(i => i.InviterId)
+            .OnDelete(DeleteBehavior.Restrict); // No se puede borrar un Civis que haya emitido invitaciones.
+
+        modelBuilder.Entity<Invitatio>()
+            .HasOne(i => i.Invitee)
+            .WithMany(c => c.InvitationesAcceptae)
+            .HasForeignKey(i => i.InviteeId)
+            .OnDelete(DeleteBehavior.Restrict); // No se puede borrar un Civis que haya sido invitado a una Civitas.
+
+
+
+        // Definición explícita del tamaño del token de las invitaciones a las Civitates.
+        modelBuilder.Entity<Invitatio>()
+            .Property(i => i.Token)
+            .HasMaxLength(43); // 32 bytes codificados en Base64 URL-safe generan un string de 43 caracteres.
     }
 
 }

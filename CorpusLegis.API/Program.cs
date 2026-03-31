@@ -1,4 +1,3 @@
-
 using CorpusLegis.API.Data;
 using CorpusLegis.API.Domain;
 using CorpusLegis.API.Endpoints;
@@ -16,7 +15,9 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 using OpenTelemetry.Trace;
+using Scalar.AspNetCore;
 using System.Collections;
 
 
@@ -61,6 +62,7 @@ builder.Services.AddMassTransit(x =>
 
 
 var keycloakAuthority = builder.Configuration["Keycloak:Authority"];
+//var keycloakAuthority = "http://localhost:8080/realms/CorpusLegis"; // si no hago esto, desde que puse Usuarios reales, no me van a funcionar las migraciones porque necesita resolver esta variable para la migración.
 if (string.IsNullOrEmpty(keycloakAuthority))
 {
     throw new InvalidOperationException("La variable de entorno 'Keycloak:Authority' no se ha inyectado correctamente desde el AppHost.");
@@ -163,7 +165,37 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer((document, context, cancellationTok) =>
+    {
+        // Definir el esquema de seguridad para Bearer Token.
+        var bearScheme = new OpenApiSecurityScheme
+        {
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT",
+            Description = "Introduce el token JWT de Keycloak."
+        };
+
+        document.Components ??= new OpenApiComponents();
+        document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
+        document.Components.SecuritySchemes.Add("Bearer", bearScheme);
+
+        // Aplicar la seguridad a todos los endpoints.
+        var securityRequirement = new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecuritySchemeReference("Bearer", null, null),
+                new List<string>()
+            }
+        };
+
+        document.Security ??= new List<OpenApiSecurityRequirement>();
+        document.Security.Add(securityRequirement);
+        return Task.CompletedTask;
+    });
+});
 
 // Se agrega el contexto de la base de datos (a la manera Aspire)
 builder.AddSqlServerDbContext<CorpusLegisContext>("sqlserver-db-corpuslegis");
@@ -183,12 +215,17 @@ builder.Services.AddScoped<ICivitasService, CivitasService>();
 builder.Services.AddHttpContextAccessor(); // Necesario para que CurrentUserService pueda acceder al contexto HTTP.
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>(); // Servicio para obtener el usuario actual (Civis) a partir del contexto HTTP
 
+// Se registra el servicio de Invitatio.
+builder.Services.AddScoped<IInvitatioService, InvitatioService>();
+
 // Se registra el servicio de Excepciones.
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
 // Se registra el servicio de validaciones.
 builder.Services.AddValidatorsFromAssemblyContaining<CreateRogatioDtoValidator>();
+//builder.Services.AddValidatorsFromAssemblyContaining<CreateCivitasDtoValidator>(); // si están en el mismo proyecto, con la primera línea ya los coge a todos, no hace falta repetirlo para cada DTO.
+//builder.Services.AddValidatorsFromAssemblyContaining<CreateInvitatioDtoValidator>(); // TODO: limpiar.
 
 // se agrega la transformación de Claims.
 builder.Services.AddTransient<IClaimsTransformation, KeycloakRolesClaimsTransformation>(); // para la Autorización Basada en Roles (RBAC)
@@ -228,6 +265,7 @@ app.MapRogatioEndpoints(); // Se mapean los endpoints de Rogatio.
 app.MapSuffragiumEndpoints(); // Se mapean los endpoints de Suffragium.
 app.MapLexEndpoints(); // Se mapean los endpoints de Lex.
 app.MapCivitasEndpoints(); // Se mapean los endpoints de Civitas.
+app.MapInvitatioEndpoints();
 //app.MapGet("/auth/token", async (HttpContext ctx) =>
 //{
 //    var token = await ctx.GetTokenAsync("access_token");
@@ -238,6 +276,11 @@ app.MapCivitasEndpoints(); // Se mapean los endpoints de Civitas.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference(options =>
+    {
+        options.WithTitle("CorpusLegis API");
+        options.WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
+    });
 }
 
 //app.Use(async (ctx, next) =>
@@ -262,6 +305,14 @@ using (var scope = app.Services.CreateScope())
     // 2) ejecutar "dotnet ef migrations add NombreDeLaMigración".
     // 3) mirar ^^ (al lanzar la app las migraciones se irán aplicando en orden).
     DatabaseSeeder.Seed(db); // Mi clase propia con datos de inicio.
+}
+
+var endpointDataSource = app.Services.GetRequiredService<EndpointDataSource>();
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
+foreach (var ep in endpointDataSource.Endpoints)
+{
+    Console.WriteLine(ep.DisplayName);
+    logger.LogInformation("Endpoint: {Endpoint}", ep.DisplayName);
 }
 
 app.Run();

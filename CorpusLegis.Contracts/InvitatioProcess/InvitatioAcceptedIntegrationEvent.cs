@@ -1,7 +1,9 @@
 ﻿using CorpusLegis.Contracts.Abstractions;
+using System;
+using System.Collections.Generic;
+using System.Text;
 
-namespace CorpusLegis.Contracts.PdfGeneration;
-
+namespace CorpusLegis.Contracts.InvitatioProcess;
 
 //public interface IIntegrationEvent
 //{
@@ -12,7 +14,8 @@ namespace CorpusLegis.Contracts.PdfGeneration;
 //    int EventVersion { get; }
 //}
 
-public record LexPromulgatedIntegrationEvent : IIntegrationEvent
+
+public class InvitatioAcceptedIntegrationEvent : IIntegrationEvent
 {
     public Guid EventId { get; init; } = Guid.NewGuid();
     public DateTimeOffset OccurredAt { get; init; } = DateTimeOffset.UtcNow;
@@ -21,12 +24,12 @@ public record LexPromulgatedIntegrationEvent : IIntegrationEvent
 
 
 
+    public Guid InvitatioId { get; init; }
 
-    public Guid LexId { get; init; }
+    public Guid CivitasId { get; init; }
 
-    public string Title { get; init; } = string.Empty;
+    public Guid CivisId { get; init; }
 
-    public string Content { get; init; } = string.Empty;
+    public DateTime ProcessedAt { get; init; }
 
-    public DateTime PromulgatedAt { get; init; }
 }

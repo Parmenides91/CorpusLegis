@@ -4,6 +4,7 @@
 
 @using CorpusLegis.Shared.Dtos.Civitas
 @* @using CorpusLegis.Web.State *@
+@using CorpusLegis.Web.Components.Pages.Invitatio
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Authorization
 
@@ -58,6 +59,14 @@ else
                         {
                             <button class="btn btn-sm btn-outline-secondary ms-2" @onclick="() => JoinCivitas(civitas.Id)" disabled="@joining">Solicitar unirse</button>
                         }
+                        @if (civitas.CanEdit)
+                        {
+                            <a class="btn btn-sm btn-outline-secondary" href="civitas/edit/@civitas.Id">Editar</a>
+                        }
+                        @if (civitas.CanDelete)
+                        {
+                            <a class="btn btn-sm btn-outline-warning" href="civitas/delete/@civitas.Id">¿Eliminar?</a>
+                        }
                     </td>
                 </tr>
             }
@@ -65,6 +74,7 @@ else
     </table>
 }
 
+<InvitatioInbox />
 
 
 @code {

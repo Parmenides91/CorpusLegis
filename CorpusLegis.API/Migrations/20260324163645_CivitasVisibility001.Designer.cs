@@ -4,6 +4,7 @@ using CorpusLegis.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CorpusLegis.API.Migrations
 {
     [DbContext(typeof(CorpusLegisContext))]
-    partial class CorpusLegisContextModelSnapshot : ModelSnapshot
+    [Migration("20260324163645_CivitasVisibility001")]
+    partial class CivitasVisibility001
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -110,17 +113,12 @@ namespace CorpusLegis.API.Migrations
                     b.Property<DateTime>("IssuedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("RespondedAt")
+                    b.Property<DateTime>("RespondedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Token")
-                        .IsRequired()
-                        .HasMaxLength(43)
-                        .HasColumnType("nvarchar(43)");
 
                     b.HasKey("Id");
 
