@@ -22,24 +22,16 @@ public class SuffragiumService : ISuffragiumService
 
     public async Task<SuffragiumDetailsDto> CreateAsync(CreateSuffragiumDto newSuffragium)
     {
-        //Guid CivisDefaultGuid = Guid.Parse("0f8fad5b-d9cb-469f-a165-70867728950e"); // Sempronio
-        Guid CivitasDefaultGuid = Guid.Parse("7c9e6679-7425-40de-944b-e07fc1f90ae7"); // Roma
+        var currentCivisId = _currentUser.CivisId;
 
-        var civisId = _currentUser.CivisId;
-
-        //bool alreadyVoted = await _db.Suffragia.AnyAsync(s => s.RogatioId == newSuffragium.RogatioId && s.CivisId == civisId);
-        //if (alreadyVoted)
-        //{
-        //    throw new InvalidOperationException("El Civis ya ha emitido un voto para esta Rogatio.");
-        //}
         var validationContext = await _db.Rogationes
             .Where(r => r.Id == newSuffragium.RogatioId)
             .Select(r => new
             {
                 Exist = true,
                 r.Status,
-                IsMember = r.Civitas.Cives.Any(c => c.Id == civisId),
-                AlreadyVoted = r.Suffragia.Any(s => s.CivisId == civisId)
+                IsMember = r.Civitas.Cives.Any(c => c.Id == currentCivisId),
+                AlreadyVoted = r.Suffragia.Any(s => s.CivisId == currentCivisId)
             })
             .FirstOrDefaultAsync();
 
@@ -67,7 +59,7 @@ public class SuffragiumService : ISuffragiumService
         {
             Id = Guid.NewGuid(),
             RogatioId = newSuffragium.RogatioId,
-            CivisId = civisId,
+            CivisId = currentCivisId,
             Votum = newSuffragium.Votum,
             CastAt = DateTime.UtcNow
         };

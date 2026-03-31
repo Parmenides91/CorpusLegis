@@ -38,7 +38,7 @@ public class InvitatioService : IInvitatioService
     #region emisores
     public async Task<InvitatioDetailsDto> SendAsync(CreateInvitatioDto dto)
     {
-        if (_currentUser.CivisId == null)
+        if (_currentUser.CivisId == Guid.Empty)
         {
             _logger.LogError("Intento de acceso a operaciones de Invitatio sin un CivisId en el contexto.");
             throw new UnauthorizedDomainException("No se pudo identificar al usuario actual.");
@@ -136,7 +136,7 @@ public class InvitatioService : IInvitatioService
 
     public async Task<bool> RevokeAsync(Guid invitatioId)
     {
-        var civisId = _currentUser.CivisId;
+        var currentCivisId = _currentUser.CivisId;
 
         var invitatio = await _db.Invitationes
                             .Include(i => i.Civitas)
@@ -149,11 +149,11 @@ public class InvitatioService : IInvitatioService
             return false;
         }
 
-        var hasPermission = invitatio.Civitas.Sodales.Any(s => s.CivisId == civisId && (s.Role == Munus.Rector || s.Role == Munus.Magistratus));
+        var hasPermission = invitatio.Civitas.Sodales.Any(s => s.CivisId == currentCivisId && (s.Role == Munus.Rector || s.Role == Munus.Magistratus));
 
         if (!hasPermission)
         {
-            _logger.LogWarning("El Civis {CivisId} ha intentado revocar la Invitatio {InvitatioId} sin permisos.", civisId, invitatioId);
+            _logger.LogWarning("El Civis {CurrentCivisId} ha intentado revocar la Invitatio {InvitatioId} sin permisos.", currentCivisId, invitatioId);
             throw new UnauthorizedDomainException("No tienes permisos para revocar invitaciones en esta Civitas.");
         }
 
@@ -206,11 +206,11 @@ public class InvitatioService : IInvitatioService
 
     public async Task<List<InvitatioDetailsDto>> GetPendingInvitationesForCurrentCivisAsync()
     {
-        var civisId = _currentUser.CivisId;
+        var currentCivisId = _currentUser.CivisId;
 
         return await _db.Invitationes
             .AsNoTracking()
-            .Where(i => i.InviteeId == civisId && i.Status == InvitationisStatus.Pendens && i.ExpiresAt > DateTime.UtcNow)
+            .Where(i => i.InviteeId == currentCivisId && i.Status == InvitationisStatus.Pendens && i.ExpiresAt > DateTime.UtcNow)
             .Select(i => new InvitatioDetailsDto(
                 i.Id,
                 i.CivitasId,
@@ -226,9 +226,9 @@ public class InvitatioService : IInvitatioService
 
     public async Task<bool> AcceptAsync(Guid invitatioId)
     {
-        var civisId = _currentUser.CivisId;
+        var currentCivisId = _currentUser.CivisId;
 
-        var invitatio = await _db.Invitationes.FirstOrDefaultAsync(i => i.Id == invitatioId && i.InviteeId == civisId);
+        var invitatio = await _db.Invitationes.FirstOrDefaultAsync(i => i.Id == invitatioId && i.InviteeId == currentCivisId);
 
         if (invitatio == null) { 
             _logger.LogWarning("Invitatio {InvitatioId} no encontrada o no pertenece al usuario actual", invitatioId);
@@ -247,7 +247,7 @@ public class InvitatioService : IInvitatioService
         _db.CivitasSodales.Add(new CivitasSodalis
         {
             CivitasId = invitatio.CivitasId,
-            CivisId = (Guid)civisId,
+            CivisId = (Guid)currentCivisId,
             Role = Munus.Plebeius,
             JoinedAt = DateTime.UtcNow
         });
@@ -256,7 +256,7 @@ public class InvitatioService : IInvitatioService
         {
             InvitatioId = invitatioId,
             CivitasId = invitatio.CivitasId,
-            CivisId = (Guid)civisId,
+            CivisId = (Guid)currentCivisId,
             ProcessedAt = DateTime.UtcNow
         });
 
