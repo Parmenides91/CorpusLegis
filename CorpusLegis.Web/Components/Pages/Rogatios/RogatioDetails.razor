@@ -5,6 +5,7 @@
 @using CorpusLegis.Shared.Dtos
 @using CorpusLegis.Shared.Dtos.Suffragium
 @using CorpusLegis.Shared.Enums
+@using CorpusLegis.Web.Components.Pages.Sententiae
 @using CorpusLegis.Web.Components.Pages.Suffragium
 @using Microsoft.AspNetCore.Authorization
 @* @using CorpusLegis.Web.State *@
@@ -138,6 +139,7 @@ else
     <a href="/rogatio" class="btn btn-lg btn-dark">Volver al listado de Rogationes</a>
 </div>
 
+<RogatioSententiae RogatioId="@Id" CanComment="@(rogatio != null && rogatio.Status == RogatioStatus.Proposita)" />
 
 
 @code {

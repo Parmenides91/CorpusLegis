@@ -61,8 +61,8 @@ builder.Services.AddMassTransit(x =>
 });
 
 
-var keycloakAuthority = builder.Configuration["Keycloak:Authority"];
-//var keycloakAuthority = "http://localhost:8080/realms/CorpusLegis"; // si no hago esto, desde que puse Usuarios reales, no me van a funcionar las migraciones porque necesita resolver esta variable para la migración.
+//var keycloakAuthority = builder.Configuration["Keycloak:Authority"];
+var keycloakAuthority = "http://localhost:8080/realms/CorpusLegis"; // si no hago esto, desde que puse Usuarios reales, no me van a funcionar las migraciones porque necesita resolver esta variable para la migración.
 if (string.IsNullOrEmpty(keycloakAuthority))
 {
     throw new InvalidOperationException("La variable de entorno 'Keycloak:Authority' no se ha inyectado correctamente desde el AppHost.");
@@ -218,6 +218,9 @@ builder.Services.AddScoped<ICurrentUserService, CurrentUserService>(); // Servic
 // Se registra el servicio de Invitatio.
 builder.Services.AddScoped<IInvitatioService, InvitatioService>();
 
+// Se registra el servicio de Sententia.
+builder.Services.AddScoped<ISententiaService, SententiaService>();
+
 // Se registra el servicio de Excepciones.
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
@@ -266,6 +269,7 @@ app.MapSuffragiumEndpoints(); // Se mapean los endpoints de Suffragium.
 app.MapLexEndpoints(); // Se mapean los endpoints de Lex.
 app.MapCivitasEndpoints(); // Se mapean los endpoints de Civitas.
 app.MapInvitatioEndpoints();
+app.MapSententiaEndpoints();
 //app.MapGet("/auth/token", async (HttpContext ctx) =>
 //{
 //    var token = await ctx.GetTokenAsync("access_token");

@@ -19,8 +19,14 @@ public static class SuffragiumEndpoints
     }
 
 
-    private static async Task<IResult> CreateSuffragium(CreateSuffragiumDto dto, ISuffragiumService service)
+    private static async Task<IResult> CreateSuffragium(Guid id, CreateSuffragiumDto dto, ISuffragiumService service)
     {
+
+        if (dto.RogatioId != id)
+        {
+            return Results.BadRequest("Route ID does not match DTO RogatioId");
+        }
+
         if (!MiniValidator.TryValidate(dto, out var errors))
         {
             return Results.ValidationProblem(errors);

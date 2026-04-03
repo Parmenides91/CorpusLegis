@@ -43,6 +43,7 @@ public class RogatioService : IRogatioService
 
         return await _db.Rogationes
                 .AsNoTracking()
+                .Where(r => _db.CivitasSodales.Any(cs => cs.CivisId == currentCivisId && cs.CivitasId == r.CivitasId))
                 .Select(r => new RogatioSummaryDto (
                     r.Id,
                     r.Title,
@@ -59,38 +60,89 @@ public class RogatioService : IRogatioService
 
     public async Task<RogatioDetailsDto?> GetByIdAsync(Guid id)
     {
-        var currentCivisId = _currentUser.CivisId; 
+        var currentCivisId = _currentUser.CivisId;
 
-        var dto = await _db.Rogationes
-            .Where(r => r.Id == id)
-            .Select(r => new RogatioDetailsDto(
-                r.Id,
-                r.Title,
-                r.Content,
-                r.CivisId,
-                r.Civis.Name,
-                r.CivitasId,
-                r.Civitas.Name,
-                r.CreatedAt,
-                r.Status,
-                r.Suffragia.Count(s => s.Votum == SuffragiumValue.Pro),
-                r.Suffragia.Count(s => s.Votum == SuffragiumValue.Contra),
-                r.Suffragia.Count(s => s.Votum == SuffragiumValue.Abstentio),
-                r.Suffragia.Any(s => s.CivisId == currentCivisId),
-                r.RequiredQuorum,
-                r.RequiredMajority
-                ))
-            .AsNoTracking()
-            .FirstOrDefaultAsync();
+        //var dto = await _db.Rogationes
+        //    .Where(r => r.Id == id)
+        //    .Select(r => new RogatioDetailsDto(
+        //        r.Id,
+        //        r.Title,
+        //        r.Content,
+        //        r.CivisId,
+        //        r.Civis.Name,
+        //        r.CivitasId,
+        //        r.Civitas.Name,
+        //        r.CreatedAt,
+        //        r.Status,
+        //        r.Suffragia.Count(s => s.Votum == SuffragiumValue.Pro),
+        //        r.Suffragia.Count(s => s.Votum == SuffragiumValue.Contra),
+        //        r.Suffragia.Count(s => s.Votum == SuffragiumValue.Abstentio),
+        //        r.Suffragia.Any(s => s.CivisId == currentCivisId),
+        //        r.RequiredQuorum,
+        //        r.RequiredMajority
+        //        ))
+        //    .AsNoTracking()
+        //    .FirstOrDefaultAsync();
 
 
-        if (dto == null)
+        //if (dto == null)
+        //{
+        //    throw new NotFoundException("rOgAtIo", id);
+        //    //return null;
+        //}
+
+        //return dto;
+
+
+
+        //var rogatioInfo = await _db.Rogationes
+        //                    .Where(r => r.Id == id)
+        //                    .Select(r => new
+        //                    {
+        //                        Data = r,
+        //                        IsMember = _db.CivitasSodales.Any(cs => cs.CivisId == currentCivisId && cs.CivitasId == r.CivitasId)
+        //                    })
+        //                    .FirstOrDefaultAsync();
+
+
+        var rogatioInfo = await _db.Rogationes
+                            .AsNoTracking()
+                            .Where(r => r.Id == id)
+                            .Select(r => new
+                            {
+                                Dto = new RogatioDetailsDto
+                                 (
+                                    r.Id,
+                                    r.Title,
+                                    r.Content,
+                                    r.CivisId,
+                                    r.Civis.Name,
+                                    r.CivitasId,
+                                    r.Civitas.Name,
+                                    r.CreatedAt,
+                                    r.Status,
+                                    r.Suffragia.Count(s => s.Votum == SuffragiumValue.Pro),
+                                    r.Suffragia.Count(s => s.Votum == SuffragiumValue.Contra),
+                                    r.Suffragia.Count(s => s.Votum == SuffragiumValue.Abstentio),
+                                    r.Suffragia.Any(s => s.CivisId == currentCivisId),
+                                    r.RequiredQuorum,
+                                    r.RequiredMajority
+                                ),
+                                IsMember = _db.CivitasSodales.Any(cs => cs.CivisId == currentCivisId && cs.CivitasId == r.CivitasId)
+                            })
+                            .FirstOrDefaultAsync();
+
+        if (rogatioInfo == null)
         {
-            throw new NotFoundException("rOgAtIo", id);
-            //return null;
+            throw new NotFoundException("Rogatio", id);
         }
 
-        return dto;
+        if (!rogatioInfo.IsMember)
+        {
+            throw new UnauthorizedDomainException("No formas parte de la Civitas a la que pertenece esta Rogatio.");
+        }
+
+        return rogatioInfo.Dto;
     }
 
     public async Task<RogatioDetailsDto> CreateAsync(CreateRogatioDto newRogatio)
@@ -125,9 +177,9 @@ public class RogatioService : IRogatioService
             CivitasId = newRogatio.CivitasId,
             CreatedAt = DateTime.UtcNow,
             Status = newRogatio.Status,
-            //Deadline = newRogatio.Deadline, // TODO: vuelve a descomentar esto para tener la fecha en futuro y no en pasado.
-            RequiredQuorum = newRogatio.RequiredQuorum,
-            RequiredMajority = newRogatio.RequiredMajority
+            //Deadline = newRogatio.Deadline, // TODO: vuelve a descomentar esto para tener la fecha en futuro y no en pasado ++ añadir a la UI.
+            RequiredQuorum = newRogatio.RequiredQuorum, // TODO: añadir a la UI.
+            RequiredMajority = newRogatio.RequiredMajority // TODO: añadir a la UI.
 
         };
 
