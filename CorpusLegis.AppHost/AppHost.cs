@@ -15,12 +15,10 @@ var sql_corpuslegis = builder.AddSqlServer("sqlserver-corpuslegis") // Nombre de
 var keycloakUsername = builder.AddParameter("keycloak-admin-username", value: "admin");
 var keycloakPassword = builder.AddParameter("keycloak-admin-password", secret: true, value: "admin");
 var keycloak_corpuslegis = builder.AddKeycloak("keycloak-corpuslegis", 8080, keycloakUsername, keycloakPassword)
-                                    .WithDataVolume(); // para persistir los datos entre reinicios del contenedor.
-                                    //.WithHttpHealthCheck("/health/ready"); // para que Aspire pueda verificar que Keycloak está listo antes de iniciar los otros proyectos que dependen de él.
-                                    //.WithHttpHealthCheck(keycloak_corpuslegis.GetEndpoint("http").Property(EndpointProperty.Url) + "/health/ready");
-                                    //.WithHttpHealthCheck(keycloak_corpuslegis.GetEndpoint("management").Property(EndpointProperty.Url) + "/health/ready");
+                                    .WithDataVolume() // para persistir los datos entre reinicios del contenedor.
+                                    ;
+
 var managementUrlExpr = keycloak_corpuslegis.GetEndpoint("management").Property(EndpointProperty.Url);
-//keycloak_corpuslegis.WithHttpHealthCheck(ReferenceExpression.Create($"{managementUrlExpr}/health/ready"));
 var keycloakHealthCheckUrl = ReferenceExpression.Create($"{managementUrlExpr}/health/ready");
 var keycloakAuthority = ReferenceExpression.Create($"{keycloak_corpuslegis.GetEndpoint("http").Property(EndpointProperty.Url)}/realms/CorpusLegis");
 
@@ -30,9 +28,6 @@ var api_corpuslegis = builder.AddProject<Projects.CorpusLegis_API>("api-corpusle
                             .WaitFor(sql_corpuslegis)
                             .WithReference(rabbitmq_corpuslegis) // se inyecta la configuración de RabbitMQ
                             .WithEnvironment("Keycloak__Authority", keycloakAuthority)
-                            //.WithEnvironment("ConnectionStrings__keycloak-corpuslegis", keycloak_corpuslegis.GetEndpoint("http").Property(EndpointProperty.Url))
-                            //.WithReference(keycloak_corpuslegis) // se inyecta Keycloak.
-                            //.WithEnvironment("Keycloak__Url", keycloak_corpuslegis.GetEndpoint("http"))
                             .WaitFor(keycloak_corpuslegis)
                             .WithReference(redis_corpuslegis) // se inyecta la configuración de Redis para caché
                             ;
@@ -41,10 +36,7 @@ var api_corpuslegis = builder.AddProject<Projects.CorpusLegis_API>("api-corpusle
 // Se agrega el proyecto del WebApp
 builder.AddProject<Projects.CorpusLegis_Web>("web-blazor-corpuslegis")
         .WithExternalHttpEndpoints()
-        //.WithReference(keycloak_corpuslegis)
-        //.WithEnvironment("Keycloak__Url", keycloak_corpuslegis.GetEndpoint("http"))
         .WithEnvironment("Keycloak__Authority", keycloakAuthority)
-        //.WithEnvironment("ConnectionStrings__keycloak-corpuslegis", keycloak_corpuslegis.GetEndpoint("http").Property(EndpointProperty.Url))
         .WithReference(api_corpuslegis)
         .WaitFor(keycloak_corpuslegis)
         .WaitFor(api_corpuslegis);

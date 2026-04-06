@@ -333,7 +333,7 @@ public class CivitasService : ICivitasService
         }
 
         // TODO: añadir que si es el creador de la Civitas, él no puede abandonarla (++ una chapita de "fundador" en la UI en lugar de "miembro" (¿requerirá modificar la DTO?))
-
+        // TODO: actualmente se impide (a nivel de claves en BBDD) borrar una Civitas que tenga Rogationes asociadas a ella. ¿Que quiero hacer en este caso?
         civitasInfo.Cives.Remove(civis);
 
         await _db.SaveChangesAsync();

@@ -1,0 +1,154 @@
+﻿@using CorpusLegis.Shared.Dtos.Sententia
+
+@inject Clients.Sententia.ISententiaClient SententiaApiClient
+
+
+<div class="mt-4">
+    <h4>Debate</h4>
+    <hr />
+
+    @if (CanComment)
+    {
+        <div class="mb-4">
+            <textarea class="form-control mb-2" rows="3" @bind="newCommentContent" placeholder="Añadir un comentario..."></textarea>
+            <button class="btn btn-primary" @onclick="SubmitRootComment" disabled="@isProcessing">Comentar</button>
+        </div>
+    }
+
+    @if (isLoading)
+    {
+        <p>Cargando Sententiae...</p>
+    }
+    else if (!sententiae.Any())
+    {
+        <p class="text-muted">No hay ningúna Sententia aún.</p>
+    }
+    else
+    {
+        @foreach (var sententia in sententiae)
+        {
+            <SententiaItem
+                Sententia="sententia"
+                CanComment="CanComment"
+                ActiveReplyId="activeReplyId"
+                OnReplyRequested="HandleReplyRequested"
+                OnReplySubmit="HandleReplySubmit"
+                OnDeleteRequested="HandleDeleteRequested"
+                OnEditSubmit="HandleEditSubmit"
+                OnRestoreRequested="HandleRestoreRequested"
+            >
+
+            </SententiaItem>
+        }
+    }
+
+</div>
+
+
+@code {
+    [Parameter, EditorRequired] public Guid RogatioId { get; set; }
+    [Parameter, EditorRequired] public bool CanComment { get; set; } // true sólo si Rogatio.Status == Proposita.
+
+    private List<SententiaDto> sententiae = new();
+    private bool isLoading = true;
+    private bool isProcessing = false;
+    private string newCommentContent = string.Empty;
+    private Guid? activeReplyId = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadComments();
+    }
+
+
+    private async Task LoadComments()
+    {
+        isLoading = true;
+        try
+        {
+            sententiae = await SententiaApiClient.GetAllByRogatioIdAsync(RogatioId);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+
+    private async Task SubmitRootComment()
+    {
+        if (string.IsNullOrWhiteSpace(newCommentContent))
+        {
+            return;
+        }
+
+        isProcessing = true;
+
+        var dto = new CreateSententiaDto { RogatioId = RogatioId, Content = newCommentContent, ParentId = null };
+        await SententiaApiClient.CreateSententiaAsync(dto);
+
+        newCommentContent = string.Empty;
+        await LoadComments();
+        isProcessing = false;
+    }
+
+
+    private void HandleReplyRequested(Guid id)
+    {
+        activeReplyId = id;
+    }
+
+
+    private async Task HandleReplySubmit((Guid ParentId, string Content) payload)
+    {
+        isProcessing = true;
+        var dto = new CreateSententiaDto { RogatioId = RogatioId, Content = payload.Content, ParentId = payload.ParentId };
+        await SententiaApiClient.CreateSententiaAsync(dto);
+
+        activeReplyId = null;
+        await LoadComments();
+        isProcessing = false;
+    }
+
+
+    private async Task HandleDeleteRequested(Guid id)
+    {
+        await SententiaApiClient.SoftDeleteSententiaAsync(id);
+        await LoadComments();
+    }
+
+
+    private async Task HandleEditSubmit((Guid Id, string NewContent) payload)
+    {
+        isProcessing = true;
+
+        try
+        {
+            var dto = new UpdateSententiaDto { Content = payload.NewContent };
+            await SententiaApiClient.UpdateSententiaAsync(payload.Id, dto);
+            await LoadComments();
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+
+    private async Task HandleRestoreRequested(Guid id)
+    {
+        isProcessing = true;
+
+        try
+        {
+            await SententiaApiClient.RestoreSententiaAsync(id);
+            await LoadComments();
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+
+}

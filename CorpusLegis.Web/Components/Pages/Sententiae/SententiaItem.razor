@@ -1,0 +1,150 @@
+﻿@using CorpusLegis.Shared.Dtos.Sententia
+
+<div class="card mb-2 @(IsReply ? "ms-4 border-start border-primary" : "")" style="box-shadow: none;">
+    <div class="card-body py-2">
+        <div class="d-flex justify-content-between text-muted small mb-1">
+            <span><strong>@Sententia.CivisName</strong></span>
+            <span>@Sententia.CreatedAt.ToString("g") @(Sententia.IsEdited ? "(Editado)" : "")</span>
+        </div>
+
+        @if (Sententia.IsDeleted)
+        {
+            <p class="text-muted fst-italic mb-1">[Comentario eliminado]</p>
+            @if (Sententia.CanRestore)
+            {
+                <button class="btn btn-link btn-sm p-0 text-decoration-none text-success" @onclick="() => OnRestoreRequested.InvokeAsync(Sententia.Id)">Restaurar</button>
+            }
+        }
+        else
+        {
+            if (isEditing)
+            {
+                <div class="mt-2 mb-2">
+                    <textarea class="form-control form-control-sm mb-2" rows="2" @bind="editContent"></textarea>
+                    <button class="btn btn-sm btn-success" @onclick="SubmitEdit">Guardar</button>
+                    <button class="btn btn-sm btn-secondary" @onclick="CancelEdit">Cancelar</button>
+                </div>
+            }
+            else
+            {
+                <p class="mb-1">@Sententia.Content</p>
+            }
+        }
+
+        <div class="d-flex gap-2">
+            @if (CanComment && !Sententia.IsDeleted)
+            {
+                <button class="btn btn-link btn-sm p-0 text-decoration-none" @onclick="() => OnReplyRequested.InvokeAsync(Sententia.Id)">Responder</button>
+            }
+            @if (Sententia.CanEdit && !Sententia.IsDeleted && !isEditing)
+            {
+                <button class="btn btn-link btn-sm p-0 text-decoration-none text-warning" @onclick="StartEdit">Editar</button>
+            }
+            @if (Sententia.CanDelete && !Sententia.IsDeleted)
+            {
+                <button class="btn btn-link btn-sm p-0 text-decoration-none text-danger" @onclick="() => OnDeleteRequested.InvokeAsync(Sententia.Id)">Eliminar</button>
+            }
+        </div>
+
+        @if (isReplying)
+        {
+            <div class="mt-2">
+                <textarea class="form-control form-control-sm mb-2" rows="2" @bind="replyContent" placeholder="Escribe tu respuesta..."></textarea>
+                <button class="btn btn-sm btn-primary" @onclick="SubmitReply">Enviar</button>
+                <button class="btn btn-sm btn-secondary" @onclick="CancelReply">Cancelar</button>
+            </div>
+        }
+
+    </div>
+</div>
+
+@if (Sententia.Replies != null && Sententia.Replies.Any())
+{
+    <details class="mt-1 ms-4 ps-2 border-start border-light">
+        <summary class="text-muted small" style="cursor: pointer;">Ver @Sententia.Replies.Count respuesta(s)</summary>
+
+    <div class="mt-1 ms-4 ps-2 border-start border-light">
+        @foreach (var reply in Sententia.Replies)
+        {
+            <SententiaItem
+                Sententia="reply"
+                IsReply="true"
+                CanComment="CanComment"
+                OnReplySubmit="OnReplySubmit"
+                OnDeleteRequested="OnDeleteRequested"
+                ActiveReplyId="ActiveReplyId"
+                OnReplyRequested="OnReplyRequested"
+                OnEditSubmit="OnEditSubmit"
+                OnRestoreRequested="OnRestoreRequested"
+            >
+            </SententiaItem>
+        }
+    </div>
+
+    </details>
+}
+
+
+@code {
+    [Parameter, EditorRequired] public SententiaDto Sententia { get; set; } = null!;
+    [Parameter] public bool IsReply { get; set; }
+    [Parameter] public bool CanComment { get; set; }
+    [Parameter] public Guid? ActiveReplyId { get; set; }
+
+    [Parameter] public EventCallback<Guid> OnReplyRequested { get; set; }
+    [Parameter] public EventCallback<(Guid ParentId, string Content)> OnReplySubmit { get; set; }
+    [Parameter] public EventCallback<Guid> OnDeleteRequested { get; set; }
+
+    [Parameter] public EventCallback<(Guid Id, string NewContent)> OnEditSubmit { get; set; }
+    [Parameter] public EventCallback<Guid> OnRestoreRequested { get; set; }
+
+    private bool isReplying => ActiveReplyId == Sententia.Id;
+    private string replyContent = string.Empty;
+
+    private bool isEditing = false;
+    private string editContent = string.Empty;
+
+
+    private async Task SubmitReply()
+    {
+        if (string.IsNullOrWhiteSpace(replyContent))
+        {
+            return;
+        }
+
+        await OnReplySubmit.InvokeAsync((Sententia.Id, replyContent));
+        replyContent = string.Empty;
+    }
+
+
+    private void CancelReply()
+    {
+        replyContent = string.Empty;
+        OnReplyRequested.InvokeAsync(Guid.Empty); // resetea el formulario activo.
+    }
+
+
+    private void StartEdit()
+    {
+        isEditing = true;
+        editContent = Sententia.Content;
+    }
+
+    private void CancelEdit()
+    {
+        isEditing = false;
+        editContent = string.Empty;
+    }
+
+    private async Task SubmitEdit()
+    {
+        if (string.IsNullOrWhiteSpace(editContent) || editContent == Sententia.Content)
+        {
+            CancelEdit();
+            return;
+        }
+        await OnEditSubmit.InvokeAsync((Sententia.Id, editContent));
+        isEditing = false;
+    }
+
+}

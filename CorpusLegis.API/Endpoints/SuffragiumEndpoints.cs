@@ -19,8 +19,14 @@ public static class SuffragiumEndpoints
     }
 
 
-    private static async Task<IResult> CreateSuffragium(CreateSuffragiumDto dto, ISuffragiumService service)
+    private static async Task<IResult> CreateSuffragium(Guid id, CreateSuffragiumDto dto, ISuffragiumService service)
     {
+
+        if (dto.RogatioId != id)
+        {
+            return Results.BadRequest("Route ID does not match DTO RogatioId");
+        }
+
         if (!MiniValidator.TryValidate(dto, out var errors))
         {
             return Results.ValidationProblem(errors);
@@ -29,15 +35,6 @@ public static class SuffragiumEndpoints
         try
         {
             var result = await service.CreateAsync(dto);
-
-            //opción 1 (¿mal?)
-            //return Results.Created($"/rogatio/{result.Id}", result); // si ha ido bien, será un código 201 + el objeto (DTO) creado.
-
-            //opción 2 (¿mal?)
-            //var rogatioDto = await rogatioService.GetByIdAsync(dto.RogatioId);
-            //return Results.Ok(rogatioDto); // si ha ido bien, será un código 200 + el objeto (DTO) actualizado.
-
-            //opción 3 (¿bien?)
             return Results.Ok(result);
         }
         catch (InvalidOperationException ex)
