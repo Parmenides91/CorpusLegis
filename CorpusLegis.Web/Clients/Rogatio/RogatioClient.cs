@@ -5,21 +5,11 @@ namespace CorpusLegis.Web.Clients.Rogatio;
 
 public class RogatioClient : CorpusLegisApiClientBase, IRogatioClient
 {
-    //private readonly ILogger<RogatioClient> _logger;
-    //private readonly HttpClient _httpClient;
-    //private readonly TokenProvider _tokenProvider;
 
     public RogatioClient(ILogger<RogatioClient> logger, HttpClient httpClient, TokenProvider tokenProvider)
         : base(logger, httpClient, tokenProvider)
     {
-        //_logger = logger;
-        //_httpClient = httpClient;
-        //_tokenProvider = tokenProvider;
 
-        //if (!string.IsNullOrEmpty(tokenProvider.AccessToken))
-        //{
-        //    _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokenProvider.AccessToken);
-        //}
     }
 
 

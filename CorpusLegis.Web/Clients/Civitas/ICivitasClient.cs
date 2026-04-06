@@ -8,6 +8,12 @@ public interface ICivitasClient
 
     Task<List<CivitasSummaryDto>> GetCivitatesAsync(); // Método para obtener la lista de Civitates.
 
+    Task<CivitasDetailsDto?> CreateCivitasAsync(CreateCivitasDto dto); // Método para crear una nueva Civitas.
+
+    Task<CivitasDetailsDto?> UpdateCivitasAsync(Guid id, UpdateCivitasDto dto); // Método para actualizar una Civitas existente.
+
+    Task<bool> DeleteCivitasAsync(Guid id); // Método para eliminar una Civitas por su ID.
+
     Task<List<CivitasSummaryDto>> GetUserCivitatesAsync(); // Método para obtener la lista de Civitates a las que pertenece el Civis actual.
 
     Task<List<CivitasSummaryDto>> GetCivitatesByCivisIdAsync(Guid idCivis); // Método para obtener las Civitates a las que pertenece un Civis. [NO TIENE UNA VISUALIZACIÓN EN LA WEB]

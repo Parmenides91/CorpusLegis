@@ -1,0 +1,108 @@
+﻿@page "/civitas/nueva"
+@rendermode InteractiveServer
+@attribute [Authorize]
+
+@using CorpusLegis.Shared.Dtos.Civitas
+@using CorpusLegis.Shared.Enums
+@using Microsoft.AspNetCore.Authorization
+
+@inject Clients.Civitas.ICivitasClient CivitasApiClient
+@inject NavigationManager NavigationManager
+
+
+<h3>Fundación de una nueva Civitas</h3>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">
+        <strong>Error: </strong>@errorMessage
+    </div>
+}
+
+<EditForm Model="@newCivitas" FormName="createRogatioForm" OnValidSubmit="HandleSubmit">
+    <DataAnnotationsValidator />
+
+    <div class="mb-3">
+        <label for="name" class="form-label">Nombre</label>
+
+        <InputText id="name" class="form-control" @bind-Value="newCivitas.Name" />
+
+        <ValidationMessage For="@(() => newCivitas.Name)" />
+    </div>
+
+    <div class="mb-3">
+        <label for="description" class="form-label">Descripción</label>
+
+        <InputTextArea id="description" class="form-control" @bind-Value="newCivitas.Description" />
+
+        <ValidationMessage For="@(() => newCivitas.Description)" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Visibilidad de la Civitas</label>
+        <div>
+            <InputRadioGroup TValue="Visibilitas" @bind-Value="newCivitas.Visibility">
+                @foreach (Visibilitas option in Enum.GetValues<Visibilitas>())
+                {
+                    var optionId = $"vis-{option}";
+                    <div class="form-check form-check-inline">
+                        <InputRadio id="@optionId" class="form-check-input" Value="@(option)" />
+                        <label class="form-check-label" for="optionId">@GetEnumDisplayName(option)</label>
+                    </div>
+                }
+            </InputRadioGroup>
+        </div>
+        <ValidationMessage For="@(() => newCivitas.Visibility)" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Fundar Civitas</button>
+
+</EditForm>
+
+
+
+@code {
+    private string? errorMessage;
+    private CreateCivitasDto newCivitas = new()
+    {
+        Visibility = Visibilitas.Privata
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        //newCivitas.Visibility = Visibilitas.Privata;
+    }
+
+    private async Task HandleSubmit()
+    {
+        try
+        {
+            errorMessage = null;
+
+            await CivitasApiClient.CreateCivitasAsync(newCivitas);
+
+            NavigationManager.NavigateTo("/civitas");
+        }
+        catch (ApplicationException ex)
+        {
+            Console.WriteLine($"Error de comunicación con la API: {ex.Message}");
+            errorMessage = $"Error de comunicación con la API: {ex.Message}";
+        }
+    }
+
+    private static string GetEnumDisplayName(Enum value)
+    {
+        var member = value.GetType().GetMember(value.ToString()).FirstOrDefault();
+        if (member == null) return value.ToString();
+        var display = member.GetCustomAttributes(typeof(System.ComponentModel.DataAnnotations.DisplayAttribute), false)
+                            .Cast<System.ComponentModel.DataAnnotations.DisplayAttribute>()
+                            .FirstOrDefault();
+        return display?.GetName() ?? value.ToString();
+    }
+
+}

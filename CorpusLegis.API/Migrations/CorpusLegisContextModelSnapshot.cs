@@ -22,21 +22,6 @@ namespace CorpusLegis.API.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("CivisCivitas", b =>
-                {
-                    b.Property<Guid>("CivesId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("CivitatesId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("CivesId", "CivitatesId");
-
-                    b.HasIndex("CivitatesId");
-
-                    b.ToTable("CivisCivitas");
-                });
-
             modelBuilder.Entity("CorpusLegis.API.Domain.Civis", b =>
                 {
                     b.Property<Guid>("Id")
@@ -62,6 +47,10 @@ namespace CorpusLegis.API.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("FoundedAt")
                         .HasColumnType("datetime2");
 
@@ -69,9 +58,79 @@ namespace CorpusLegis.API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Visibility")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.ToTable("Civitates");
+                });
+
+            modelBuilder.Entity("CorpusLegis.API.Domain.CivitasSodalis", b =>
+                {
+                    b.Property<Guid>("CivitasId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CivisId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("JoinedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("CivitasId", "CivisId");
+
+                    b.HasIndex("CivisId");
+
+                    b.ToTable("CivitasSodales", (string)null);
+                });
+
+            modelBuilder.Entity("CorpusLegis.API.Domain.Invitatio", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CivitasId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("InviteeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("InviterId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("IssuedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("RespondedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(43)
+                        .HasColumnType("nvarchar(43)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CivitasId");
+
+                    b.HasIndex("InviteeId");
+
+                    b.HasIndex("InviterId");
+
+                    b.ToTable("Invitationes");
                 });
 
             modelBuilder.Entity("CorpusLegis.API.Domain.Lex", b =>
@@ -174,12 +233,29 @@ namespace CorpusLegis.API.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedByCivisId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsEdited")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid?>("ParentId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid>("RogatioId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CivisId");
+
+                    b.HasIndex("ParentId");
 
                     b.HasIndex("RogatioId");
 
@@ -385,19 +461,50 @@ namespace CorpusLegis.API.Migrations
                     b.ToTable("OutboxState");
                 });
 
-            modelBuilder.Entity("CivisCivitas", b =>
+            modelBuilder.Entity("CorpusLegis.API.Domain.CivitasSodalis", b =>
                 {
-                    b.HasOne("CorpusLegis.API.Domain.Civis", null)
-                        .WithMany()
-                        .HasForeignKey("CivesId")
+                    b.HasOne("CorpusLegis.API.Domain.Civis", "Civis")
+                        .WithMany("CivitasSodales")
+                        .HasForeignKey("CivisId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CorpusLegis.API.Domain.Civitas", "Civitas")
+                        .WithMany("Sodales")
+                        .HasForeignKey("CivitasId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("CorpusLegis.API.Domain.Civitas", null)
-                        .WithMany()
-                        .HasForeignKey("CivitatesId")
+                    b.Navigation("Civis");
+
+                    b.Navigation("Civitas");
+                });
+
+            modelBuilder.Entity("CorpusLegis.API.Domain.Invitatio", b =>
+                {
+                    b.HasOne("CorpusLegis.API.Domain.Civitas", "Civitas")
+                        .WithMany("Invitationes")
+                        .HasForeignKey("CivitasId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("CorpusLegis.API.Domain.Civis", "Invitee")
+                        .WithMany("InvitationesAcceptae")
+                        .HasForeignKey("InviteeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CorpusLegis.API.Domain.Civis", "Inviter")
+                        .WithMany("InvitationesEmissae")
+                        .HasForeignKey("InviterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Civitas");
+
+                    b.Navigation("Invitee");
+
+                    b.Navigation("Inviter");
                 });
 
             modelBuilder.Entity("CorpusLegis.API.Domain.Lex", b =>
@@ -452,6 +559,10 @@ namespace CorpusLegis.API.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("CorpusLegis.API.Domain.Sententia", "Parent")
+                        .WithMany("Replies")
+                        .HasForeignKey("ParentId");
+
                     b.HasOne("CorpusLegis.API.Domain.Rogatio", "Rogatio")
                         .WithMany("Sententiae")
                         .HasForeignKey("RogatioId")
@@ -459,6 +570,8 @@ namespace CorpusLegis.API.Migrations
                         .IsRequired();
 
                     b.Navigation("Civis");
+
+                    b.Navigation("Parent");
 
                     b.Navigation("Rogatio");
                 });
@@ -494,11 +607,24 @@ namespace CorpusLegis.API.Migrations
                         .HasPrincipalKey("MessageId", "ConsumerId");
                 });
 
+            modelBuilder.Entity("CorpusLegis.API.Domain.Civis", b =>
+                {
+                    b.Navigation("CivitasSodales");
+
+                    b.Navigation("InvitationesAcceptae");
+
+                    b.Navigation("InvitationesEmissae");
+                });
+
             modelBuilder.Entity("CorpusLegis.API.Domain.Civitas", b =>
                 {
+                    b.Navigation("Invitationes");
+
                     b.Navigation("Leges");
 
                     b.Navigation("Rogationes");
+
+                    b.Navigation("Sodales");
                 });
 
             modelBuilder.Entity("CorpusLegis.API.Domain.Rogatio", b =>
@@ -506,6 +632,11 @@ namespace CorpusLegis.API.Migrations
                     b.Navigation("Sententiae");
 
                     b.Navigation("Suffragia");
+                });
+
+            modelBuilder.Entity("CorpusLegis.API.Domain.Sententia", b =>
+                {
+                    b.Navigation("Replies");
                 });
 #pragma warning restore 612, 618
         }

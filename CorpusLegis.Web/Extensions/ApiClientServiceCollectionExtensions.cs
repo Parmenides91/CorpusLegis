@@ -1,7 +1,9 @@
 ﻿using CorpusLegis.Web.Clients;
 using CorpusLegis.Web.Clients.Civitas;
+using CorpusLegis.Web.Clients.Invitatio;
 using CorpusLegis.Web.Clients.Lex;
 using CorpusLegis.Web.Clients.Rogatio;
+using CorpusLegis.Web.Clients.Sententia;
 using CorpusLegis.Web.Clients.Suffragium;
 
 namespace CorpusLegis.Web.Extensions;
@@ -25,6 +27,8 @@ public static class ApiClientServiceCollectionExtensions
         services.AddHttpClient<ICivitasClient, CivitasClient>("civitas-client", configureClient);
         services.AddHttpClient<ISuffragiumClient, SuffragiumClient>("suffragium-client", configureClient);
         services.AddHttpClient<ILexClient, LexClient>("lex-client", configureClient);
+        services.AddHttpClient<IInvitatioClient, InvitatioClient>("invitatio-client", configureClient);
+        services.AddHttpClient<ISententiaClient, SententiaClient>("sententia-client", configureClient);
 
         return services;
 
