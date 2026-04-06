@@ -62,49 +62,6 @@ public class RogatioService : IRogatioService
     {
         var currentCivisId = _currentUser.CivisId;
 
-        //var dto = await _db.Rogationes
-        //    .Where(r => r.Id == id)
-        //    .Select(r => new RogatioDetailsDto(
-        //        r.Id,
-        //        r.Title,
-        //        r.Content,
-        //        r.CivisId,
-        //        r.Civis.Name,
-        //        r.CivitasId,
-        //        r.Civitas.Name,
-        //        r.CreatedAt,
-        //        r.Status,
-        //        r.Suffragia.Count(s => s.Votum == SuffragiumValue.Pro),
-        //        r.Suffragia.Count(s => s.Votum == SuffragiumValue.Contra),
-        //        r.Suffragia.Count(s => s.Votum == SuffragiumValue.Abstentio),
-        //        r.Suffragia.Any(s => s.CivisId == currentCivisId),
-        //        r.RequiredQuorum,
-        //        r.RequiredMajority
-        //        ))
-        //    .AsNoTracking()
-        //    .FirstOrDefaultAsync();
-
-
-        //if (dto == null)
-        //{
-        //    throw new NotFoundException("rOgAtIo", id);
-        //    //return null;
-        //}
-
-        //return dto;
-
-
-
-        //var rogatioInfo = await _db.Rogationes
-        //                    .Where(r => r.Id == id)
-        //                    .Select(r => new
-        //                    {
-        //                        Data = r,
-        //                        IsMember = _db.CivitasSodales.Any(cs => cs.CivisId == currentCivisId && cs.CivitasId == r.CivitasId)
-        //                    })
-        //                    .FirstOrDefaultAsync();
-
-
         var rogatioInfo = await _db.Rogationes
                             .AsNoTracking()
                             .Where(r => r.Id == id)

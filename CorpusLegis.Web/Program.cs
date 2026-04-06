@@ -76,50 +76,7 @@ builder.Services.AddAuthorization();
 // Se registra el handler de la autentificación.
 builder.Services.AddScoped<CorpusLegis.Web.State.TokenProvider>();
 
-//builder.Services.AddTransient<AccessTokenDelegatingHandler>(); // el que se encarga de añadir el token a las peticiones HTTP hacia la API (debe ser transient).
-
 // Se le indica dónde está la API.
-//builder.Services.AddHttpClient<CorpusLegisApiClient>(client =>
-//{
-//    client.BaseAddress = new Uri("http://api-corpuslegis");
-//})
-//    //.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false })
-//    .AddHttpMessageHandler<AccessTokenDelegatingHandler>() // se inyecta el nuevo handler.
-//    ;
-
-// Se registran los Clients de la API para la Web.
-//builder.Services.AddHttpClient<ICivitasClient, CivitasClient>("civitas-client", client =>
-//{
-//    client.BaseAddress = new Uri("http://api-corpuslegis");
-//    client.DefaultRequestHeaders.Accept.Clear();
-//    client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-//})
-//    //.AddHttpMessageHandler<AccessTokenDelegatingHandler>() // inyección del handler para añadir el token a las peticiones HTTP hacia la API.
-//    ;
-//builder.Services.AddHttpClient<IRogatioClient, RogatioClient>("rogatio-client", client =>
-//{
-//    client.BaseAddress = new Uri("http://api-corpuslegis");
-//    client.DefaultRequestHeaders.Accept.Clear();
-//    client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-//})
-//    //.AddHttpMessageHandler<AccessTokenDelegatingHandler>() // inyección del handler para añadir el token a las peticiones HTTP hacia la API.
-//    ;
-//builder.Services.AddHttpClient<ISuffragiumClient, SuffragiumClient>("suffragium-client", client =>
-//{
-//    client.BaseAddress = new Uri("http://api-corpuslegis");
-//    client.DefaultRequestHeaders.Accept.Clear();
-//    client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-//})
-//    //.AddHttpMessageHandler<AccessTokenDelegatingHandler>() // inyección del handler para añadir el token a las peticiones HTTP hacia la API.
-//    ;
-//builder.Services.AddHttpClient<ILexClient, LexClient>("lex-client", client =>
-//{
-//    client.BaseAddress = new Uri("http://api-corpuslegis");
-//    client.DefaultRequestHeaders.Accept.Clear();
-//    client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-//})
-//    //.AddHttpMessageHandler<AccessTokenDelegatingHandler>() // inyección del handler para añadir el token a las peticiones HTTP hacia la API.
-//    ;
 builder.Services.AddCorpusLegisApiClients("http://api-corpuslegis");
 
 // Add services to the container.
@@ -129,21 +86,6 @@ builder.Services.AddRazorComponents()
 var app = builder.Build();
 
 app.MapDefaultEndpoints();
-
-//app.MapGet("/login", (string? returnUrl, HttpContext context) =>
-//{
-//    return TypedResults.Challenge(
-//        new Microsoft.AspNetCore.Authentication.AuthenticationProperties
-//        {
-//            RedirectUri = string.IsNullOrEmpty(returnUrl) ? "/" : returnUrl
-//        });
-//});
-//app.MapPost("/logout", (HttpContext context) =>
-//{
-//    return TypedResults.SignOut(
-//        new Microsoft.AspNetCore.Authentication.AuthenticationProperties { RedirectUri = "/" },
-//        [CookieAuthenticationDefaults.AuthenticationScheme, OpenIdConnectDefaults.AuthenticationScheme]);
-//});
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -156,13 +98,6 @@ app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages:
 app.UseHttpsRedirection();
 
 app.UseRouting(); // recomendado antes de Auth.
-
-//app.Use(async (ctx, next) =>
-//{
-//    var logger = ctx.RequestServices.GetRequiredService<ILogger<Program>>();
-//    logger.LogInformation("Incoming Authorization WEB: {Auth}", ctx.Request.Headers["Authorization"].ToString());
-//    await next();
-//});
 
 app.UseAuthentication();
 app.UseAuthorization();

@@ -10,16 +10,35 @@
         @if (Sententia.IsDeleted)
         {
             <p class="text-muted fst-italic mb-1">[Comentario eliminado]</p>
+            @if (Sententia.CanRestore)
+            {
+                <button class="btn btn-link btn-sm p-0 text-decoration-none text-success" @onclick="() => OnRestoreRequested.InvokeAsync(Sententia.Id)">Restaurar</button>
+            }
         }
         else
         {
-            <p class="mb-1">@Sententia.Content</p>
+            if (isEditing)
+            {
+                <div class="mt-2 mb-2">
+                    <textarea class="form-control form-control-sm mb-2" rows="2" @bind="editContent"></textarea>
+                    <button class="btn btn-sm btn-success" @onclick="SubmitEdit">Guardar</button>
+                    <button class="btn btn-sm btn-secondary" @onclick="CancelEdit">Cancelar</button>
+                </div>
+            }
+            else
+            {
+                <p class="mb-1">@Sententia.Content</p>
+            }
         }
 
         <div class="d-flex gap-2">
             @if (CanComment && !Sententia.IsDeleted)
             {
                 <button class="btn btn-link btn-sm p-0 text-decoration-none" @onclick="() => OnReplyRequested.InvokeAsync(Sententia.Id)">Responder</button>
+            }
+            @if (Sententia.CanEdit && !Sententia.IsDeleted && !isEditing)
+            {
+                <button class="btn btn-link btn-sm p-0 text-decoration-none text-warning" @onclick="StartEdit">Editar</button>
             }
             @if (Sententia.CanDelete && !Sententia.IsDeleted)
             {
@@ -41,6 +60,9 @@
 
 @if (Sententia.Replies != null && Sententia.Replies.Any())
 {
+    <details class="mt-1 ms-4 ps-2 border-start border-light">
+        <summary class="text-muted small" style="cursor: pointer;">Ver @Sententia.Replies.Count respuesta(s)</summary>
+
     <div class="mt-1 ms-4 ps-2 border-start border-light">
         @foreach (var reply in Sententia.Replies)
         {
@@ -52,10 +74,14 @@
                 OnDeleteRequested="OnDeleteRequested"
                 ActiveReplyId="ActiveReplyId"
                 OnReplyRequested="OnReplyRequested"
+                OnEditSubmit="OnEditSubmit"
+                OnRestoreRequested="OnRestoreRequested"
             >
             </SententiaItem>
         }
     </div>
+
+    </details>
 }
 
 
@@ -69,8 +95,15 @@
     [Parameter] public EventCallback<(Guid ParentId, string Content)> OnReplySubmit { get; set; }
     [Parameter] public EventCallback<Guid> OnDeleteRequested { get; set; }
 
+    [Parameter] public EventCallback<(Guid Id, string NewContent)> OnEditSubmit { get; set; }
+    [Parameter] public EventCallback<Guid> OnRestoreRequested { get; set; }
+
     private bool isReplying => ActiveReplyId == Sententia.Id;
     private string replyContent = string.Empty;
+
+    private bool isEditing = false;
+    private string editContent = string.Empty;
+
 
     private async Task SubmitReply()
     {
@@ -83,10 +116,35 @@
         replyContent = string.Empty;
     }
 
+
     private void CancelReply()
     {
         replyContent = string.Empty;
         OnReplyRequested.InvokeAsync(Guid.Empty); // resetea el formulario activo.
+    }
+
+
+    private void StartEdit()
+    {
+        isEditing = true;
+        editContent = Sententia.Content;
+    }
+
+    private void CancelEdit()
+    {
+        isEditing = false;
+        editContent = string.Empty;
+    }
+
+    private async Task SubmitEdit()
+    {
+        if (string.IsNullOrWhiteSpace(editContent) || editContent == Sententia.Content)
+        {
+            CancelEdit();
+            return;
+        }
+        await OnEditSubmit.InvokeAsync((Sententia.Id, editContent));
+        isEditing = false;
     }
 
 }

@@ -14,7 +14,7 @@ public record SententiaDto(
     bool IsEdited,
     bool IsDeleted,
     bool CanDelete,
-    //bool CanEdit,
-    //bool CanRestore,
+    bool CanEdit,
+    bool CanRestore,
     List<SententiaDto> Replies
 );

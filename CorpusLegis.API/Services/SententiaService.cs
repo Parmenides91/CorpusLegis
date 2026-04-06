@@ -62,15 +62,6 @@ public class SententiaService : ISententiaService
                         .Select(cs => cs.Role)
                         .FirstOrDefaultAsync();
         
-        //bool canSoftDeleteAll = false;
-        //if (role != Munus.Rector)
-        //{
-        //    canSoftDeleteAll = false;
-        //}
-        //else
-        //{
-        //    canSoftDeleteAll = true;
-        //}
         bool canSoftDeleteAll = role == Munus.Rector;
 
         var sententiaeRaw = await _db.Sententiae
@@ -102,6 +93,8 @@ public class SententiaService : ISententiaService
                 IsEdited: s.IsEdited,
                 IsDeleted: s.IsDeleted,
                 CanDelete: canSoftDeleteAll || s.CivisId == currentCivisId,
+                CanEdit: s.CivisId == currentCivisId && !s.IsDeleted,
+                CanRestore: canSoftDeleteAll, // significaría que es Rector.
                 Replies: new List<SententiaDto>()
                 );
             dict[s.Id] = dto;
@@ -157,8 +150,7 @@ public class SententiaService : ISententiaService
             bool parentExists = await _db.Sententiae.AnyAsync(s => s.Id == dto.ParentId.Value && s.RogatioId == dto.RogatioId);
             if (!parentExists)
             {
-                //throw new DomainException("La Sententia madre no existe en esta Rogatio.");
-                throw new Exception("La Sententia madre no existe en esta Rogatio.");
+                throw new NotFoundException($"La Sententia madre {dto.ParentId} no existe en la Rogatio {dto.RogatioId}.", dto.ParentId);
             }
         }
 

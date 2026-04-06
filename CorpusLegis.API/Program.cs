@@ -61,8 +61,8 @@ builder.Services.AddMassTransit(x =>
 });
 
 
-//var keycloakAuthority = builder.Configuration["Keycloak:Authority"];
-var keycloakAuthority = "http://localhost:8080/realms/CorpusLegis"; // si no hago esto, desde que puse Usuarios reales, no me van a funcionar las migraciones porque necesita resolver esta variable para la migración.
+var keycloakAuthority = builder.Configuration["Keycloak:Authority"];
+//var keycloakAuthority = "http://localhost:8080/realms/CorpusLegis"; // si no hago esto, desde que puse Usuarios reales, no me van a funcionar las migraciones porque necesita resolver esta variable para la migración.
 if (string.IsNullOrEmpty(keycloakAuthority))
 {
     throw new InvalidOperationException("La variable de entorno 'Keycloak:Authority' no se ha inyectado correctamente desde el AppHost.");
@@ -96,8 +96,6 @@ builder.Services.AddAuthentication( options =>
     })
     .AddJwtBearer( options =>
     {
-        //options.Authority = $"{keycloakUrl}/realms/CorpusLegis";
-        //options.Authority = builder.Configuration["Keycloak:Authority"];
         options.Authority = keycloakAuthority;
         options.RequireHttpsMetadata = false; // en PRO esto tendrá que ser true.
 
@@ -124,19 +122,6 @@ builder.Services.AddAuthentication( options =>
                     var preview = authHeader.Length > 17 ? authHeader.Substring(0, 17) : "Inválido";
                     logger.LogInformation("[API SEGURIDAD] Cabecera Authorization recibida. Formato: {Preview}...", preview);
                     logger.LogInformation("[API SEGURIDAD] Authorization header preview: {Preview}", authHeader.Length > 50 ? authHeader.Substring(0, 50) : authHeader);
-
-                    // Validación manual para depuración
-                    //var token = authHeader.StartsWith("Bearer ") ? authHeader.Substring(7) : authHeader;
-                    //var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
-                    //try
-                    //{
-                    //    var principal = handler.ValidateToken(token, tokenValidationParameters, out var validatedToken);
-                    //    logger.LogInformation("[API DEBUG] Manual ValidateToken OK. Subject: {sub}", principal?.Identity?.Name);
-                    //}
-                    //catch (Exception ex)
-                    //{
-                    //    logger.LogError(ex, "[API DEBUG] Manual ValidateToken error: {Message}", ex.Message);
-                    //}
                 }
                 return Task.CompletedTask;
             },
@@ -248,13 +233,6 @@ else
     //app.UseHttpsRedirection(); // NO EN DESARROLLO (SÍ LO TENDREMOS EN CUALQUIER OTRO ENTORNO)
 }
 
-//app.Use(async (ctx, next) =>
-//{
-//    var logger = ctx.RequestServices.GetRequiredService<ILogger<Program>>();
-//    logger.LogInformation("Incoming Authorization API: {Auth}", ctx.Request.Headers["Authorization"].ToString());
-//    await next();
-//});
-
 /* Autentificación y autorización (middle pipeline) */
 // Se habilita la autenticación y autorización.
 app.UseAuthentication();
@@ -270,11 +248,6 @@ app.MapLexEndpoints(); // Se mapean los endpoints de Lex.
 app.MapCivitasEndpoints(); // Se mapean los endpoints de Civitas.
 app.MapInvitatioEndpoints();
 app.MapSententiaEndpoints();
-//app.MapGet("/auth/token", async (HttpContext ctx) =>
-//{
-//    var token = await ctx.GetTokenAsync("access_token");
-//    return token is null ? Results.Unauthorized() : Results.Ok(new { access_token = token });
-//}).RequireAuthorization();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -287,17 +260,6 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-//app.Use(async (ctx, next) =>
-//{
-//    var logger = ctx.RequestServices.GetRequiredService<ILogger<Program>>();
-//    foreach (var h in ctx.Request.Headers)
-//    {
-//        logger.LogInformation("[INCOMING HEADER] {Name}: {Value}", h.Key, h.Value.ToString().Length > 200 ? h.Value.ToString().Substring(0, 200) + "..." : h.Value.ToString());
-//    }
-//    await next();
-//});
-
-//app.MapControllers();
 
 /* Migraciones y seeding */
 using (var scope = app.Services.CreateScope())

@@ -21,7 +21,7 @@ public static class SententiaEndpoints
         group.MapPost("/", CreateSententia);
         group.MapPut("/{id:guid}", UpdateSententia);
         group.MapDelete("/{id:guid}", SoftDeleteSententia);
-        group.MapPut("/{id:guid}/restore", RestoreSententia);
+        group.MapPost("/{id:guid}/restore", RestoreSententia);
     }
 
     
@@ -59,7 +59,8 @@ public static class SententiaEndpoints
     {
         var updated = await service.UpdateAsync(id, dto);
 
-        return updated is not null ? Results.NoContent() : Results.NotFound();
+        //return updated is not null ? Results.NoContent() : Results.NotFound();
+        return updated is not null ? Results.Ok(updated) : Results.NotFound();
     }
 
     private static async Task<IResult> SoftDeleteSententia(Guid id, ISententiaService service)

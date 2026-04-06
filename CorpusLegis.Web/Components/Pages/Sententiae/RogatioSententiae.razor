@@ -34,6 +34,8 @@
                 OnReplyRequested="HandleReplyRequested"
                 OnReplySubmit="HandleReplySubmit"
                 OnDeleteRequested="HandleDeleteRequested"
+                OnEditSubmit="HandleEditSubmit"
+                OnRestoreRequested="HandleRestoreRequested"
             >
 
             </SententiaItem>
@@ -114,4 +116,39 @@
         await SententiaApiClient.SoftDeleteSententiaAsync(id);
         await LoadComments();
     }
+
+
+    private async Task HandleEditSubmit((Guid Id, string NewContent) payload)
+    {
+        isProcessing = true;
+
+        try
+        {
+            var dto = new UpdateSententiaDto { Content = payload.NewContent };
+            await SententiaApiClient.UpdateSententiaAsync(payload.Id, dto);
+            await LoadComments();
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+
+    private async Task HandleRestoreRequested(Guid id)
+    {
+        isProcessing = true;
+
+        try
+        {
+            await SententiaApiClient.RestoreSententiaAsync(id);
+            await LoadComments();
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+
 }
