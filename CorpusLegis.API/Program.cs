@@ -1,3 +1,4 @@
+using CorpusLegis.API.Clients;
 using CorpusLegis.API.Data;
 using CorpusLegis.API.Domain;
 using CorpusLegis.API.Endpoints;
@@ -210,6 +211,12 @@ builder.Services.AddScoped<ISententiaService, SententiaService>();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
+// Se registra el cliente de Reputatio.
+builder.Services.AddHttpClient<IReputatioClient, ReputatioClient>(client =>
+{
+    client.BaseAddress = new Uri("http://reputatio-corpuslegis"); // mismo nombre que en el AppHost.cs.
+});
+
 // Se registra el servicio de validaciones.
 builder.Services.AddValidatorsFromAssemblyContaining<CreateRogatioDtoValidator>();
 //builder.Services.AddValidatorsFromAssemblyContaining<CreateCivitasDtoValidator>(); // si están en el mismo proyecto, con la primera línea ya los coge a todos, no hace falta repetirlo para cada DTO.
@@ -248,6 +255,7 @@ app.MapLexEndpoints(); // Se mapean los endpoints de Lex.
 app.MapCivitasEndpoints(); // Se mapean los endpoints de Civitas.
 app.MapInvitatioEndpoints();
 app.MapSententiaEndpoints();
+app.MapCivisEndpoints();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

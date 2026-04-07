@@ -15,6 +15,11 @@ var sql_corpuslegis = builder.AddSqlServer("sqlserver-corpuslegis") // Nombre de
 var mongo_corpuslegis = builder.AddMongoDB("mongo-corpuslegis")
                             .AddDatabase("mongo-db-corpuslegis");
 
+// Se agrega el microservicio de Reputatio.
+var reputatio_corpuslegis = builder.AddProject<Projects.CorpusLegis_Reputatio>("reputatio-corpuslegis")
+    .WithReference(mongo_corpuslegis)
+    .WithReference(rabbitmq_corpuslegis);
+
 // Se configura Keycloak para la autentificación y autorización
 var keycloakUsername = builder.AddParameter("keycloak-admin-username", value: "admin");
 var keycloakPassword = builder.AddParameter("keycloak-admin-password", secret: true, value: "admin");
@@ -34,6 +39,7 @@ var api_corpuslegis = builder.AddProject<Projects.CorpusLegis_API>("api-corpusle
                             .WithEnvironment("Keycloak__Authority", keycloakAuthority)
                             .WaitFor(keycloak_corpuslegis)
                             .WithReference(redis_corpuslegis) // se inyecta la configuración de Redis para caché
+                            .WithReference(reputatio_corpuslegis)
                             ;
                             
 
@@ -65,10 +71,6 @@ builder.AddProject<Projects.CorpusLegis_EscrutinioWorker>("escrutinioworker-corp
     .WaitFor(keycloak_corpuslegis)
     .WaitFor(api_corpuslegis);
 
-// Se agrega el microservicio de Reputatio.
-var reputatio_corpuslegis = builder.AddProject<Projects.CorpusLegis_Reputatio>("reputatio-corpuslegis")
-    .WithReference(mongo_corpuslegis)
-    .WithReference(rabbitmq_corpuslegis)
-    .WaitFor(api_corpuslegis);
+
 
 builder.Build().Run();

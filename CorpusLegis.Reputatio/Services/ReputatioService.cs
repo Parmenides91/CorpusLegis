@@ -10,7 +10,7 @@ public class ReputatioService : IReputatioService
 
     public ReputatioService(IMongoClient mongoClient)
     {
-        var database = mongoClient.GetDatabase("CorpusLegis");
+        var database = mongoClient.GetDatabase("mongo-db-corpuslegis");
         _collection = database.GetCollection<CivisReputatio>("civis_reputatio");
     }
 
