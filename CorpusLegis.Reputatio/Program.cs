@@ -1,8 +1,12 @@
+using CorpusLegis.Reputatio.Configuration;
 using CorpusLegis.Reputatio.Consumers;
 using CorpusLegis.Reputatio.Domain;
 using CorpusLegis.Reputatio.Endpoints;
 using CorpusLegis.Reputatio.Services;
 using MassTransit;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
 
 
@@ -12,6 +16,7 @@ builder.AddServiceDefaults();
 
 // Add services to the container.
 // Se registra MongoDB a partir de la cadena de conexión que proporciona Aspire.
+BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard)); // Registrar GuidSerializer globalmente antes de configurar cualquier conexión
 builder.Services.AddSingleton<IMongoClient>(sp =>
 {
     var connectionString = builder.Configuration.GetConnectionString("mongo-db-corpuslegis");
@@ -22,6 +27,7 @@ builder.Services.AddSingleton<IMongoClient>(sp =>
 builder.Services.AddMassTransit(x =>
 {
     x.AddConsumer<RogatioCreatedConsumer>();
+    x.AddConsumer<SuffragiumEmissumConsumer>();
 
     x.UsingRabbitMq((context, cfg) =>
     {
@@ -31,7 +37,10 @@ builder.Services.AddMassTransit(x =>
     });
 });
 
-// se registra el servicio de Reputatio.
+// Se registra el servicio de configuración de reglas de Reputatio.
+builder.Services.Configure<ReputatioRulesOptions>(builder.Configuration.GetSection("ReputatioRules"));
+
+// Se registra el servicio de Reputatio.
 builder.Services.AddScoped<IReputatioService, ReputatioService>();
 
 //builder.Services.AddControllers();

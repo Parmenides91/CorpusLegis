@@ -1,14 +1,16 @@
 ﻿
 using CorpusLegis.Contracts.ReputatioCalculus;
 using CorpusLegis.Contracts.ReputatioCalculus.Enums;
+using CorpusLegis.Reputatio.Configuration;
 using CorpusLegis.Reputatio.Domain;
 using MassTransit;
+using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using OpenTelemetry.Metrics;
 
 namespace CorpusLegis.Reputatio.Consumers;
 
-public class RogatioCreatedConsumer (IMongoClient mongoClient, ILogger<RogatioCreatedConsumer> logger)
+public class RogatioCreatedConsumer (IMongoClient mongoClient, IOptions<ReputatioRulesOptions> rulesOptions, ILogger<RogatioCreatedConsumer> logger)
     : IConsumer<RogatioCreatedIntegrationEvent>
 {
 
@@ -25,8 +27,8 @@ public class RogatioCreatedConsumer (IMongoClient mongoClient, ILogger<RogatioCr
         {
             //Action = "RogatioCreated",
             Action = ReputatioAction.RogatioCreated,
-            Points = 10, // TODO: esta definición de puntos ¿debe ir en el appsettings.json?
-            //RogatioId = msg.RogatioId,
+            Points = rulesOptions.Value.RogatioCreated,
+            ResourceId = msg.RogatioId,
             Timestamp = msg.Timestamp,
             //EventType = nameof(RogatioCreatedIntegrationEvent)
         };
@@ -36,7 +38,7 @@ public class RogatioCreatedConsumer (IMongoClient mongoClient, ILogger<RogatioCr
             .Push(cr => cr.History, newHistoryEntry)
             .Set(cr => cr.LastUpdated, DateTime.UtcNow);
 
-        var options = new UpdateOptions { IsUpsert = true }; //¿qué hace ésto?
+        var options = new UpdateOptions { IsUpsert = true };
 
         await collection.UpdateOneAsync(
             cr => cr.CivisId == msg.CivisId,

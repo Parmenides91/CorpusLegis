@@ -2,6 +2,7 @@
 using CorpusLegis.API.Domain;
 using CorpusLegis.API.Exceptions;
 using CorpusLegis.Contracts.PdfGeneration;
+using CorpusLegis.Contracts.ReputatioCalculus;
 using CorpusLegis.Shared.Dtos;
 using CorpusLegis.Shared.Enums;
 using FluentValidation;
@@ -141,6 +142,15 @@ public class RogatioService : IRogatioService
         };
 
         _db.Rogationes.Add(rogatio);
+
+        var evento = new RogatioCreatedIntegrationEvent
+        {
+            CivisId = currentCivisId,
+            RogatioId = rogatio.Id,
+            Timestamp = DateTime.UtcNow
+        };
+        await _publishEndpoint.Publish(evento);
+
         await _db.SaveChangesAsync();
 
         return await GetByIdAsync(rogatio.Id);
