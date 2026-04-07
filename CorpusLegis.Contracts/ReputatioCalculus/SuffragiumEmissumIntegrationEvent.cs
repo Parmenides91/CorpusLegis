@@ -3,9 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace CorpusLegis.Contracts.InvitatioProcess;
+namespace CorpusLegis.Contracts.ReputatioCalculus;
 
-public class InvitatioAcceptedIntegrationEvent : IIntegrationEvent
+public record SuffragiumEmissumIntegrationEvent : IIntegrationEvent
 {
     public Guid EventId { get; init; } = Guid.NewGuid();
     public DateTimeOffset OccurredAt { get; init; } = DateTimeOffset.UtcNow;
@@ -14,12 +14,8 @@ public class InvitatioAcceptedIntegrationEvent : IIntegrationEvent
 
 
 
-    public Guid InvitatioId { get; init; }
-
-    public Guid CivitasId { get; init; }
 
     public Guid CivisId { get; init; }
-
-    public DateTime ProcessedAt { get; init; }
-
+    public Guid RogatioId { get; init; }
+    public DateTime Timestamp { get; init; }
 }

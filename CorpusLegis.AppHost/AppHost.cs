@@ -11,6 +11,10 @@ var rabbitmq_corpuslegis = builder.AddRabbitMQ("rabbitmq-corpuslegis"); // Nombr
 var sql_corpuslegis = builder.AddSqlServer("sqlserver-corpuslegis") // Nombre del CONTENEDOR/RECURSO: nombre interno con el que Aspire identifica al contenedor de SQL Server en el Dashboard
                             .AddDatabase("sqlserver-db-corpuslegis"); // Nombre de la CONEXIÓN LÓGICA: Aspire inyectará una cadena de conexión en los otros proyectos bajo este nombre
 
+// Se define la infraestrcutura de MongoDb.
+var mongo_corpuslegis = builder.AddMongoDB("mongo-corpuslegis")
+                            .AddDatabase("mongo-db-corpuslegis");
+
 // Se configura Keycloak para la autentificación y autorización
 var keycloakUsername = builder.AddParameter("keycloak-admin-username", value: "admin");
 var keycloakPassword = builder.AddParameter("keycloak-admin-password", secret: true, value: "admin");
@@ -33,7 +37,7 @@ var api_corpuslegis = builder.AddProject<Projects.CorpusLegis_API>("api-corpusle
                             ;
                             
 
-// Se agrega el proyecto del WebApp
+// Se agrega el proyecto del WebApp Blazor.
 builder.AddProject<Projects.CorpusLegis_Web>("web-blazor-corpuslegis")
         .WithExternalHttpEndpoints()
         .WithEnvironment("Keycloak__Authority", keycloakAuthority)
@@ -41,7 +45,7 @@ builder.AddProject<Projects.CorpusLegis_Web>("web-blazor-corpuslegis")
         .WaitFor(keycloak_corpuslegis)
         .WaitFor(api_corpuslegis);
 
-// se agrega el proyecto del Worker para la creación de PDFs
+// se agrega el proyecto del Worker para la creación de PDFs.
 var keycloakPdfWorkerClientSecretParam = builder.AddParameter("Keycloak-PdfWorker-ClientSecret", secret: true, value: "s5rqoXEZE7z7EA80ATMpuedxzzmC0H1T");
 //var keycloakPdfWorkerClientSecretParam = builder.AddParameter("Keycloak-PdfWorker-ClientSecret", secret: true); // de esta manera no arrancará hasta que no le pongas el Secret desde el panel de Aspire.
 builder.AddProject<Projects.CorpusLegis_PdfWorker>("pdfworker-corpuslegis")
@@ -59,6 +63,12 @@ builder.AddProject<Projects.CorpusLegis_EscrutinioWorker>("escrutinioworker-corp
     .WithEnvironment("Keycloak__Authority", keycloakAuthority)
     .WithEnvironment("Keycloak__EscrutinioWorker__ClientSecret", keycloakEscrutinioWorkerClientSecretParam)
     .WaitFor(keycloak_corpuslegis)
+    .WaitFor(api_corpuslegis);
+
+// Se agrega el microservicio de Reputatio.
+var reputatio_corpuslegis = builder.AddProject<Projects.CorpusLegis_Reputatio>("reputatio-corpuslegis")
+    .WithReference(mongo_corpuslegis)
+    .WithReference(rabbitmq_corpuslegis)
     .WaitFor(api_corpuslegis);
 
 builder.Build().Run();
