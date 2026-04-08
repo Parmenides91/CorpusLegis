@@ -43,12 +43,16 @@ var api_corpuslegis = builder.AddProject<Projects.CorpusLegis_API>("api-corpusle
                             .WithReference(redis_corpuslegis) // se inyecta la configuración de Redis para caché
                             .WithReference(reputatio_corpuslegis)
                             ;
-                            
+
 
 // Se agrega el proyecto del WebApp Blazor.
+var keycloakWebBlazorClientId = builder.AddParameter("Keycloak-WebBlazor-ClientId", value: "corpuslegis-web-blazor");
+var keycloakWebBlazorClientSecret = builder.AddParameter("Keycloak-WebBlazor-ClientSecret", secret: true, value: "NwbTIdUIhrSJoe50OHTvoxeFts0RFM7M");
 builder.AddProject<Projects.CorpusLegis_Web>("web-blazor-corpuslegis")
         .WithExternalHttpEndpoints()
         .WithEnvironment("Keycloak__Authority", keycloakAuthority)
+        .WithEnvironment("Keycloak__ClientId", keycloakWebBlazorClientId)
+        .WithEnvironment("keyclok__ClientSecret", keycloakWebBlazorClientSecret)
         .WithReference(api_corpuslegis)
         .WaitFor(keycloak_corpuslegis)
         .WaitFor(api_corpuslegis);

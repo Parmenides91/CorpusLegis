@@ -39,8 +39,8 @@ builder.Services.AddAuthentication(options =>
     .AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options =>
     {
         options.Authority = keycloakAuthority;
-        options.ClientId = builder.Configuration["Keycloak:ClientId"] ?? "corpuslegis-web"; // TODO: ¿no debería ser corpuslegis-web-blazor?
-        options.ClientSecret = builder.Configuration["keycloak:ClientSecret"];
+        options.ClientId = builder.Configuration["Keycloak:ClientId"] /*?? "corpuslegis-web"*/; // TODO: ¿no debería ser corpuslegis-web-blazor?
+        options.ClientSecret = builder.Configuration["Keycloak:ClientSecret"];
         options.ResponseType = OpenIdConnectResponseType.Code;
 
         options.SaveTokens = true; // Fundamental para recuperar el Access Token después.

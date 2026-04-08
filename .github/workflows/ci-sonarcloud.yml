@@ -1,0 +1,49 @@
+name: Build and Analyze via SonarCloud
+
+on:
+  push:
+    branches: [ "master", "develop" ]
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  build-and-analyze:
+    name: Build and Analyze
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Necesario para que SonarQube evalúe la historia y culpabilidad del código
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x' # Asegura que coincida con la versión de tus microservicios
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'zulu' # El escáner de Sonar requiere Java para ejecutarse.
+
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v4
+        with:
+          path: ~\sonar\cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Install SonarCloud scanner
+        run: dotnet tool install --global dotnet-sonarscanner
+
+      - name: Build and analyze
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Proveído automáticamente por GitHub
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}    # El secreto que añadiste en el Paso 2
+        # Reemplaza project_key y organization_key con los valores que te dio SonarCloud
+        run: |
+          dotnet sonarscanner begin /k:"TU_PROJECT_KEY" /o:"TU_ORGANIZATION_KEY" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vstest.reportsPaths="**/*.trx" /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml"
+          dotnet build CorpusLegis.sln --configuration Release
+          dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"

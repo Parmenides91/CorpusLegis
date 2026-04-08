@@ -1,0 +1,35 @@
+root = true
+
+# Todos los archivos
+[*]
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Archivos de código C#
+[*.cs]
+# Preferencias de estilo de código general
+dotnet_sort_system_directives_first = true
+dotnet_style_require_accessibility_modifiers = always:warning
+
+# Convenciones de nomenclatura
+# 1. Campos privados estáticos o de instancia deben tener prefijo '_' y camelCase
+dotnet_naming_rule.private_fields_should_be_camel_case_with_underscore.severity = warning
+dotnet_naming_rule.private_fields_should_be_camel_case_with_underscore.symbols = private_fields
+dotnet_naming_rule.private_fields_should_be_camel_case_with_underscore.style = camel_case_with_underscore
+
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+
+dotnet_naming_style.camel_case_with_underscore.required_prefix = _
+dotnet_naming_style.camel_case_with_underscore.capitalization = camel_case
+
+# Manejo de excepciones (SonarQube)
+# S112: No lanzar System.Exception
+dotnet_diagnostic.S112.severity = warning
+# S108: Bloques anidados no deben estar vacíos
+dotnet_diagnostic.S108.severity = warning
+
+# Organizar Usings
+dotnet_diagnostic.IDE0005.severity = warning # Usings innecesarios
