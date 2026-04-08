@@ -4,6 +4,7 @@
   <Project Path="CorpusLegis.Contracts/CorpusLegis.Contracts.csproj" Id="1a887d9c-172b-4256-91f1-8bb72dc1767d" />
   <Project Path="CorpusLegis.EscrutinioWorker/CorpusLegis.EscrutinioWorker.csproj" />
   <Project Path="CorpusLegis.PdfWorker/CorpusLegis.PdfWorker.csproj" />
+  <Project Path="CorpusLegis.Reputatio/CorpusLegis.Reputatio.csproj" />
   <Project Path="CorpusLegis.ServiceDefaults/CorpusLegis.ServiceDefaults.csproj" />
   <Project Path="CorpusLegis.Shared/CorpusLegis.Shared.csproj" Id="20695d17-d639-4786-85c4-00d633864563" />
   <Project Path="CorpusLegis.Web/CorpusLegis.Web.csproj" />

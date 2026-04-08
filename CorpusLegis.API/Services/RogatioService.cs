@@ -2,6 +2,7 @@
 using CorpusLegis.API.Domain;
 using CorpusLegis.API.Exceptions;
 using CorpusLegis.Contracts.PdfGeneration;
+using CorpusLegis.Contracts.ReputatioCalculus;
 using CorpusLegis.Shared.Dtos;
 using CorpusLegis.Shared.Enums;
 using FluentValidation;
@@ -96,7 +97,7 @@ public class RogatioService : IRogatioService
 
         if (!rogatioInfo.IsMember)
         {
-            throw new UnauthorizedDomainException("No formas parte de la Civitas a la que pertenece esta Rogatio.");
+            throw new UnauthorizedDomainException("No formas parte de la Civitas a la que pertenece esta Rogatio."); // TODO: escrutinio-worker pasa por aquí. Acaba haciendo su evaluación pero la API lanza esta excepción porque el microservicio no pertenece a la Civitas. Hay que controlar esto.
         }
 
         return rogatioInfo.Dto;
@@ -141,6 +142,15 @@ public class RogatioService : IRogatioService
         };
 
         _db.Rogationes.Add(rogatio);
+
+        var evento = new RogatioCreatedIntegrationEvent
+        {
+            CivisId = currentCivisId,
+            RogatioId = rogatio.Id,
+            Timestamp = DateTime.UtcNow
+        };
+        await _publishEndpoint.Publish(evento);
+
         await _db.SaveChangesAsync();
 
         return await GetByIdAsync(rogatio.Id);

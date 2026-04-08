@@ -1,4 +1,5 @@
 ﻿using CorpusLegis.Web.Clients;
+using CorpusLegis.Web.Clients.Civis;
 using CorpusLegis.Web.Clients.Civitas;
 using CorpusLegis.Web.Clients.Invitatio;
 using CorpusLegis.Web.Clients.Lex;
@@ -29,6 +30,7 @@ public static class ApiClientServiceCollectionExtensions
         services.AddHttpClient<ILexClient, LexClient>("lex-client", configureClient);
         services.AddHttpClient<IInvitatioClient, InvitatioClient>("invitatio-client", configureClient);
         services.AddHttpClient<ISententiaClient, SententiaClient>("sententia-client", configureClient);
+        services.AddHttpClient<ICivisClient, CivisClient>("civis-client", configureClient);
 
         return services;
 
