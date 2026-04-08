@@ -107,7 +107,7 @@ app.MapAuthEndpoints(); // Rutas de autentificación
 app.UseAntiforgery();
 
 app.MapStaticAssets();
-app.MapRazorComponents<CorpusLegis.Web.Components.App>()
+app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.Run();

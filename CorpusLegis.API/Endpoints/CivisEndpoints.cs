@@ -1,5 +1,6 @@
 ﻿using CorpusLegis.API.Clients;
 using CorpusLegis.API.Services;
+using CorpusLegis.Shared.Dtos.Reputatio;
 
 namespace CorpusLegis.API.Endpoints;
 
@@ -15,8 +16,9 @@ public static class CivisEndpoints
 
         group.MapGet("/{id:guid}/reputatio", GetCivisReputatio)
             .WithName("GetCivisReputatio")
-            //.Produces<Shared.Dtos.Reputatio.ReputatioDto>(StatusCodes.Status200OK) // ¿esto lo pongo o lo quito? ¿qué hace?
-            //.Produces(StatusCodes.Status404NotFound) // ¿esto lo pongo o lo quito? ¿qué hace?
+            .Produces<ReputatioDto>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound)
             .WithSummary("Obtiene la reputación de un civis dado su ID")
             .WithDescription("Se consulta con la API de Reputatio para obtener la reputación del Civis indicado.")
             ;

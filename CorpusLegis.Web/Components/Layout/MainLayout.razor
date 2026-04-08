@@ -36,7 +36,8 @@
                 <AuthorizeView>
                     <Authorized>
                         <span class="ms-3 me-3">Salve, @context.User.Identity?.Name</span>
-                        <a href="@($"{Configuration["Keycloak:Authority"]}/account/")" target="_blank" class="btn btn-link text-decoration-none">Mi Perfil</a>
+                        <a href="@($"{Configuration["Keycloak:Authority"]}/account/")" target="_blank" class="btn btn-link text-decoration-none">Mi Perfil (Keycloak)</a>
+                        <a href="/perfil" class="ms-3">Perfil Civis</a>
                         <form action="/logout" method="post">
                             <AntiforgeryToken />
                             <button type="submit" class="btn btn-link text-decoration-none">Logout</button>

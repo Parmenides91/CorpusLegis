@@ -18,7 +18,9 @@ var mongo_corpuslegis = builder.AddMongoDB("mongo-corpuslegis")
 // Se agrega el microservicio de Reputatio.
 var reputatio_corpuslegis = builder.AddProject<Projects.CorpusLegis_Reputatio>("reputatio-corpuslegis")
     .WithReference(mongo_corpuslegis)
-    .WithReference(rabbitmq_corpuslegis);
+    .WithReference(rabbitmq_corpuslegis)
+    .WaitFor(rabbitmq_corpuslegis)
+    ;
 
 // Se configura Keycloak para la autentificación y autorización
 var keycloakUsername = builder.AddParameter("keycloak-admin-username", value: "admin");

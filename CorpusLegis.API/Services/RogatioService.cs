@@ -97,7 +97,7 @@ public class RogatioService : IRogatioService
 
         if (!rogatioInfo.IsMember)
         {
-            throw new UnauthorizedDomainException("No formas parte de la Civitas a la que pertenece esta Rogatio.");
+            throw new UnauthorizedDomainException("No formas parte de la Civitas a la que pertenece esta Rogatio."); // TODO: escrutinio-worker pasa por aquí. Acaba haciendo su evaluación pero la API lanza esta excepción porque el microservicio no pertenece a la Civitas. Hay que controlar esto.
         }
 
         return rogatioInfo.Dto;
