@@ -1,0 +1,79 @@
+﻿@page "/perfil"
+
+@using CorpusLegis.Shared.Dtos.Reputatio
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.Extensions.Logging
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject Clients.Civis.ICivisClient CivisApiClient
+@inject ILogger<Profile> Logger
+
+
+<PageTitle>Perfil del Civis</PageTitle>
+
+<h3>Perfil Civis</h3>
+
+@if (_isLoading)
+{
+    <p>Cargando información del Civis.</p>
+}
+else if (_reputatio is not null)
+{
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">Reputación pública</h5>
+            <p class="card-text">Puntuación total: <strong>@_reputatio.TotalScore</strong></p>
+            <p class="text-muted">Última actualización: @_reputatio.LastUpdated</p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="alert alert-warning mt-3">
+        No se ha podido recuperar la información de Reputatio o el Civis no tiene actividad registrada.
+    </div>
+}
+
+@if (_claimsList is not null)
+{
+    <ul class="list-group">
+        @foreach (var c in _claimsList)
+        {
+            <li class="list-group-item"><strong>@c.Type</strong>: @c.Value</li>
+        }
+    </ul>
+}
+
+
+@code {
+    private ReputatioDto? _reputatio;
+    private bool _isLoading = true;
+
+    private List<(string Type, string Value)>? _claimsList;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity is not null && user.Identity.IsAuthenticated)
+        {
+            _claimsList = user.Claims.Select(c => (c.Type, c.Value)).ToList();
+            foreach (var claim in user.Claims)
+            {
+                // Logger.LogInformation("Claim: Type={ClaimType} Value={ClaimValue}", claim.Type, claim.Value);
+                // Console.WriteLine($"Claim: Type={claim.Type} Value={claim.Value}");
+            }
+
+            // var civisIdString01 = user.FindFirst("civis_id")?.Value; 
+            var civisIdString02 = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value; // TODO: debuggear esto y ver si lo puedo refinar.
+
+            if (Guid.TryParse(civisIdString02, out var civisId))
+            {
+                _reputatio = await CivisApiClient.GetReputatioAsync(civisId);
+            }
+        }
+
+        _isLoading = false;
+    }
+}

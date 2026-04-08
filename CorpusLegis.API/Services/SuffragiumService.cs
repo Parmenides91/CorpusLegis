@@ -1,7 +1,9 @@
 ﻿using CorpusLegis.API.Data;
 using CorpusLegis.API.Domain;
 using CorpusLegis.API.Exceptions;
+using CorpusLegis.Contracts.ReputatioCalculus;
 using CorpusLegis.Shared.Dtos.Suffragium;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using System.Runtime.InteropServices;
 
@@ -12,12 +14,15 @@ public class SuffragiumService : ISuffragiumService
     private readonly CorpusLegisContext _db;
     private readonly ICurrentUserService _currentUser;
 
+    private readonly IPublishEndpoint _publishEndpoint;
+
     // private readonly ILogger<SuffragiumService> _logger; // TODO: incluir este ILogger
 
-    public SuffragiumService(CorpusLegisContext db, ICurrentUserService currentUser)
+    public SuffragiumService(CorpusLegisContext db, ICurrentUserService currentUser, IPublishEndpoint publishEndpoint)
     {
         _db = db;
         _currentUser = currentUser;
+        _publishEndpoint = publishEndpoint;
     }
 
     public async Task<SuffragiumDetailsDto> CreateAsync(CreateSuffragiumDto newSuffragium)
@@ -65,6 +70,14 @@ public class SuffragiumService : ISuffragiumService
         };
 
         _db.Suffragia.Add(suffragium);
+
+        var evento = new SuffragiumEmissumIntegrationEvent
+        {
+            CivisId = currentCivisId,
+            RogatioId = newSuffragium.RogatioId,
+            Timestamp = DateTime.UtcNow,
+        };
+        await _publishEndpoint.Publish(evento);
 
         try
         {

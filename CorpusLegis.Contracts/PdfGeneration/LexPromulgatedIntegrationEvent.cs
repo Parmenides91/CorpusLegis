@@ -2,16 +2,6 @@
 
 namespace CorpusLegis.Contracts.PdfGeneration;
 
-
-//public interface IIntegrationEvent
-//{
-//    // Marker interface for integration events
-//    Guid EventId { get; }
-//    DateTimeOffset OccurredAt { get; }
-//    string? CorrelationId { get; }
-//    int EventVersion { get; }
-//}
-
 public record LexPromulgatedIntegrationEvent : IIntegrationEvent
 {
     public Guid EventId { get; init; } = Guid.NewGuid();
