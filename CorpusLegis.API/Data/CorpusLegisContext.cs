@@ -57,14 +57,7 @@ public class CorpusLegisContext(DbContextOptions<CorpusLegisContext> options)
             .IsUnique();
 
 
-
-        // Al borrar una Civitas no se borrarán sus Cives (sólo las relaciones establecidas en la tabla intermedia).
-        //modelBuilder.Entity<Civitas>()
-        //    .HasMany(c => c.Cives)
-        //    .WithMany(c => c.Civitates);
-        // TODO: borrar esta definición anterior, porque con lo posterior ya es suficiente.
-        // La relación entre Civitas y Civis se maneja a través de la tabla intermedia CivitasSodalis.
-        // Al borrar una Civitas no se borrarán sus Cives
+        // La relación entre Cives y Civitates la manejamos a través de una tabla intermedia explícita (CivitasSodalis) para poder almacenar información adicional sobre la relación.
         modelBuilder.Entity<Civitas>()
             .HasMany(c => c.Cives)
             .WithMany(c => c.Civitates)

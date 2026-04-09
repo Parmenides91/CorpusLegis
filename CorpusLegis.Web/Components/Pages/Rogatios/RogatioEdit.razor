@@ -3,11 +3,14 @@
 @attribute [Authorize]
 
 @using CorpusLegis.Shared.Dtos
+@using CorpusLegis.Web.Clients.Base
 @using Microsoft.AspNetCore.Authorization
 
-@* @inject Clients.CorpusLegisApiClient ApiClient *@
-@inject Clients.Rogatio.IRogatioClient ApiClient
+@implements IDisposable
+
+@inject Clients.Rogatio.IRogatioClient RogatioApiClient
 @inject NavigationManager NavigationManager
+@inject ILogger<RogatioEdit> Logger
 
 
 <h3>Edición del Rogatio [ID: xxx ]</h3>
@@ -25,11 +28,10 @@
         <span class="visually-hidden">. . . Cargando . . .</span>
     </div>
 }
-else if (editModel != null)
+else if (_editContext is not null && editModel is not null)
 {
-    <EditForm Model="editModel" OnValidSubmit="HandleSubmit">
-        <DataAnnotationsValidator />
-        @* <ValidationSummary/> *@
+    <EditForm EditContext="@_editContext" OnValidSubmit="HandleSubmit">
+        <ValidationSummary/>
 
         <div class="mb-3">
             <label for="title" class="form-label">Título</label>
@@ -50,6 +52,10 @@ else if (editModel != null)
 
     </EditForm>
 }
+else
+{
+    <div class="alert alert-warning">No se ha podido cargar el formulario de edición de la Rogatio.</div>
+}
 
 
 @code {
@@ -58,46 +64,136 @@ else if (editModel != null)
     private UpdateRogatioDto? editModel;
     private bool loading = true;
     private bool saving = false;
+
+    private EditContext? _editContext;
+    private ValidationMessageStore? _validationMessageStore;
     private string? errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
-        var dto = await ApiClient.GetRogatioByIdAsync(Id);
-
-        if (dto != null)
+        try
         {
-            editModel = new UpdateRogatioDto
-                {
-                    Title = dto.Title,
-                    Content = dto.Content,
-                    Status = dto.Status
-                };
+            var dto = await RogatioApiClient.GetRogatioByIdAsync(Id);
+
+            if (dto != null)
+            {
+                editModel = new UpdateRogatioDto
+                    {
+                        Title = dto.Title,
+                        Content = dto.Content,
+                        Status = dto.Status
+                    };
+                _editContext = new EditContext(editModel);
+                // _validationMessageStore = new ValidationMessageStore(_editContext);
+                _validation_message_store_init();
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error cargando Rogatio para edición.");
+            errorMessage = "No se pudo cargar el Rogatio para editar.";
+        }
+        finally
+        {
+            loading = false;
         }
 
-        loading = false;
+    }
 
+
+    private void _validation_message_store_init()
+    {
+        if (_editContext == null)
+        {
+            return;
+        }
+
+        _validationMessageStore = new ValidationMessageStore(_editContext);
+        _editContext.OnFieldChanged += EditContext_OnFieldChanged;
+    }
+
+
+    private void EditContext_OnFieldChanged(object? sender, FieldChangedEventArgs e)
+    {
+        if (_validationMessageStore == null)
+        {
+            return;
+        }
+
+        _validationMessageStore.Clear(e.FieldIdentifier);
+        _editContext?.NotifyValidationStateChanged();
     }
 
 
     private async Task HandleSubmit()
     {
-        if (editModel == null)
+        if (editModel == null || _editContext == null || _validationMessageStore == null)
         {
+            Logger.LogError("Intento de guardar sin un modelo de edición válido o sin EditContext/ValidationMessageStore.");
             Console.WriteLine($"No se ha podido cargar el Rogatio para editar.");
             errorMessage = "No se ha podido cargar el Rogatio para editar.";
             return;
         }
 
         saving = true;
+        errorMessage = null;
+        _validationMessageStore?.Clear();
+        _editContext?.NotifyValidationStateChanged();
 
-        await ApiClient.UpdateRogatioAsync(Id, editModel);
+        try
+        {
+            await RogatioApiClient.UpdateRogatioAsync(Id, editModel);
+            NavigationManager.NavigateTo($"/rogatio/{Id}");
+        }
+        catch (ApiValidationException vex)
+        {
+            _validationMessageStore?.Clear();
 
-        NavigationManager.NavigateTo($"/rogatio/{Id}");
+            foreach (var kv in vex.Errors)
+            {
+                var key = kv.Key;
+                string propertyName = key switch
+                {
+                    var s when s.EndsWith("Title", StringComparison.OrdinalIgnoreCase) => nameof(UpdateRogatioDto.Title),
+                    var s when s.EndsWith("Content", StringComparison.OrdinalIgnoreCase) => nameof(UpdateRogatioDto.Content),
+                    _ => key
+                };
+
+                var field = new FieldIdentifier(editModel, propertyName);
+                _validationMessageStore?.Add(field, kv.Value);
+            }
+
+            _editContext?.NotifyValidationStateChanged();
+            errorMessage = "Por favor, corrige los errores en el formulario.";
+        }
+        catch (HttpRequestException httpEx)
+        {
+            errorMessage = httpEx.Message;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error inesperado al guardar la Rogatio.");
+            errorMessage = "Se ha producido un error inesperado. Intenta recargar la página.";
+        }
+        finally
+        {
+            saving = false;
+        }
+
     }
 
     private void CancelEdit()
     {
         NavigationManager.NavigateTo($"/rogatio");
+    }
+
+
+    public void Dispose()
+    {
+        if (_editContext != null)
+        {
+            _editContext.OnFieldChanged -= EditContext_OnFieldChanged;
+        }
     }
 
 }

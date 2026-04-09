@@ -1,33 +1,31 @@
-﻿using CorpusLegis.API.Domain;
-using CorpusLegis.Shared.Dtos;
-using CorpusLegis.Shared.Dtos.Civitas;
+﻿using CorpusLegis.Shared.Dtos.Civitas;
 
 namespace CorpusLegis.API.Services;
 
 public interface ICivitasService
 {
-    Task<List<CivitasSummaryDto>> GetAllAsync();
+    public Task<List<CivitasSummaryDto>> GetAllAsync();
 
-    Task<CivitasDetailsDto?> GetByIdAsync(Guid id);
+    public Task<CivitasDetailsDto?> GetByIdAsync(Guid id);
 
-    Task<CivitasDetailsDto> CreateAsync(CreateCivitasDto dto); // Crea una nueva Civitas y devuelve sus detalles.
+    public Task<CivitasDetailsDto> CreateAsync(CreateCivitasDto dto); // Crea una nueva Civitas y devuelve sus detalles.
 
-    Task<CivitasDetailsDto?> UpdateAsync(Guid id, UpdateCivitasDto dto); // Actualiza una Civitas existente y devuelve sus detalles actualizados.
+    public Task<CivitasDetailsDto?> UpdateAsync(Guid id, UpdateCivitasDto dto); // Actualiza una Civitas existente y devuelve sus detalles actualizados.
 
-    Task<bool> DeleteAsync(Guid id); // Elimina una Civitas por su ID.
-
-
-    Task<List<CivitasSummaryDto>> GetCivitatesForCurrentUserAsync(); // TODO: cambia user por civis.
-
-    Task<List<CivitasSummaryDto>> GetCivitatesForUserAsync(Guid id); // TODO: cambia user por civis.
+    public Task<bool> DeleteAsync(Guid id); // Elimina una Civitas por su ID.
 
 
-    Task AddCurrentCivisToCivitas(Guid civitasId);
+    public Task<List<CivitasSummaryDto>> GetCivitatesForCurrentCivisAsync(); // TODO: cambia user por civis.
 
-    Task AddCivisToCivitas(Guid civitasId, Guid civisId);
+    public Task<List<CivitasSummaryDto>> GetCivitatesForCivisAsync(Guid civisId); // TODO: cambia user por civis.
 
 
-    Task RemoveCurrentCivisFromCivitas(Guid civitasId);
+    public Task AddCurrentCivisToCivitas(Guid civitasId);
 
-    Task RemoveCivisFromCivitas(Guid civitasId, Guid civisId);
+    public Task AddCivisToCivitas(Guid civitasId, Guid civisId);
+
+
+    public Task RemoveCurrentCivisFromCivitas(Guid civitasId);
+
+    public Task RemoveCivisFromCivitas(Guid civitasId, Guid civisId);
 }

@@ -6,6 +6,6 @@ public interface IUserProvisioningService
 {
     //Task ProvisionUserAsync(string email, string password, CancellationToken cancellationToken);
 
-    Task ProvisionUserAsync(ClaimsPrincipal user, CancellationToken cancellationToken);
+    public Task ProvisionUserAsync(ClaimsPrincipal user, CancellationToken cancellationToken);
 
 }

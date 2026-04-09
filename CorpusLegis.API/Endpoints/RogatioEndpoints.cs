@@ -1,11 +1,10 @@
-﻿using CorpusLegis.API.Domain;
+﻿//using CorpusLegis.API.Domain;
 using CorpusLegis.API.Services;
-using CorpusLegis.API.Validators;
+//using CorpusLegis.API.Validators;
 using CorpusLegis.Shared.Dtos;
 using FluentValidation;
-using Microsoft.AspNetCore.Http.HttpResults;
-using MiniValidation;
-using System.ComponentModel.DataAnnotations;
+//using Microsoft.AspNetCore.Http.HttpResults;
+//using System.ComponentModel.DataAnnotations;
 
 namespace CorpusLegis.API.Endpoints;
 
@@ -50,12 +49,6 @@ public static class RogatioEndpoints
 
     private static async Task<IResult> CreateRogatio(CreateRogatioDto dto, IValidator<CreateRogatioDto> validator, IRogatioService service)
     {
-        // Ya no uso el MiniValidaton.
-        //if (!MiniValidator.TryValidate(dto, out var errors))
-        //{
-        //    return Results.ValidationProblem(errors);
-        //}
-        // Uso Fluent Validation.
         var validationResult = await validator.ValidateAsync(dto);
         if (!validationResult.IsValid)
         {
@@ -68,12 +61,12 @@ public static class RogatioEndpoints
         return Results.Created($"/rogatio/{result.Id}", result); // si ha ido bien, será un código 201 + el objeto (DTO) creado.
     }
 
-    private static async Task<IResult> UpdateRogatio(Guid id, UpdateRogatioDto dto, IRogatioService service)
+    private static async Task<IResult> UpdateRogatio(Guid id, UpdateRogatioDto dto, IValidator<UpdateRogatioDto> validator, IRogatioService service)
     {
-        // TODO: sustituir esto por FluentValidation (como he hecho en el create).
-        if (!MiniValidator.TryValidate(dto, out var errors))
+        var validationResult = await validator.ValidateAsync(dto);
+        if (!validationResult.IsValid)
         {
-            return Results.ValidationProblem(errors);
+            return Results.ValidationProblem(validationResult.ToDictionary());
         }
 
         var updated = await service.UpdateAsync(id, dto);
@@ -91,11 +84,6 @@ public static class RogatioEndpoints
     
     private static async Task<IResult> TransicionarRogatio(Guid id, WorkflowRogatioDto dto, IRogatioService service)
     {
-        // TODO: sustituir esto por FluentValidation (como he hecho en el create).
-        if (!MiniValidator.TryValidate(dto, out var errors))
-        {
-            return Results.ValidationProblem(errors);
-        }
 
         try
         {

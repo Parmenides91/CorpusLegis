@@ -4,16 +4,16 @@
 
 @using CorpusLegis.Shared.Dtos
 @using CorpusLegis.Shared.Dtos.Civitas
+@using CorpusLegis.Web.Clients.Base
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 
-@* @implements IDisposable *@
+@implements IDisposable
 
-@* @inject Clients.CorpusLegisApiClient ApiClient *@
 @inject Clients.Rogatio.IRogatioClient RogatioApiClient
 @inject Clients.Civitas.ICivitasClient CivitasApiClient
-@* @inject CorpusLegis.Web.State.CivisState CivisState *@
 @inject NavigationManager NavigationManager
+@inject ILogger<RogatioCreate> Logger
 
 
 <h3>Redacción de un nuevo Rogatio</h3>
@@ -27,22 +27,19 @@
 }
 
 
-<EditForm Model="@newRogatio" FormName="createRogatioForm" OnValidSubmit="HandleSubmit">
-    <DataAnnotationsValidator />
+<EditForm EditContext="@_editContext" FormName="createRogatioForm" OnValidSubmit="HandleSubmit">
+    <FluentValidationValidator /> @* TODO: necesitaría Blazored, ¿lo quiero? *@
+    <ValidationSummary />
 
     <div class="mb-3">
         <label for="title" class="form-label">Título</label>
-
         <InputText id="title" class="form-control" @bind-Value="newRogatio.Title" />
-
         <ValidationMessage For="@(() => newRogatio.Title)" />
     </div>
 
     <div class="mb-3">
         <label for="content" class="form-label">Contenido</label>
-
         <InputTextArea id="content" class="form-control" @bind-Value="newRogatio.Content" />
-
         <ValidationMessage For="@(() => newRogatio.Content)" />
     </div>
 
@@ -58,7 +55,7 @@
         <ValidationMessage For="@(() => newRogatio.CivitasId)" />
     </div>
 
-    <button type="submit" class="btn btn-primary">Crear Rogatio</button>
+    <button type="submit" class="btn btn-primary" disabled="@isProcessing">Crear Rogatio</button>
 
 </EditForm>
 
@@ -67,14 +64,20 @@
 
     private CreateRogatioDto newRogatio = new();
     private List<CivitasSummaryDto> civitas = new();
+    private bool isProcessing = false;
+
+    private EditContext? _editContext;
+    private ValidationMessageStore? _validationMessageStore;
     private string? errorMessage;
-    // private bool disposed;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadDataAsync();
+        _editContext = new EditContext(newRogatio);
+        _validationMessageStore = new ValidationMessageStore(_editContext);
 
-        // CivisState.OnChange += OnCivisChanged;
+        _editContext.OnFieldChanged += EditContext_OnFieldChanged;
+
+        await LoadDataAsync();
     }
 
     private async Task LoadDataAsync()
@@ -85,77 +88,111 @@
         }
         catch (ApplicationException ex)
         {
+            Logger.LogWarning(ex, "Error al cargar datos para el formulario de creación de Rogationes.");
             Console.WriteLine($"Error al cargar datos: {ex.Message}");
             errorMessage = $"Error al cargar datos: {ex.Message}";
         }
         catch (UnauthorizedAccessException ex)
         {
+            Logger.LogWarning(ex, "Acceso denegado al cargar Civitates.");
             Console.WriteLine($"Error de autorización: {ex.Message}");
             errorMessage = "Tu sesión ha expirado o necesitas iniciar sesión para ver esta información.";
             //NavigationManager.NavigateTo("/login");
         }
         catch (HttpRequestException ex)
         {
+            Logger.LogWarning(ex, "Error al cargar el formulario de creación de Rogationes.");
             Console.WriteLine($"Error al cargar el formulario de creación de Rogationes: {ex.Message}");
             errorMessage = $"Error al cargar el formulario de creación de Rogationes: {ex.Message}";
         }
         catch (Exception ex)
         {
+            Logger.LogError(ex, "Error crítico al cargar los datos del formulario.");
             Console.WriteLine($"Error inesperado: {ex.Message}");
             errorMessage = $"Ha ocurrido un error inesperado al intentar cargar el formulario de creación de Rogationes: {ex.Message}";
         }
-        
+
     }
+
+
+    private void EditContext_OnFieldChanged(object? sender, FieldChangedEventArgs e)
+    {
+        if (_validationMessageStore == null || _editContext == null)
+        {
+            return;
+        }
+
+        _validationMessageStore?.Clear(e.FieldIdentifier);
+        _editContext?.NotifyValidationStateChanged();
+        errorMessage = null;
+    }
+
 
     private async Task HandleSubmit()
     {
+        if (isProcessing)
+        {
+            return;
+        }
+
+        isProcessing = true;
+        errorMessage = null;
+        _validationMessageStore?.Clear();
+        _editContext?.NotifyValidationStateChanged();
+
         try
         {
-            errorMessage = null; // Limpiar cualquier mensaje de error previo
-
-            var createdRogatio = await RogatioApiClient.CreateRogatioAsync(newRogatio); // Llamar al API para crear el nuevo Rogatio
-
-            NavigationManager.NavigateTo("/rogatio"); // Redireccionar al listado de Rogatio después de crear uno nuevo
+            var createdRogatio = await RogatioApiClient.CreateRogatioAsync(newRogatio);
+            NavigationManager.NavigateTo("/rogatio");
         }
-        //catch (HttpRequestException ex)
+        catch (ApiValidationException vex)
+        {
+            _validationMessageStore?.Clear();
+
+            foreach (var kv in vex.Errors)
+            {
+                var key = kv.Key;
+                string propertyName = key switch
+                {
+                    var s when s.EndsWith("Title", StringComparison.OrdinalIgnoreCase) => nameof(CreateRogatioDto.Title),
+                    var s when s.EndsWith("Content", StringComparison.OrdinalIgnoreCase) => nameof(CreateRogatioDto.Content),
+                    var s when s.EndsWith("CivitasId", StringComparison.OrdinalIgnoreCase) => nameof(CreateRogatioDto.CivitasId),
+                    _ => key
+                };
+
+                var field = new FieldIdentifier(newRogatio, propertyName);
+                _validationMessageStore?.Add(field, kv.Value);
+            }
+
+            _editContext?.NotifyValidationStateChanged();
+            errorMessage = "Por favor, corrige los errores en el formulario.";
+        }
         catch (ApplicationException ex)
         {
+            Logger.LogWarning(ex, "Error al crear el Rogatio.");
             Console.WriteLine($"Error de comunicación con la API: {ex.Message}");
             errorMessage = $"Error de comunicación con la API: {ex.Message}";
         }
-        // catch (Exception ex)
-        // {
-        //     Console.WriteLine($"Error al crear el Rogatio: {ex.Message}");
-        //     errorMessage = $"Ha ocurrido un error inesperado: {ex.Message}";
-        // }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error crítico al crear el Rogatio.");
+            Console.WriteLine($"Error al crear el Rogatio: {ex.Message}");
+            errorMessage = $"Ha ocurrido un error inesperado: {ex.Message}";
+        }
+        finally
+        {
+            isProcessing = false;
+        }
     }
 
 
-    // private async void OnCivisChanged()
-    // {
-    //     if (disposed)
-    //     {
-    //         return;
-    //     }
-
-    //     // await LoadDataAsync(); // si cambia el usuario, se vuelven a pedir los datos a la API.
-
-    //     // await InvokeAsync(StateHasChanged); // forzar el repintado.
-
-    //     await InvokeAsync(async () =>
-    //     {
-    //         await LoadDataAsync();
-    //         StateHasChanged();
-    //     }
-    //     );
-    // }
-
-    // public void Dispose()
-    // {
-    //     disposed = true;
-
-    //     CivisState.OnChange -= OnCivisChanged;
-    // }
+    public void Dispose()
+    {
+        if (_editContext != null)
+        {
+            _editContext.OnFieldChanged -= EditContext_OnFieldChanged;
+        }
+    }
 
 
 }

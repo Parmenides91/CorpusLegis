@@ -92,13 +92,13 @@ public static class CivitasEndpoints
 
     private static async Task<IResult> GetCivitatesForCurrentCivis(ICivitasService service)
     {
-        var civitates = await service.GetCivitatesForCurrentUserAsync();
+        var civitates = await service.GetCivitatesForCurrentCivisAsync();
         return Results.Ok(civitates);
     }
 
     private static async Task<IResult> GetCivitatesForCivis(Guid id, ICivitasService service)
     {
-        var civitates = await service.GetCivitatesForUserAsync(id);
+        var civitates = await service.GetCivitatesForCivisAsync(id);
         return Results.Ok(civitates);
     }
 

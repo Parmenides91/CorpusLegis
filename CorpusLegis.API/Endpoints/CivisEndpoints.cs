@@ -29,13 +29,12 @@ public static class CivisEndpoints
     {
         var logger = loggerFactory.CreateLogger("CivisEndpoints");
 
-        //validar que el currentUser es el mismo que por el que se pide ver su reputación. ¿Quiero esto o quiero que todo el mundo pueda saber la reputación de todos los demás? ¿O quizá quiero que los Rector de las Civitas puedan saber la Reputatio de sus miembros?
-        //if (currentUser.CivisId != id)
-        //{
-        //    logger.LogWarning("Acceso denegado: El usuario {UserId} intentó acceder a la reputación de {TargetId}",
-        //    currentUser.CivisId, id);
-        //    return Results.Forbid();
-        //}
+        if (currentUser != null && currentUser.CivisId != id)
+        {
+            logger.LogWarning("Acceso denegado: El usuario {UserId} intentó acceder a la reputación de {TargetId}",
+            currentUser.CivisId, id);
+            return Results.Forbid();
+        }
 
         var reputatio = await reputatioClient.GetReputatioAsync(id);
 

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace CorpusLegis.Shared.Validators;
 
-public class ApiValidationException : Exception
+public class ApiValidationException : Exception // TODO: esta clase no debe estar en Shared, sino en el Cliente que la vaya a usar (ya está, ahora hay que revisar dónde se usa ésta y sustituirla).
 {
     //public Dictionary<string, string[]> Errors { get; }
 

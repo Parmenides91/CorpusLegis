@@ -1,7 +1,6 @@
 ﻿using CorpusLegis.API.Services;
 using CorpusLegis.Shared.Dtos.Sententia;
 using FluentValidation;
-using System.ComponentModel.DataAnnotations;
 
 namespace CorpusLegis.API.Endpoints;
 
@@ -52,14 +51,12 @@ public static class SententiaEndpoints
             return Results.Conflict(new { errors = ex.Message });
         }
 
-        //return result is not null ? Results.Ok() : Results.InternalServerError();
     }
 
     private static async Task<IResult> UpdateSententia(Guid id, UpdateSententiaDto dto, ISententiaService service)
     {
         var updated = await service.UpdateAsync(id, dto);
 
-        //return updated is not null ? Results.NoContent() : Results.NotFound();
         return updated is not null ? Results.Ok(updated) : Results.NotFound();
     }
 

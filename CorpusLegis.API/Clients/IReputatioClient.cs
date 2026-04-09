@@ -4,5 +4,5 @@ namespace CorpusLegis.API.Clients;
 
 public interface IReputatioClient
 {
-    Task<ReputatioDto?> GetReputatioAsync(Guid civisId, CancellationToken ct = default);
+    public Task<ReputatioDto?> GetReputatioAsync(Guid civisId, CancellationToken ct = default);
 }

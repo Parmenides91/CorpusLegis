@@ -13,6 +13,13 @@
 
 <h3>Perfil Civis</h3>
 
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">
+        <strong>Error: </strong>@errorMessage
+    </div>
+}
+
 @if (_isLoading)
 {
     <p>Cargando información del Civis.</p>
@@ -49,7 +56,10 @@ else
     private ReputatioDto? _reputatio;
     private bool _isLoading = true;
 
+    private string? errorMessage;
+
     private List<(string Type, string Value)>? _claimsList;
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -59,21 +69,39 @@ else
         if (user.Identity is not null && user.Identity.IsAuthenticated)
         {
             _claimsList = user.Claims.Select(c => (c.Type, c.Value)).ToList();
-            foreach (var claim in user.Claims)
+
+            var civisIdString = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (Guid.TryParse(civisIdString, out var civisId))
             {
-                // Logger.LogInformation("Claim: Type={ClaimType} Value={ClaimValue}", claim.Type, claim.Value);
-                // Console.WriteLine($"Claim: Type={claim.Type} Value={claim.Value}");
+                try
+                {
+                    _reputatio = await CivisApiClient.GetReputatioAsync(civisId);
+                }
+                catch (HttpRequestException httpEx)
+                {
+                    Logger.LogWarning(httpEx, "Error HTTP al obtener Reputatio para Civis {CivisId}", civisId);
+                    _reputatio = null;
+                }
+                catch (UnauthorizedAccessException uaEx)
+                {
+                    Logger.LogWarning(uaEx, "No autorizado al solicitar Reputatio.");
+                    _reputatio = null;
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, "Error inesperado al obtener Reputatio para Civis {CivisId}", civisId);
+                    errorMessage = "Error inesperado";
+                    _reputatio = null;
+                }
             }
-
-            // var civisIdString01 = user.FindFirst("civis_id")?.Value; 
-            var civisIdString02 = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value; // TODO: debuggear esto y ver si lo puedo refinar.
-
-            if (Guid.TryParse(civisIdString02, out var civisId))
+            else
             {
-                _reputatio = await CivisApiClient.GetReputatioAsync(civisId);
+                Logger.LogWarning("Claim NameIdentifier no contiene GUID válido: {Claim}", civisIdString);
             }
         }
 
         _isLoading = false;
     }
+
+
 }

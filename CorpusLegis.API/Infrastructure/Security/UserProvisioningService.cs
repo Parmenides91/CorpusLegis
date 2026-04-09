@@ -2,7 +2,6 @@
 using CorpusLegis.API.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
-//using Microsoft.Extensions.Caching.Memory;
 using System.Security.Claims;
 
 namespace CorpusLegis.API.Infrastructure.Security;
@@ -11,14 +10,12 @@ public sealed class UserProvisioningService : IUserProvisioningService
 {
     
     private readonly CorpusLegisContext _dbContext;
-    //private readonly IMemoryCache _cache; // .Services.AddMemoryCache()
     private readonly IDistributedCache _distributedCache;
     private readonly ILogger<UserProvisioningService> _logger;
 
-    public UserProvisioningService(CorpusLegisContext dbContext, /*IMemoryCache cache,*/ IDistributedCache distributedCache, ILogger<UserProvisioningService> logger)
+    public UserProvisioningService(CorpusLegisContext dbContext, IDistributedCache distributedCache, ILogger<UserProvisioningService> logger)
     {
         _dbContext = dbContext;
-        //_cache = cache;
         _distributedCache = distributedCache;
         _logger = logger;
     }
@@ -34,13 +31,7 @@ public sealed class UserProvisioningService : IUserProvisioningService
             return;
         }
 
-        // verificación en caché.
-        //string cacheKey = $"UserProvisioning_{userId}";
-        //if (_cache.TryGetValue(cacheKey, out _))
-        //{
-        //    return; // el usuario ya ha sido aprovisionado y validado recientemente.
-        //}
-        //string distributedCacheKey = $"UserProvisioning_{userId}";
+        // Verificación en caché primero.
         string distributedCacheKey = $"corpuslegis:UserProvisioning:{userId}";
         var cachedValue = await _distributedCache.GetStringAsync(distributedCacheKey, cancellationToken);
         if (!string.IsNullOrEmpty(cachedValue))
@@ -48,11 +39,11 @@ public sealed class UserProvisioningService : IUserProvisioningService
             return; // el usuario ya ha sido aprovisionado recientemente.
         }
 
-        // se extraen datos adicionales del Token (ajustar según los claims exactos que emita mi Keycloak).
+        // Se extraen datos adicionales del Token (ajustar según los claims exactos que emita mi Keycloak).
         var email = user.FindFirst(ClaimTypes.Email)?.Value ?? user.FindFirst("email")?.Value ?? string.Empty;
         var name = user.FindFirst("preferred_username")?.Value ?? user.FindFirst("name")?.Value ?? "Desconocido";
 
-        // verificación e inserción/actualización en la base de datos.
+        // Verificación e inserción/actualización en la base de datos.
         var civis = await _dbContext.Cives.FirstOrDefaultAsync(c => c.Id == userId, cancellationToken);
 
         if (civis == null)
@@ -96,10 +87,7 @@ public sealed class UserProvisioningService : IUserProvisioningService
                 await _dbContext.SaveChangesAsync(cancellationToken);
             }
 
-            // se añade a la caché para evitar verificaciones repetidas en un corto período y reducir la carga en la base de datos.
-            // Opción 01: IMemoryCache
-            //_cache.Set(cacheKey, true, TimeSpan.FromMinutes(30));
-            // Opción 02: IDistributedCache (Redis)
+            // Se añade a la caché para evitar verificaciones repetidas en un corto período y reducir la carga en la base de datos.
             var distributedCacheOptions = new DistributedCacheEntryOptions
             {
                 AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30)
