@@ -15,9 +15,9 @@ public interface ICivitasService
     public Task<bool> DeleteAsync(Guid id); // Elimina una Civitas por su ID.
 
 
-    public Task<List<CivitasSummaryDto>> GetCivitatesForCurrentCivisAsync(); // TODO: cambia user por civis.
+    public Task<List<CivitasSummaryDto>> GetCivitatesForCurrentCivisAsync();
 
-    public Task<List<CivitasSummaryDto>> GetCivitatesForCivisAsync(Guid civisId); // TODO: cambia user por civis.
+    public Task<List<CivitasSummaryDto>> GetCivitatesForCivisAsync(Guid civisId);
 
 
     public Task AddCurrentCivisToCivitas(Guid civitasId);

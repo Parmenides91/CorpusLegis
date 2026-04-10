@@ -17,11 +17,11 @@ public class InvitatioService : IInvitatioService
     private readonly CorpusLegisContext _db;
     private readonly ICurrentUserService _currentUser;
 
-    private readonly CreateInvitatioDtoValidator _createValidator = new CreateInvitatioDtoValidator();
+    private readonly CreateInvitatioDtoValidator _createValidator = new();
 
     private readonly IPublishEndpoint _publishEndpoint;
 
-    private ILogger<InvitatioService> _logger;
+    private readonly ILogger<InvitatioService> _logger;
 
     public InvitatioService(CorpusLegisContext db, ICurrentUserService currentUser, CreateInvitatioDtoValidator createValidator, IPublishEndpoint publishEndpoint, ILogger<InvitatioService> logger)
     {
@@ -67,11 +67,8 @@ public class InvitatioService : IInvitatioService
         }
 
         // 2. identificar al receptor.
-        var invitee = await _db.Cives.FirstOrDefaultAsync(c => c.Email.ToLower() == normalizedEmail);
-        if (invitee == null)
-        {
-            throw new BusinessRuleValidationException("No existe ningún Civis registrado con el correo electrónico proporcionado.");
-        }
+        var invitee = await _db.Cives.FirstOrDefaultAsync(c => c.Email.ToLower() == normalizedEmail) ?? throw new BusinessRuleValidationException("No existe ningún Civis registrado con el correo electrónico proporcionado.");
+
         if (invitee.Id == inviterId)
         {
             throw new BusinessRuleValidationException("No puedes invitarte a ti mismo.");
@@ -107,7 +104,7 @@ public class InvitatioService : IInvitatioService
         {
             Id = Guid.NewGuid(),
             CivitasId = dto.CivitasId,
-            InviterId = (Guid)inviterId,
+            InviterId = inviterId,
             InviteeId = invitee.Id,
             Token = secureToken,
             IssuedAt = DateTime.UtcNow,
@@ -247,7 +244,7 @@ public class InvitatioService : IInvitatioService
         _db.CivitasSodales.Add(new CivitasSodalis
         {
             CivitasId = invitatio.CivitasId,
-            CivisId = (Guid)currentCivisId,
+            CivisId = currentCivisId,
             Role = Munus.Plebeius,
             JoinedAt = DateTime.UtcNow
         });
@@ -256,7 +253,7 @@ public class InvitatioService : IInvitatioService
         {
             InvitatioId = invitatioId,
             CivitasId = invitatio.CivitasId,
-            CivisId = (Guid)currentCivisId,
+            CivisId = currentCivisId,
             ProcessedAt = DateTime.UtcNow
         });
 

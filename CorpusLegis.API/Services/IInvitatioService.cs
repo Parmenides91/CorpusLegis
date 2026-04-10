@@ -5,14 +5,14 @@ namespace CorpusLegis.API.Services;
 public interface IInvitatioService
 {
     // Emisores (Rector /  Magistratus)
-    Task<InvitatioDetailsDto> SendAsync(CreateInvitatioDto dto);
-    Task<bool> RevokeAsync(Guid invitatioId);
-    Task<List<InvitatioDetailsDto>> GetPendingForCivitasAsync(Guid civitasId);
+    public Task<InvitatioDetailsDto> SendAsync(CreateInvitatioDto dto);
+    public Task<bool> RevokeAsync(Guid invitatioId);
+    public Task<List<InvitatioDetailsDto>> GetPendingForCivitasAsync(Guid civitasId);
 
 
     // Receptores (Civis -> Plebeius)
-    Task<List<InvitatioDetailsDto>> GetPendingInvitationesForCivisAsync(Guid civisId);
-    Task<List<InvitatioDetailsDto>> GetPendingInvitationesForCurrentCivisAsync();
-    Task<bool> AcceptAsync(Guid invitatioId);
-    Task<bool> RejectAsync(Guid invitatioId);
+    public Task<List<InvitatioDetailsDto>> GetPendingInvitationesForCivisAsync(Guid civisId);
+    public Task<List<InvitatioDetailsDto>> GetPendingInvitationesForCurrentCivisAsync();
+    public Task<bool> AcceptAsync(Guid invitatioId);
+    public Task<bool> RejectAsync(Guid invitatioId);
 }

@@ -2,5 +2,5 @@
 
 public interface ICurrentUserService
 {
-    Guid CivisId { get; }
+    public Guid CivisId { get; }
 }

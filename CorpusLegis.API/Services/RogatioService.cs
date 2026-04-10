@@ -8,8 +8,6 @@ using CorpusLegis.Shared.Enums;
 using FluentValidation;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualBasic;
-using System.Reflection.Metadata.Ecma335;
 
 namespace CorpusLegis.API.Services;
 
@@ -18,20 +16,14 @@ public class RogatioService : IRogatioService
     private readonly CorpusLegisContext _db;
     private readonly ICurrentUserService _currentUser;
 
-    private readonly IValidator<CreateRogatioDto> _createValidator; // TODO: el validador se ha llevado al Endpoint, que es donde debe estar. Quita esto.
-
     private readonly IPublishEndpoint _publishEndpoint;
 
     private readonly ILogger<RogatioService> _logger;
 
-    //Guid CivisDefaultGuid = Guid.Parse("0f8fad5b-d9cb-469f-a165-70867728950e"); // Sempronio
-    Guid CivitasDefaultGuid = Guid.Parse("7c9e6679-7425-40de-944b-e07fc1f90ae7"); // Solfamidas
-
-    public RogatioService(CorpusLegisContext db, ICurrentUserService currentUser, IValidator<CreateRogatioDto> createValidator, IPublishEndpoint publishEndpoint, ILogger<RogatioService> logger)
+    public RogatioService(CorpusLegisContext db, ICurrentUserService currentUser, IPublishEndpoint publishEndpoint, ILogger<RogatioService> logger)
     {
         _db = db;
         _currentUser = currentUser;
-        _createValidator = createValidator;
         _publishEndpoint = publishEndpoint;
         _logger = logger;
     }
@@ -103,12 +95,12 @@ public class RogatioService : IRogatioService
         return rogatioInfo.Dto;
     }
 
-    public async Task<RogatioDetailsDto> CreateAsync(CreateRogatioDto newRogatio)
+    public async Task<RogatioDetailsDto> CreateAsync(CreateRogatioDto dto)
     {
         var currentCivisId = _currentUser.CivisId;
 
         var civitasInfo = await _db.Civitates
-            .Where(c => c.Id == newRogatio.CivitasId)
+            .Where(c => c.Id == dto.CivitasId)
             .Select(c => new
             {
                 Exist = true,
@@ -118,26 +110,26 @@ public class RogatioService : IRogatioService
 
         if (civitasInfo == null)
         {
-            throw new BusinessRuleValidationException($"No existe una Civitas con el ID {newRogatio.CivitasId}.");
+            throw new BusinessRuleValidationException($"No existe una Civitas con el ID {dto.CivitasId}.");
         }
 
         if (!civitasInfo.IsMember)
         {
-            throw new UnauthorizedDomainException($"El Civis con ID {currentCivisId} no pertenece a la Civitas con ID {newRogatio.CivitasId}. Por lo tanto, no puede crear una Rogatio para ella.");
+            throw new UnauthorizedDomainException($"El Civis con ID {currentCivisId} no pertenece a la Civitas con ID {dto.CivitasId}. Por lo tanto, no puede crear una Rogatio para ella.");
         }
 
         Rogatio rogatio = new Rogatio
         {
             Id = Guid.NewGuid(),
-            Title = newRogatio.Title,
-            Content = newRogatio.Content,
+            Title = dto.Title,
+            Content = dto.Content,
             CivisId = currentCivisId,
-            CivitasId = newRogatio.CivitasId,
+            CivitasId = dto.CivitasId,
             CreatedAt = DateTime.UtcNow,
-            Status = newRogatio.Status,
-            //Deadline = newRogatio.Deadline, // TODO: vuelve a descomentar esto para tener la fecha en futuro y no en pasado ++ añadir a la UI.
-            RequiredQuorum = newRogatio.RequiredQuorum, // TODO: añadir a la UI.
-            RequiredMajority = newRogatio.RequiredMajority // TODO: añadir a la UI.
+            Status = dto.Status,
+            //Deadline = dto.Deadline, // TODO: vuelve a descomentar esto para tener la fecha en futuro y no en pasado ++ añadir a la UI.
+            RequiredQuorum = dto.RequiredQuorum, // TODO: añadir a la UI.
+            RequiredMajority = dto.RequiredMajority // TODO: añadir a la UI.
 
         };
 
@@ -156,7 +148,7 @@ public class RogatioService : IRogatioService
         return await GetByIdAsync(rogatio.Id);
     }
 
-    public async Task<RogatioDetailsDto?> UpdateAsync(Guid id, UpdateRogatioDto updatedRogatio)
+    public async Task<RogatioDetailsDto?> UpdateAsync(Guid id, UpdateRogatioDto dto)
     {
         var currentCivisId = _currentUser.CivisId;
 
@@ -177,11 +169,10 @@ public class RogatioService : IRogatioService
             throw new InvalidOperationException($"No está permitido editar una Rogatio que no está en estado Inchoatus. Estado actual: {existingRogatio.Status}");
         }
 
-        existingRogatio.Title = updatedRogatio.Title;
-        existingRogatio.Content = updatedRogatio.Content;
+        existingRogatio.Title = dto.Title;
+        existingRogatio.Content = dto.Content;
         existingRogatio.CivisId = currentCivisId;
-        existingRogatio.CivitasId = existingRogatio.CivitasId; // la Civitas nunca puede cambiar.
-        existingRogatio.Status = updatedRogatio.Status;
+        existingRogatio.Status = dto.Status;
 
         await _db.SaveChangesAsync();
 
@@ -221,7 +212,7 @@ public class RogatioService : IRogatioService
 
 
 
-    public async Task<RogatioDetailsDto?> ChangeStatusAsync(Guid id, WorkflowRogatioDto workflowRogatio)
+    public async Task<RogatioDetailsDto?> ChangeStatusAsync(Guid id, WorkflowRogatioDto dto)
     {
         var currentCivisId = _currentUser.CivisId;
 
@@ -233,7 +224,7 @@ public class RogatioService : IRogatioService
         }
 
         var estadoActual = rogatio.Status;
-        RogatioStatus nuevoEstado = workflowRogatio.Status;
+        RogatioStatus nuevoEstado = dto.Status;
 
         if (rogatio.CivisId != currentCivisId)
         {
@@ -251,12 +242,12 @@ public class RogatioService : IRogatioService
         };
 
 
-        if (!transicionValida) {
-            // TODO: aquí habría que lanzar una DomainException personalizada, indicando que la transición no es válida.
-            throw new Exception($"Transición no válida: {estadoActual} -> {nuevoEstado}.");
+        if (!transicionValida)
+        {
+            throw new BusinessRuleValidationException(
+                $"Transición no válida de estado para la Rogatio: {estadoActual} -> {nuevoEstado}.");
         }
 
-        // TODO: esto es temporal hasta que termino de crear toda la parafernalia.
         if (nuevoEstado == RogatioStatus.Approbata)
         {
             var nuevaLex = new Lex
@@ -270,7 +261,6 @@ public class RogatioService : IRogatioService
             };
             _db.Leges.Add(nuevaLex);
         }
-        // TODO: hasta aquí la temporalidad.
 
         rogatio.Status = nuevoEstado;
 
@@ -282,15 +272,15 @@ public class RogatioService : IRogatioService
 
 
 
-    public async Task<RogatioDetailsDto?> EvalueAsync(Guid id, WorkflowRogatioDto workflowRogatio)
+    public async Task<RogatioDetailsDto?> EvalueAsync(Guid id, WorkflowRogatioDto dto)
     {
         var escrutinioData = await _db.Rogationes
             .Where(r => r.Id == id)
             .Select(r => new
             {
                 Rogatio = r,
-                PoblacionCivitas = r.Civitas.Cives.Count(),
-                VotosTotales = r.Suffragia.Count(),
+                PoblacionCivitas = r.Civitas.Cives.Count,
+                VotosTotales = r.Suffragia.Count,
                 VotosPro = r.Suffragia.Count(s => s.Votum == SuffragiumValue.Pro)
             })
             .FirstOrDefaultAsync();
@@ -388,7 +378,6 @@ public class RogatioService : IRogatioService
             }
             catch (Exception ex)
             {
-                // TODO: integrar ILogger<RogatioService> cuando lo tenga.
                 Console.WriteLine($"Error al evaluar la Rogatio con ID {rogatioId}: {ex.Message}");
                 _logger.LogError(ex, "Error al evaluar la Rogatio {RogatioId}", rogatioId);
             }

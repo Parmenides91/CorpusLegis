@@ -1,10 +1,6 @@
-﻿//using CorpusLegis.API.Domain;
-using CorpusLegis.API.Services;
-//using CorpusLegis.API.Validators;
+﻿using CorpusLegis.API.Services;
 using CorpusLegis.Shared.Dtos;
 using FluentValidation;
-//using Microsoft.AspNetCore.Http.HttpResults;
-//using System.ComponentModel.DataAnnotations;
 
 namespace CorpusLegis.API.Endpoints;
 
@@ -54,7 +50,6 @@ public static class RogatioEndpoints
         {
             return Results.ValidationProblem(validationResult.ToDictionary());
         }
-
 
         var result = await service.CreateAsync(dto);
 

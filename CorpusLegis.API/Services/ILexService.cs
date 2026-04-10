@@ -4,12 +4,12 @@ namespace CorpusLegis.API.Services;
 
 public interface ILexService
 {
-    Task<List<LexSummaryDto>> GetAllAsync();
+    public Task<List<LexSummaryDto>> GetAllAsync();
 
-    Task<LexDetailsDto?> GetByIdAsync(Guid id);
+    public Task<LexDetailsDto?> GetByIdAsync(Guid id);
 
 
-    Task<List<LexSummaryDto>> GetAllByCurrentCivisAsync();
+    public Task<List<LexSummaryDto>> GetAllByCurrentCivisAsync();
 
-    Task<List<LexSummaryDto>> GetAllByCivisAsync(Guid civisId);
+    public Task<List<LexSummaryDto>> GetAllByCivisAsync(Guid civisId);
 }
