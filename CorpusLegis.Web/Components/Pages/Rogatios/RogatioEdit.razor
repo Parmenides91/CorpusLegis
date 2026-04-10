@@ -39,16 +39,60 @@ else if (_editContext is not null && editModel is not null)
             <ValidationMessage For="@(() => editModel.Title)" />
         </div>
 
-        <div class="mb-3">
-            <label for="content" class="form-label">Contenido</label>
-            <InputTextArea id="content" class="form-control" @bind-Value="editModel.Content" />
-            <ValidationMessage For="@(() => editModel.Content)" />
-        </div>
+        <div class="row d-flex align-items-stretch">
+            <div class="col-12 col-md-8 d-flex flex-column">
 
-        <button class="btn btn-primary" type="submit" disabled="@saving">
-            @(saving ? "Guardando..." : "Guardar")
-        </button>
-        <button class="btn btn-secondary ms-2" type="button" @onclick="CancelEdit">Cancelar</button>
+                <div class="mb-3">
+                    <label for="content" class="form-label">Contenido</label>
+                    <InputTextArea id="content" class="form-control" @bind-Value="editModel.Content" />
+                    <ValidationMessage For="@(() => editModel.Content)" />
+                </div>
+
+            </div>
+
+            <div class="col-12 col-md-4 d-flex flex-column">
+
+                <div class="card mb-3 h-100">
+                    <div class="card-body">
+                        <h6 class="card-title">Opciones</h6>
+
+                        <div class="mb-3">
+                            <label for="deadline" class="form-label">Fecha límite</label>
+                            <InputDate id="deadline" class="form-control" @bind-Value="editModel.Deadline" />
+                            <ValidationMessage For="@(() => editModel.Deadline)" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="requiredQuota" class="form-label">Quorum necesario para aprobación</label>
+                            <div class="input-group">
+                                <InputNumber id="requiredQuota" class="form-control" @bind-Value="editModel.RequiredQuorum" step="0.01" min="0.01" max="1.00" />
+                                <span class="input-group-text">@FormatAsPercent(editModel.RequiredQuorum)</span>
+                            </div>
+                            <ValidationMessage For="@(() => editModel.RequiredQuorum)" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="requiredMajority" class="form-label">Mayoría necesaria para aprobación</label>
+                            <div class="input-group">
+                                <InputNumber id="requiredMajority" class="form-control" @bind-Value="editModel.RequiredMajority" step="0.01" min="0.01" max="1.00" />
+                                <span class="input-group-text">@FormatAsPercent(editModel.RequiredMajority)</span>
+                            </div>
+                            <ValidationMessage For="@(() => editModel.RequiredMajority)" />
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="d-grid">
+                    <button class="btn btn-primary mt-2" type="submit" disabled="@saving">
+                        @(saving ? "Guardando..." : "Guardar")
+                    </button>
+                    <button class="btn btn-secondary mt-2" type="button" @onclick="CancelEdit">Cancelar</button>
+                </div>
+
+            </div>
+
+        </div>
 
     </EditForm>
 }
@@ -81,7 +125,10 @@ else
                     {
                         Title = dto.Title,
                         Content = dto.Content,
-                        Status = dto.Status
+                        Status = dto.Status,
+                        Deadline = dto.Deadline,
+                        RequiredQuorum = dto.RequiredQuorum,
+                        RequiredMajority = dto.RequiredMajority
                     };
                 _editContext = new EditContext(editModel);
                 // _validationMessageStore = new ValidationMessageStore(_editContext);
@@ -156,6 +203,9 @@ else
                 {
                     var s when s.EndsWith("Title", StringComparison.OrdinalIgnoreCase) => nameof(UpdateRogatioDto.Title),
                     var s when s.EndsWith("Content", StringComparison.OrdinalIgnoreCase) => nameof(UpdateRogatioDto.Content),
+                    var s when s.EndsWith("Deadline", StringComparison.OrdinalIgnoreCase) => nameof(UpdateRogatioDto.Deadline),
+                    var s when s.EndsWith("RequiredQuorum", StringComparison.OrdinalIgnoreCase) => nameof(UpdateRogatioDto.RequiredQuorum),
+                    var s when s.EndsWith("RequiredMajority", StringComparison.OrdinalIgnoreCase) => nameof(UpdateRogatioDto.RequiredMajority),
                     _ => key
                 };
 
@@ -181,6 +231,14 @@ else
         }
 
     }
+
+
+    private static string FormatAsPercent(decimal value)
+    {
+        //Multiplica por 100 y muestra con 0 o 1 decimales según prefieras
+        return $"{Math.Round(value * 100, 2):0.##}%";
+    }
+
 
     private void CancelEdit()
     {

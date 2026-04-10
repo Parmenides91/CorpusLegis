@@ -71,6 +71,7 @@ public class RogatioService : IRogatioService
                                     r.Civitas.Name,
                                     r.CreatedAt,
                                     r.Status,
+                                    r.Deadline,
                                     r.Suffragia.Count(s => s.Votum == SuffragiumValue.Pro),
                                     r.Suffragia.Count(s => s.Votum == SuffragiumValue.Contra),
                                     r.Suffragia.Count(s => s.Votum == SuffragiumValue.Abstentio),
@@ -127,7 +128,7 @@ public class RogatioService : IRogatioService
             CivitasId = dto.CivitasId,
             CreatedAt = DateTime.UtcNow,
             Status = dto.Status,
-            //Deadline = dto.Deadline, // TODO: vuelve a descomentar esto para tener la fecha en futuro y no en pasado ++ añadir a la UI.
+            Deadline = dto.Deadline, // TODO: vuelve a descomentar esto para tener la fecha en futuro y no en pasado ++ añadir a la UI.
             RequiredQuorum = dto.RequiredQuorum, // TODO: añadir a la UI de edición.
             RequiredMajority = dto.RequiredMajority // TODO: añadir a la UI de edición.
 
@@ -173,6 +174,9 @@ public class RogatioService : IRogatioService
         existingRogatio.Content = dto.Content;
         existingRogatio.CivisId = currentCivisId;
         existingRogatio.Status = dto.Status;
+        existingRogatio.Deadline = dto.Deadline;
+        existingRogatio.RequiredQuorum = dto.RequiredQuorum;
+        existingRogatio.RequiredMajority = dto.RequiredMajority;
 
         await _db.SaveChangesAsync();
 

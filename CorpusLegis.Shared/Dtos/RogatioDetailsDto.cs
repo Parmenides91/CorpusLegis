@@ -16,6 +16,7 @@ public record RogatioDetailsDto(
     string CivitasName,
     DateTime CreatedAt,
     RogatioStatus Status,
+    DateTime Deadline,
     int ProVotes,
     int ContraVotes,
     int AbstentioVotes,
