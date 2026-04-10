@@ -269,6 +269,13 @@ public class CivitasClient : CorpusLegisApiClientBase, ICivitasClient
         var response = await _httpClient.DeleteAsync($"/civitas/{idCivitas}/members/{idCivis}");
         await HandleNonSuccessResponseAsync(response);
     }
+
+    public async Task<List<CivitasMemberDto>> GetCivitasMembersAsync(Guid civitasId)
+    {
+        var response = await _httpClient.GetAsync($"/civitas/{civitasId}/members");
+        await HandleNonSuccessResponseAsync(response);
+        return await response.Content.ReadFromJsonAsync<List<CivitasMemberDto>>() ?? new List<CivitasMemberDto>();
+    }
     #endregion
 
 

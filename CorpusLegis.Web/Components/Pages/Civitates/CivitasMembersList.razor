@@ -1,0 +1,123 @@
+@using CorpusLegis.Shared.Dtos.Civitas
+@using Microsoft.AspNetCore.Components.Authorization
+@inject Clients.Civitas.ICivitasClient ApiClient
+
+<div class="card shadow-sm h-100">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0">Miembros de la Civitas</h5>
+    </div>
+    <div class="card-body bg-light p-0">
+        @if (loading)
+        {
+            <div class="p-3 text-center">
+                <div class="spinner-border text-info" role="status">
+                    <span class="visually-hidden">Cargando miembros...</span>
+                </div>
+            </div>
+        }
+        else if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="p-3">
+                <div class="alert alert-danger mb-0">@errorMessage</div>
+            </div>
+        }
+        else if (members != null && members.Any())
+        {
+            <ul class="list-group list-group-flush">
+
+                <!-- Grupo: Rectores -->
+                @if (members.Any(m => m.Role == CorpusLegis.Shared.Enums.Munus.Rector))
+                {
+                    <li class="list-group-item bg-light text-success d-flex justify-content-between align-items-center border-top-0 py-2">
+                        <strong>Rector</strong> 
+                        <span class="badge bg-success rounded-pill">@(members.Count(m => m.Role == CorpusLegis.Shared.Enums.Munus.Rector))</span>
+                    </li>
+                    @foreach (var member in members.Where(m => m.Role == CorpusLegis.Shared.Enums.Munus.Rector))
+                    {
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="d-block fw-semibold">@member.Name</span>
+                                <small class="text-muted">Unido: @member.JoinedAt.ToString("d")</small>
+                            </div>
+                        </li>
+                    }
+                }
+
+                <!-- Grupo: Magistratus -->
+                @if (members.Any(m => m.Role == CorpusLegis.Shared.Enums.Munus.Magistratus))
+                {
+                    <li class="list-group-item bg-light text-dark d-flex justify-content-between align-items-center py-2">
+                        <strong>Magistratus</strong> 
+                        <span class="badge bg-warning text-dark rounded-pill">@(members.Count(m => m.Role == CorpusLegis.Shared.Enums.Munus.Magistratus))</span>
+                    </li>
+                    @foreach (var member in members.Where(m => m.Role == CorpusLegis.Shared.Enums.Munus.Magistratus))
+                    {
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="d-block fw-semibold">@member.Name</span>
+                                <small class="text-muted">Unido: @member.JoinedAt.ToString("d")</small>
+                            </div>
+                        </li>
+                    }
+                }
+
+                <!-- Grupo: Plebeius -->
+                @if (members.Any(m => m.Role == CorpusLegis.Shared.Enums.Munus.Plebeius))
+                {
+                    <li class="list-group-item bg-light text-secondary d-flex justify-content-between align-items-center py-2">
+                        <strong>Plebeius</strong> 
+                        <span class="badge bg-secondary rounded-pill">@(members.Count(m => m.Role == CorpusLegis.Shared.Enums.Munus.Plebeius))</span>
+                    </li>
+                    @foreach (var member in members.Where(m => m.Role == CorpusLegis.Shared.Enums.Munus.Plebeius))
+                    {
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="d-block fw-semibold">@member.Name</span>
+                                <small class="text-muted">Unido: @member.JoinedAt.ToString("d")</small>
+                            </div>
+                        </li>
+                    }
+                }
+
+            </ul>
+        }
+        else
+        {
+            <div class="p-3">
+                <p class="text-muted fst-italic mb-0">No se encontraron miembros.</p>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public Guid CivitasId { get; set; }
+
+    private List<CivitasMemberDto>? members;
+    private bool loading = true;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMembersAsync();
+    }
+
+    private async Task LoadMembersAsync()
+    {
+        try
+        {
+            loading = true;
+            errorMessage = null;
+            members = await ApiClient.GetCivitasMembersAsync(CivitasId);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"No se ha podido cargar la lista de miembros: {ex.Message}";
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+}

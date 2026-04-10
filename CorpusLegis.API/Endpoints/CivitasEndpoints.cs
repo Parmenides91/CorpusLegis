@@ -31,6 +31,8 @@ public static class CivitasEndpoints
 
         group.MapDelete("/{civitasId:guid}/members/me", LeaveCurrentCivisFromCivitas);
         group.MapDelete("/{civitasId:guid}/members/{civisId:guid}", LeaveCivisFromCivitas);
+
+        group.MapGet("/{civitasId:guid}/members", GetCivitasMembers);
     }
 
 
@@ -124,6 +126,12 @@ public static class CivitasEndpoints
     private static async Task LeaveCivisFromCivitas(Guid civitasId, Guid civisId, ICivitasService service)
     {
         await service.RemoveCivisFromCivitas(civitasId, civisId);
+    }
+
+    private static async Task<IResult> GetCivitasMembers(Guid civitasId, ICivitasService service)
+    {
+        var members = await service.GetMembersAsync(civitasId);
+        return Results.Ok(members);
     }
 
 }

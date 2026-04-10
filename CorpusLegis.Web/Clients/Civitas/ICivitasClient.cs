@@ -25,4 +25,6 @@ public interface ICivitasClient
     Task LeaveCurrentCivisFromCivitasAsync(Guid idCivitas); // Método para eliminar el Civis actual del Civitas.
 
     Task LeaveCivisFromCivitasAsync(Guid idCivitas, Guid idCivis); // Método para eliminar un Civis de un Civitas.
+
+    Task<List<CivitasMemberDto>> GetCivitasMembersAsync(Guid civitasId); // Método para traer los miembros paginados o listados
 }

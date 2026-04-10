@@ -305,4 +305,22 @@ public class CivitasService : ICivitasService
         await _db.SaveChangesAsync();
     }
 
+
+    public async Task<List<CivitasMemberDto>> GetMembersAsync(Guid civitasId)
+    {
+        var members = await _db.CivitasSodales
+            .AsNoTracking()
+            .Include(cs => cs.Civis)
+            .Where(cs => cs.CivitasId == civitasId)
+            .OrderBy(cs => cs.JoinedAt)
+            .Select(cs => new CivitasMemberDto(
+                cs.CivisId,
+                cs.Civis.Name,
+                cs.Role,
+                cs.JoinedAt
+            ))
+            .ToListAsync();
+
+        return members;
+    }
 }

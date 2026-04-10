@@ -28,4 +28,6 @@ public interface ICivitasService
     public Task RemoveCurrentCivisFromCivitas(Guid civitasId);
 
     public Task RemoveCivisFromCivitas(Guid civitasId, Guid civisId);
+
+    public Task<List<CivitasMemberDto>> GetMembersAsync(Guid civitasId);
 }
