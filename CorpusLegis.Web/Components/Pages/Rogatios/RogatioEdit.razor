@@ -58,7 +58,11 @@ else if (_editContext is not null && editModel is not null)
 
                         <div class="mb-3">
                             <label for="deadline" class="form-label">Fecha límite</label>
-                            <InputDate id="deadline" class="form-control" @bind-Value="editModel.Deadline" />
+                            <div class="input-group">
+                                <InputDate id="deadline" class="form-control" @bind-Value="DeadlineLocal" Type="InputDateType.DateTimeLocal" />
+                                <span class="input-group-text" title="Valor que se almacenará en el servidor">UTC: @DeadlineLocal.ToUniversalTime().ToString("g")</span>
+                            </div>
+                            <div class="form-text">Introduce fecha y hora local. Se traducirá y almacenará en UTC.</div>
                             <ValidationMessage For="@(() => editModel.Deadline)" />
                         </div>
 
@@ -113,6 +117,25 @@ else
     private ValidationMessageStore? _validationMessageStore;
     private string? errorMessage;
 
+    private DateTime _deadlineLocal;
+    private DateTime DeadlineLocal
+    {
+        get => _deadlineLocal;
+        set
+        {
+            if (_deadlineLocal != value)
+            {
+                _deadlineLocal = value;
+                if (_validationMessageStore != null && editModel != null && _editContext != null)
+                {
+                    _validationMessageStore.Clear(new FieldIdentifier(editModel, nameof(UpdateRogatioDto.Deadline)));
+                    _editContext.NotifyValidationStateChanged();
+                }
+                errorMessage = null;
+            }
+        }
+    }
+
     protected override async Task OnInitializedAsync()
     {
         try
@@ -130,8 +153,9 @@ else
                         RequiredQuorum = dto.RequiredQuorum,
                         RequiredMajority = dto.RequiredMajority
                     };
+
+                DeadlineLocal = editModel.Deadline.ToLocalTime();
                 _editContext = new EditContext(editModel);
-                // _validationMessageStore = new ValidationMessageStore(_editContext);
                 _validation_message_store_init();
             }
         }
@@ -189,6 +213,8 @@ else
 
         try
         {
+            // editModel.Deadline = DateTime.SpecifyKind(DeadlineLocal, DateTimeKind.Local).ToUniversalTime();
+            SyncDeadlineFromLocal();
             await RogatioApiClient.UpdateRogatioAsync(Id, editModel);
             NavigationManager.NavigateTo($"/rogatio/{Id}");
         }
@@ -243,6 +269,13 @@ else
     private void CancelEdit()
     {
         NavigationManager.NavigateTo($"/rogatio");
+    }
+
+
+    private void SyncDeadlineFromLocal()
+    {
+        var local = DateTime.SpecifyKind(DeadlineLocal, DateTimeKind.Local);
+        editModel?.Deadline = local.ToUniversalTime();
     }
 
 

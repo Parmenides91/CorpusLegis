@@ -50,7 +50,7 @@
         <div class="col-12 col-md-4">
 
             <div class="mb-3">
-                <label for="civitas" class="form-label>">Civitas</label>
+                <label for="civitas" class="form-label">Civitas</label>
                 <InputSelect id="civitas" class="form-select" @bind-Value="newRogatio.CivitasId">
                     <option value="">Seleccione una Civitas</option>
                     @foreach (var civitasItem in civitas)
@@ -63,7 +63,11 @@
 
             <div class="mb-3">
                 <label for="deadline" class="form-label">Fecha límite</label>
-                <InputDate id="deadline" class="form-control" @bind-Value="newRogatio.Deadline" />
+                <div class="input-group">
+                    <InputDate id="deadline" class="form-control" @bind-Value="DeadlineLocal" Type="InputDateType.DateTimeLocal" />
+                    <span class="input-group-text" title="Valor que se almacenará en el servidor">UTC: @DeadlineLocal.ToUniversalTime().ToString("g")</span>
+                </div>
+                <div class="form-text">Introduce fecha y hora local. Se traducirá y almacenará en UTC.</div>
                 <ValidationMessage For="@(() => newRogatio.Deadline)" />
             </div>
 
@@ -111,12 +115,33 @@
     private ValidationMessageStore? _validationMessageStore;
     private string? errorMessage;
 
+    private DateTime _deadlineLocal;
+    private DateTime DeadlineLocal
+    {
+        get => _deadlineLocal;
+        set
+        {
+            if (_deadlineLocal != value)
+            {
+                _deadlineLocal = value;
+                if (_validationMessageStore != null && _editContext != null)
+                {
+                    _validationMessageStore.Clear(new FieldIdentifier(newRogatio, nameof(CreateRogatioDto.Deadline)));
+                    _editContext.NotifyValidationStateChanged();
+                }
+                errorMessage = null;
+            }
+        }
+    }
+
     protected override async Task OnInitializedAsync()
     {
         _editContext = new EditContext(newRogatio);
         _validationMessageStore = new ValidationMessageStore(_editContext);
 
         _editContext.OnFieldChanged += EditContext_OnFieldChanged;
+
+        DeadlineLocal = newRogatio.Deadline.ToLocalTime();
 
         await LoadDataAsync();
     }
@@ -130,26 +155,22 @@
         catch (ApplicationException ex)
         {
             Logger.LogWarning(ex, "Error al cargar datos para el formulario de creación de Rogationes.");
-            // Console.WriteLine($"Error al cargar datos: {ex.Message}");
             errorMessage = $"Error al cargar datos: {ex.Message}";
         }
         catch (UnauthorizedAccessException ex)
         {
             Logger.LogWarning(ex, "Acceso denegado al cargar Civitates.");
-            // Console.WriteLine($"Error de autorización: {ex.Message}");
             errorMessage = "Tu sesión ha expirado o necesitas iniciar sesión para ver esta información.";
             //NavigationManager.NavigateTo("/login");
         }
         catch (HttpRequestException ex)
         {
             Logger.LogWarning(ex, "Error al cargar el formulario de creación de Rogationes.");
-            // Console.WriteLine($"Error al cargar el formulario de creación de Rogationes: {ex.Message}");
             errorMessage = $"Error al cargar el formulario de creación de Rogationes: {ex.Message}";
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error crítico al cargar los datos del formulario.");
-            // Console.WriteLine($"Error inesperado: {ex.Message}");
             errorMessage = $"Ha ocurrido un error inesperado al intentar cargar el formulario de creación de Rogationes: {ex.Message}";
         }
 
@@ -183,6 +204,7 @@
 
         try
         {
+            SyncDeadlineFromLocal();
             var createdRogatio = await RogatioApiClient.CreateRogatioAsync(newRogatio);
             NavigationManager.NavigateTo("/rogatio");
         }
@@ -198,7 +220,7 @@
                     var s when s.EndsWith("Title", StringComparison.OrdinalIgnoreCase) => nameof(CreateRogatioDto.Title),
                     var s when s.EndsWith("Content", StringComparison.OrdinalIgnoreCase) => nameof(CreateRogatioDto.Content),
                     var s when s.EndsWith("CivitasId", StringComparison.OrdinalIgnoreCase) => nameof(CreateRogatioDto.CivitasId),
-                    // var s when s.EndsWith("Deadline", StringComparison.OrdinalIgnoreCase) => nameof(CreateRogatioDto.Deadline),
+                    var s when s.EndsWith("Deadline", StringComparison.OrdinalIgnoreCase) => nameof(CreateRogatioDto.Deadline),
                     var s when s.EndsWith("RequiredQuorum", StringComparison.OrdinalIgnoreCase) => nameof(CreateRogatioDto.RequiredQuorum),
                     var s when s.EndsWith("RequiredMajority", StringComparison.OrdinalIgnoreCase) => nameof(CreateRogatioDto.RequiredMajority),
                     _ => key
@@ -214,13 +236,11 @@
         catch (ApplicationException ex)
         {
             Logger.LogWarning(ex, "Error al crear el Rogatio.");
-            // Console.WriteLine($"Error de comunicación con la API: {ex.Message}");
             errorMessage = $"Error de comunicación con la API: {ex.Message}";
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error crítico al crear el Rogatio.");
-            // Console.WriteLine($"Error al crear el Rogatio: {ex.Message}");
             errorMessage = $"Ha ocurrido un error inesperado: {ex.Message}";
         }
         finally
@@ -236,6 +256,11 @@
         return $"{Math.Round(value * 100, 2):0.##}%";
     }
 
+    private void SyncDeadlineFromLocal()
+    {
+        var local = DateTime.SpecifyKind(DeadlineLocal, DateTimeKind.Local);
+        newRogatio.Deadline = local.ToUniversalTime();
+    }
 
     public void Dispose()
     {

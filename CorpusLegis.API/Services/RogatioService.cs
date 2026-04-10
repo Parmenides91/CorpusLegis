@@ -77,7 +77,9 @@ public class RogatioService : IRogatioService
                                     r.Suffragia.Count(s => s.Votum == SuffragiumValue.Abstentio),
                                     r.Suffragia.Any(s => s.CivisId == currentCivisId),
                                     r.RequiredQuorum,
-                                    r.RequiredMajority
+                                    r.RequiredMajority,
+                                    r.CivisId == currentCivisId && r.Status == RogatioStatus.Inchoatus, // CanEdit
+                                    r.CivisId == currentCivisId && r.Status == RogatioStatus.Inchoatus  // CanDelete
                                 ),
                                 IsMember = _db.CivitasSodales.Any(cs => cs.CivisId == currentCivisId && cs.CivitasId == r.CivitasId)
                             })

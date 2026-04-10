@@ -22,7 +22,9 @@ public record RogatioDetailsDto(
     int AbstentioVotes,
     bool HasVoted,
     decimal RequiredQuorum,
-    decimal RequiredMajority
+    decimal RequiredMajority,
+    bool CanEdit,
+    bool CanDelete
     );
 
 
