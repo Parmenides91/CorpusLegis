@@ -23,6 +23,14 @@ public class CreateRogatioDtoValidator : AbstractValidator<CreateRogatioDto>
         RuleFor(x => x.CivitasId)
             .NotEmpty()
             .WithMessage("Debes seleccionar una Civitas a la que ligar la Rogatio.");
+
+        RuleFor(x => x.RequiredQuorum)
+            .InclusiveBetween(0.01m, 1.00m)
+            .WithMessage("El quórum necesario debe estar entre 0.01 y 1.00");
+
+        RuleFor(x => x.RequiredMajority)
+            .InclusiveBetween(0.01m, 1.00m)
+            .WithMessage("La mayoría necesaria debe estar entre 0.01 y 1.00");
     }
 
 }
