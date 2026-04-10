@@ -10,7 +10,7 @@
 @inject Clients.Civitas.ICivitasClient ApiClient
 
 
-<h3>Detalles de la Civitas [ID: CCC]</h3>
+<h3>Detalles de la Civitas</h3>
 
 @if (!string.IsNullOrEmpty(errorMessage))
 {
@@ -22,33 +22,97 @@
 
 @if (civitas != null)
 {
-    <div class="card mt-4">
+    <div class="row mt-4">
+        <!-- Fila Superior -->
 
-        <div class="card-header bg-primary text-white">
-            <div class="row">
-                <div class="col-sm-8">
+        <!-- Columna principal (Izquierda): Información y Descripción -->
+        <div class="col-12 col-md-8 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <h4 class="mb-0">@civitas.Name</h4>
+                    <span class="badge bg-light text-dark">@civitas.Visibility</span>
                 </div>
-                <div class="col-sm-2">Civis:</div>
-                <div class="col-sm-2">Civitas:</div>
+
+                <div class="card-body">
+                    @if (!string.IsNullOrWhiteSpace(civitas.Description))
+                    {
+                        <p class="lead" style="white-space: pre-wrap;">@civitas.Description</p>
+                    }
+                    else
+                    {
+                        <p class="text-muted fst-italic">Esta Civitas no tiene una descripción detallada.</p>
+                    }
+                </div>
             </div>
         </div>
 
-        <div class="card-body">
-            <p class="lead">@civitas.Id</p>
-        </div>
+        <!-- Columna lateral (Derecha): Metadatos de la Civitas y Acciones -->
+        <div class="col-12 col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">Detalles y Gestión</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush mb-3 text-break">
+                        <li class="list-group-item px-0">
+                            <small class="text-muted d-block">ID de la Comunidad</small>
+                            <span style="font-size: 0.85rem;">@civitas.Id</span>
+                        </li>
+                        <li class="list-group-item px-0">
+                            <small class="text-muted d-block">Fecha de fundación</small>
+                            <span>@civitas.FoundedAt.ToString("g")</span>
+                        </li>
+                    </ul>
 
-        <div class="card-footer">
-            <div class="col-sm-2"><small><strong>Fecha de fundación: </strong> @civitas.FoundedAt.ToString("g")</small></div>
+                    @if (civitas.CanEdit || civitas.CanDelete)
+                    {
+                        <h6 class="mt-4 border-bottom pb-2">Acciones</h6>
+                        <div class="d-grid gap-2 mt-3">
+                            @if (civitas.CanEdit)
+                            {
+                                <a class="btn btn-outline-secondary" href="civitas/edit/@civitas.Id">Editar Civitas</a>
+                            }
+                            @if (civitas.CanDelete)
+                            {
+                                <a class="btn btn-outline-danger" href="civitas/delete/@civitas.Id">Eliminar Civitas</a>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
         </div>
-
     </div>
 
-    @if (civitas.CanEdit)
-    {
-        <CivitasInvitatioManager CivitasId="civitas.Id" />
-    }
+    <div class="row mb-4">
+        <!-- Fila Inferior -->
 
+        <!-- Columna para el módulo de invitaciones -->
+        <div class="col-12 col-md-8 mb-4">
+            @if (civitas.CanEdit)
+            {
+                <CivitasInvitatioManager CivitasId="civitas.Id" />
+            }
+        </div>
+
+        <!-- Columna para el futuro módulo de miembros -->
+        <div class="col-12 col-md-4 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Miembros (Próximamente)</h5>
+                </div>
+                <div class="card-body bg-light">
+                    <p class="text-muted small mb-0">
+                        Aquí se mostrará el listado jerárquico de miembros:
+                        <ul class="mt-2">
+                            <li>Creador</li>
+                            <li>Moderadores</li>
+                            <li>Ciudadanos</li>
+                        </ul>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
 }
 
 <div class="row mt-4">
