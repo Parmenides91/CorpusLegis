@@ -13,7 +13,7 @@ public class CreateRogatioDto
 
     public RogatioStatus Status { get; set; } = RogatioStatus.Inchoatus;
 
-    public DateTime Deadline { get; set; } = DateTime.UtcNow.AddHours(48);
+    public DateTime Deadline { get; set; } = DateTime.UtcNow.AddHours(24);
 
     public Guid CivitasId { get; set; }
 

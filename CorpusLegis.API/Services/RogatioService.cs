@@ -128,8 +128,8 @@ public class RogatioService : IRogatioService
             CreatedAt = DateTime.UtcNow,
             Status = dto.Status,
             //Deadline = dto.Deadline, // TODO: vuelve a descomentar esto para tener la fecha en futuro y no en pasado ++ añadir a la UI.
-            RequiredQuorum = dto.RequiredQuorum, // TODO: añadir a la UI.
-            RequiredMajority = dto.RequiredMajority // TODO: añadir a la UI.
+            RequiredQuorum = dto.RequiredQuorum, // TODO: añadir a la UI de edición.
+            RequiredMajority = dto.RequiredMajority // TODO: añadir a la UI de edición.
 
         };
 

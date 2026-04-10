@@ -61,12 +61,11 @@
                 <ValidationMessage For="@(() => newRogatio.CivitasId)" />
             </div>
 
-            @* TODO: probar si esto funciona. *@
-            @* <div class="mb-3">
+            <div class="mb-3">
                 <label for="deadline" class="form-label">Fecha límite</label>
                 <InputDate id="deadline" class="form-control" @bind-Value="newRogatio.Deadline" />
                 <ValidationMessage For="@(() => newRogatio.Deadline)" />
-            </div> *@
+            </div>
 
             <div class="mb-3">
                 <label for="requiredQuorum" class="form-label">
