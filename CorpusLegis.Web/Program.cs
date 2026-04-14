@@ -1,12 +1,6 @@
-using CorpusLegis.Web.Clients;
-using CorpusLegis.Web.Clients.Civitas;
-using CorpusLegis.Web.Clients.Lex;
-using CorpusLegis.Web.Clients.Rogatio;
-using CorpusLegis.Web.Clients.Suffragium;
 using CorpusLegis.Web.Components;
 using CorpusLegis.Web.Endpoints;
 using CorpusLegis.Web.Extensions;
-using CorpusLegis.Web.State;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
@@ -33,7 +27,7 @@ builder.Services.AddAuthentication(options =>
     {
         //options.Cookie.Name = "__Host-CorpusLegis";
         //options.Cookie.SameSite = SameSiteMode.Strict;
-        options.Cookie.Name = "CorpusLegis.Auth";
+        options.Cookie.Name = "CorpusLegis.Auth"; // TODO: esto huele a hardcodeo.
         options.Cookie.SameSite = SameSiteMode.Lax;
     })
     .AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options =>

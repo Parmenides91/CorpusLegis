@@ -51,14 +51,14 @@ else
                     <td>@rogatio.Status</td>
                     <td>@rogatio.CreatedAt</td>
                     <td>
-                        <a class="btn btn-sm btn-outline-primary" href="rogatio/@rogatio.Id">Ver detalles</a>
+                        <a class="btn btn-sm btn-outline-primary ms-2" href="rogatio/@rogatio.Id">Ver detalles</a>
                         @if (rogatio.CanEdit)
                         {
-                            <a class="btn btn-sm btn-outline-secondary" href="rogatio/edit/@rogatio.Id">Editar</a>
+                            <a class="btn btn-sm btn-outline-secondary ms-2" href="rogatio/edit/@rogatio.Id">Editar</a>
                         }
                         @if (rogatio.CanDelete)
                         {
-                            <a class="btn btn-sm btn-outline-warning" href="rogatio/delete/@rogatio.Id">¿Eliminar?</a>
+                            <a class="btn btn-sm btn-outline-warning ms-2" href="rogatio/delete/@rogatio.Id">¿Eliminar?</a>
                         }
                     </td>
                 </tr>

@@ -5,21 +5,11 @@ namespace CorpusLegis.Web.Clients.Lex;
 
 public class LexClient : CorpusLegisApiClientBase, ILexClient
 {
-    //private readonly ILogger<LexClient> _logger;
-    //private readonly HttpClient _httpClient;
-    //private readonly TokenProvider _tokenProvider;
 
     public LexClient(ILogger<LexClient> logger, HttpClient httpClient, TokenProvider tokenProvider)
         : base(logger, httpClient, tokenProvider)
     {
-        //_logger = logger;
-        //_httpClient = httpClient;
-        //_tokenProvider = tokenProvider;
 
-        //if (!string.IsNullOrEmpty(tokenProvider.AccessToken))
-        //{
-        //    _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokenProvider.AccessToken);
-        //}
     }
 
 

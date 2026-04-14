@@ -34,6 +34,8 @@ public class LexService : ILexService
 
     public async Task<LexDetailsDto?> GetByIdAsync(Guid id)
     {
+        // TODO: añadir comprobación de que el Civis pertene a la Civitas de la Lex que se solicita.
+
         var dto = await _db.Leges
             .Where(l => l.Id == id)
             .Select(l => new LexDetailsDto (

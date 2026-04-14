@@ -6,7 +6,7 @@
 @using Microsoft.AspNetCore.Authorization
 
 @* @inject Clients.CorpusLegisApiClient ApiClient *@
-@inject Clients.Lex.ILexClient ApiClient
+@inject Clients.Lex.ILexClient LexApiClient
 
 
 <h3>Leges actuales</h3>
@@ -48,7 +48,7 @@ else
                     <td>@lex.PromulgatedAt</td>
                     <td>
                         @* Habría que hacer algo para que sólo pueda consultarla un Civis que pertenezca a esta Civitas. *@
-                        <a class="btn btn-sm btn-outline-primary" href="lex/@lex.Id">Ver detalles</a>
+                        <a class="btn btn-sm btn-outline-primary ms-2" href="lex/@lex.Id">Ver detalles</a>
                     </td>
                 </tr>
             }
@@ -74,7 +74,7 @@ else
         try
         {
             // leges = await ApiClient.GetLegesAsync(); // Todas las Leges.
-            leges = await ApiClient.GetLegesByCurrentCivisAsync(); // Sólo las Leges de las Civitates a las que pertenezca el Civis.
+            leges = await LexApiClient.GetLegesByCurrentCivisAsync(); // Sólo las Leges de las Civitates a las que pertenezca el Civis.
         }
         catch (ApplicationException ex)
         {

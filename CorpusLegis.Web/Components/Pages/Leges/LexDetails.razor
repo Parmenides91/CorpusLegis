@@ -5,8 +5,7 @@
 @using CorpusLegis.Shared.Dtos.Lex
 @using Microsoft.AspNetCore.Authorization
 
-@* @inject Clients.CorpusLegisApiClient ApiClient *@
-@inject Clients.Lex.ILexClient ApiClient
+@inject Clients.Lex.ILexClient LexApiClient
 
 
 
@@ -66,7 +65,7 @@
     {
         try
         {
-            lex = await ApiClient.GetLexByIdAsync(Id);
+            lex = await LexApiClient.GetLexByIdAsync(Id);
 
             if (lex == null)
             {

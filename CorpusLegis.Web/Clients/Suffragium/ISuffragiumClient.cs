@@ -4,6 +4,6 @@ namespace CorpusLegis.Web.Clients.Suffragium;
 
 public interface ISuffragiumClient
 {
-    Task<SuffragiumDetailsDto?> CreateSuffragiumAsync(Guid idRogatio, CreateSuffragiumDto dto); // Método para emitir un voto (suffragium) a un rogatio.
+    public Task<SuffragiumDetailsDto?> CreateSuffragiumAsync(Guid idRogatio, CreateSuffragiumDto dto); // Método para emitir un voto (suffragium) a un rogatio.
 
 }

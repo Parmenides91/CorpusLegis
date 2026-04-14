@@ -1,5 +1,4 @@
 ﻿using CorpusLegis.API.Services;
-using CorpusLegis.Shared.Dtos;
 using CorpusLegis.Shared.Dtos.Suffragium;
 using MiniValidation;
 

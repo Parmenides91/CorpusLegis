@@ -28,7 +28,7 @@
 else if (editModel != null)
 {
     <EditForm Model="editModel" OnValidSubmit="HandleSubmit">
-        <DataAnnotationsValidator />
+        <DataAnnotationsValidator /> @* TODO: no uso DataAnnotations. Se puede quitar. *@
         <ValidationSummary /> @* No sé si esto va a funcionar *@
 
         <div class="mb-3">
