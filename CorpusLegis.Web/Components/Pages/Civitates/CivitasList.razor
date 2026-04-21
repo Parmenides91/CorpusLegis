@@ -3,16 +3,12 @@
 @attribute [Authorize]
 
 @using CorpusLegis.Shared.Dtos.Civitas
-@* @using CorpusLegis.Web.State *@
 @using CorpusLegis.Web.Components.Pages.Invitatio
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Authorization
 
-@* @implements IDisposable *@
-
-@* @inject Clients.CorpusLegisApiClient ApiClient *@
-@inject Clients.Civitas.ICivitasClient ApiClient
-@* @inject CorpusLegis.Web.State.CivisState CivisState *@
+@inject Clients.Civitas.ICivitasClient ApiCivitasClient
+@inject NavigationManager NavigationManager
 
 
 <h3>Listado de Civitas</h3>
@@ -87,8 +83,6 @@ else
     protected override async Task OnInitializedAsync()
     {
         await LoadDataAsync();
-
-        // CivisState.OnChange += OnCivisChanged;
     }
 
     private async Task LoadDataAsync()
@@ -97,7 +91,7 @@ else
 
         try
         {
-            civitates = await ApiClient.GetCivitatesAsync();
+            civitates = await ApiCivitasClient.GetCivitatesAsync();
         }
         catch (ApplicationException ex)
         {
@@ -108,7 +102,7 @@ else
         {
             Console.WriteLine($"Error de autorización: {ex.Message}");
             errorMessage = "Tu sesión ha expirado o necesitas iniciar sesión para ver esta información.";
-            //NavigationManager.NavigateTo("/login");
+            NavigationManager.NavigateTo("/");
         }
         catch (HttpRequestException ex)
         {
@@ -135,7 +129,7 @@ else
 
         try
         {
-            await ApiClient.JoinCurrentCivisToCivitasAsync(id);
+            await ApiCivitasClient.JoinCurrentCivisToCivitasAsync(id);
 
             // Tras haber hecho la petición de unirse, si todo ha ido bien, habremos unido al Civis a la Civitas. Ahora toca actualizar la UI para reflejar ese cambio. Hay varias formas de hacerlo:
             // Opción A: recargar toda la lista de civitas para actualizar el estado de "IsMember" de cada una --> poco eficiente y va a escalar fatal.
@@ -171,7 +165,7 @@ else
 
         try
         {
-            await ApiClient.LeaveCurrentCivisFromCivitasAsync(id);
+            await ApiCivitasClient.LeaveCurrentCivisFromCivitasAsync(id);
 
             // Tras haber hecho la petición de abandonar, si todo ha ido bien, habremos quitado al Civis de la Civitas. Ahora toca actualizar la UI para reflejar ese cambio. Hay varias formas de hacerlo:
             // Opción A: recargar toda la lista de civitas para actualizar el estado de "IsMember" de cada una --> poco eficiente y va a escalar fatal.

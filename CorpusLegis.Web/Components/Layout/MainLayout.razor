@@ -94,7 +94,6 @@
                 var token = await HttpContext.GetTokenAsync("access_token");
                 if (!string.IsNullOrEmpty(token))
                 {
-                    Console.WriteLine("TokenProvider length: " + (TokenProvider.AccessToken?.Length ?? 0)); // TODO: eliminar este debug.
                     TokenProvider.AccessToken = token;
                 }
             }

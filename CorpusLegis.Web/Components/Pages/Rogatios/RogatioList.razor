@@ -7,8 +7,7 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 
-@* @inject Clients.CorpusLegisApiClient ApiClient *@
-@inject Clients.Rogatio.IRogatioClient ApiClient
+@inject Clients.Rogatio.IRogatioClient ApiRogatioClient
 @inject NavigationManager NavigationManager
 
 
@@ -81,15 +80,15 @@ else
     {
         try
         {
-            errorMessage = null; // Limpiar cualquier mensaje de error previo
+            errorMessage = null;
 
-            rogationes = await ApiClient.GetRogationesAsync();
+            rogationes = await ApiRogatioClient.GetRogationesAsync();
         }
         catch (UnauthorizedAccessException ex)
         {
             Console.WriteLine($"Error de autorización: {ex.Message}");
             errorMessage = "Tu sesión ha expirado o necesitas iniciar sesión para ver esta información.";
-            //NavigationManager.NavigateTo("/login");
+            NavigationManager.NavigateTo("/");
         }
         catch (HttpRequestException ex)
         {
